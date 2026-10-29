@@ -179,6 +179,84 @@ def cmd_gold_tool(args) -> int:
     return 0
 
 
+def _split_days(args) -> tuple[list[str], list[str], list[str]]:
+    """Train / validation / test days. Default: test = the gold-set days, validation =
+    the last stored day before them, train = every earlier stored day."""
+    import pandas as pd
+
+    from gnssguard.analysis.coverage import partitions
+
+    stored = sorted({d for _, d, _ in partitions(args.cells)})
+    if args.test_dates:
+        test = _split(args.test_dates)
+    elif Path(args.gold).exists():
+        test = sorted(pd.read_csv(args.gold, dtype=str)["date"].unique())
+    else:
+        raise SystemExit("give --test-dates, or a gold set (--gold) to take them from")
+    before = [d for d in stored if d < min(test)]
+    val = _split(args.val_dates) or before[-1:]
+    train = _split(args.train_dates) or [d for d in before if d not in val]
+    if not train or not val:
+        raise SystemExit(f"need stored days before the test day {test}: have {stored}")
+    return train, val, test
+
+
+def cmd_train(args) -> int:
+    from gnssguard.model.train import build_table, importance, train
+
+    tr, va, te = _split_days(args)
+    print(f"train: {', '.join(tr)}\nvalidation: {', '.join(va)}\ntest (sealed): {', '.join(te)}")
+    table, lm = build_table(args.data, args.cells, tr, va, synth_region=args.synth_region,
+                            synth_seeds=tuple(int(s) for s in _split(args.synth_seeds)),
+                            spec=_grid(args))
+    Path(args.table).parent.mkdir(parents=True, exist_ok=True)
+    table.to_parquet(args.table, index=False)
+    det = train(table, label_model=lm)
+    det.meta["test_dates"] = te
+    det.save(args.model)
+    rep = Path(args.report)
+    rep.mkdir(parents=True, exist_ok=True)
+    importance(det).to_csv(rep / "importance.csv", index=False)
+    for t, info in det.meta["targets"].items():
+        print(f"{t}: {info['train_rows']:,} rows, {info['train_positives']:,} positives, "
+              f"{info['best_iteration']} trees, validation logloss {info['val_logloss']}")
+    print(f"model: {args.model}   table: {args.table}")
+    return 0
+
+
+def cmd_evaluate(args) -> int:
+    import pandas as pd
+
+    from gnssguard.model.evaluate import run
+    from gnssguard.model.train import Detectors
+
+    det = Detectors.load(args.model)
+    table = pd.read_parquet(args.table)
+    test = _split(args.test_dates) or det.meta.get("test_dates")
+    res = run(args.data, args.cells, table, det, test, args.gold, args.advisories, args.report,
+              synth_region=args.synth_region, ablations=not args.no_ablations, spec=_grid(args))
+    with pd.option_context("display.width", 160, "display.max_columns", 20):
+        for name in ("gold", "synthetic_mean", "edge", "synthetic_hard_mean", "edge_hard",
+                     "real_flag_rates", "localization", "advisories"):
+            df = res.get(name)
+            if df is not None and not df.empty:
+                print(f"\n== {name}")
+                print(df.to_string(index=False))
+    print(f"\nreports: {args.report}/  (no per-cell predictions for the test day are written)")
+    return 0
+
+
+def _model_args(p) -> None:
+    p.add_argument("--data", default="data/processed")
+    p.add_argument("--cells", default="data/cells")
+    p.add_argument("--gold", default="labels/gold.csv")
+    p.add_argument("--model", default="data/models/detector")
+    p.add_argument("--table", default="data/model/table.parquet")
+    p.add_argument("--report", default="reports/model")
+    p.add_argument("--synth-region", default="central_europe")
+    p.add_argument("--test-dates")
+
+
 def _grid_args(p) -> None:
     p.add_argument("--cell-deg", type=float, default=1.0, help="grid cell size in degrees")
     p.add_argument("--window-min", type=int, default=15, help="time window in minutes")
@@ -267,6 +345,21 @@ def main(argv: list[str] | None = None) -> int:
     pt.add_argument("--cells", default="data/cells")
     pt.add_argument("--out", default="reports/gold_tool.html")
     pt.set_defaults(func=cmd_gold_tool)
+
+    pr = sub.add_parser("train", help="train the jamming and spoofing detectors")
+    _model_args(pr)
+    pr.add_argument("--train-dates")
+    pr.add_argument("--val-dates")
+    pr.add_argument("--synth-seeds", default="0,1")
+    _grid_args(pr)
+    pr.set_defaults(func=cmd_train)
+
+    pe = sub.add_parser("evaluate", help="score the detectors on gold, synthetic, advisories")
+    _model_args(pe)
+    pe.add_argument("--advisories", default="configs/advisories.csv")
+    pe.add_argument("--no-ablations", action="store_true", help="skip retraining variants")
+    _grid_args(pe)
+    pe.set_defaults(func=cmd_evaluate)
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,

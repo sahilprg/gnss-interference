@@ -14,6 +14,7 @@ dependencies = [
     "pandas>=2.1",
     "pyyaml>=6",
     "requests>=2.31",
+    "lightgbm>=4",
 ]
 
 [project.optional-dependencies]
@@ -48,3 +49,10 @@ extend-immutable-calls = ["gnssguard.features.cells.GridSpec", "GridSpec"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "tests"]
+# With PYTHONWARNDEFAULTENCODING=1 (set in CI), any text file opened without an explicit
+# encoding fails the tests: Windows defaults to cp1252, Linux to UTF-8.
+filterwarnings = [
+    "error::EncodingWarning",
+    # LightGBM's own save_model writes ASCII without naming an encoding: harmless
+    "ignore::EncodingWarning:lightgbm",
+]

@@ -1,4 +1,4 @@
-.PHONY: install test lint sample ingest coverage cells label synth gold gold-tool maps phase2
+.PHONY: install test lint sample ingest coverage cells label synth gold gold-tool maps phase2 train evaluate phase3
 
 DATE ?= 2026-10-26
 REGION ?= baltic
@@ -44,3 +44,12 @@ maps:
 	gnssguard map --region $(REGION) --date $(DATE) --gold labels/gold.csv
 
 phase2: cells label synth maps
+
+# Phase 3: detection model
+train:
+	gnssguard train
+
+evaluate:
+	gnssguard evaluate
+
+phase3: train evaluate

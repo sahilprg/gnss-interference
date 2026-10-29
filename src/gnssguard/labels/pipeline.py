@@ -95,6 +95,6 @@ def run(cells_dir: str | Path, out_file: str | Path, events_csv: str | Path | No
     (rep / "label_model.json").write_text(json.dumps({
         "prior_jamming": model.prior_, "iterations": model.n_iter_,
         "one_sided_rules": model.one_sided_, "cell_windows": len(labels),
-    }, indent=2))
+    }, indent=2), encoding="utf-8")
     log.info("labeled %d cell-windows -> %s", len(labels), out_file)
     return labels

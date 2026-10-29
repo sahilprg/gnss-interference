@@ -10,7 +10,14 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Windows too: the project is developed on Windows, where text files default to cp1252
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONWARNDEFAULTENCODING: "1"  # text files opened without an encoding fail the tests
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -19,7 +26,7 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev,fast]"
       - run: ruff check .
-      - run: pytest -q
+      - run: python -m pytest -q
 
   secrets-scan:
     runs-on: ubuntu-latest

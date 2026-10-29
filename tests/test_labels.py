@@ -79,7 +79,7 @@ def test_events_match_and_validation(tmp_path):
     path.write_text(
         "event_id,type,lat_min,lat_max,lon_min,lon_max,start_utc,end_utc,source_url,notes\n"
         "E1,Jamming,54.2,55.0,20.0,21.5,2026-10-26T10:00:00Z,2026-10-26T11:00:00Z,"
-        "https://example.org/notam,\n")
+        "https://example.org/notam,\n", encoding="utf-8")
     ev = load_events(path)
     cells = pd.DataFrame({
         "cell_lat": [54.0, 54.0, 56.0], "cell_lon": [20.0, 20.0, 20.0],
@@ -90,7 +90,8 @@ def test_events_match_and_validation(tmp_path):
     assert m["event_id"].tolist()[0] == "E1" and m["event_type"].iloc[0] == "jamming"
     assert m["event_id"].isna().tolist()[1:] == [True, True]  # ends at 11:00; wrong lat
 
-    path.write_text(path.read_text().replace("https://example.org/notam", ""))
+    path.write_text(path.read_text(encoding="utf-8").replace("https://example.org/notam", ""),
+                    encoding="utf-8")
     with pytest.raises(ValueError, match="source_url"):
         load_events(path)
 

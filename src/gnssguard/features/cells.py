@@ -152,6 +152,8 @@ def aircraft_windows(pts: pd.DataFrame) -> pd.DataFrame:
         speed_mismatch=("speed_mismatch", "any"),
         mlat_fallback=("mlat_fallback", "any"),
         alt_ft=("alt_ft", "median"),
+        lat=("lat", "mean"),
+        lon=("lon", "mean"),
     ).reset_index()
     u = ac["usable_pts"]
     ac["usable"] = u > 0
