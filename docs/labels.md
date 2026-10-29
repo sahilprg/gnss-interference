@@ -17,6 +17,7 @@ gnssguard cells                       # data/cells/region=*/date=*/part-0.parque
 gnssguard label                       # data/labels/labels.parquet + reports/labels/
 gnssguard synth --region central_europe --date 2026-10-26 --seeds 0,1,2,3,4
 gnssguard gold-sample --dates 2026-10-26 --n 300   # labels/gold.csv (commit this)
+gnssguard gold-tool                                # labeling page: reports/gold_tool.html
 gnssguard map --region baltic --date 2026-10-26 --gold labels/gold.csv
 ```
 
@@ -214,6 +215,32 @@ matching cell-windows and writes `reports/labels/event_recall.csv`. Events check
 rules; they are never used to tune thresholds. The file ships empty: no event has
 been entered yet.
 
+### Official advisories
+
+Standing warnings (NOTAMs, bulletins, pilot reports) cover whole airspaces for months,
+so they cannot label single cell-windows. `configs/advisories.csv` holds them as rough
+boxes, and `gnssguard label` writes `reports/labels/advisory_check.csv`: within each
+study region, the flagged share inside the warned box against outside it, over the
+days the warning was in force.
+
+Shipped entries (all found via [Safe Airspace](https://safeairspace.net/summary/) on
+29 Oct 2026; original notices not checked; boxes approximate):
+
+| ID | Warning | In force since | Box |
+| --- | --- | --- | --- |
+| TR1 | Turkey NOTAM LTAA A4412/26 | 2026-10-02 | Turkish part of the Black Sea region |
+| CY1 | Cyprus NOTAM LCCC A0799/26 | 2026-07-28 | Nicosia FIR, rough |
+| LB1 | Lebanon NOTAM OLBB A0191/26 (jamming and spoofing) | 2026-08-15 | Beirut FIR, rough |
+| PK1 | Pilot reports of spoofing near Lahore (not a NOTAM) | 2023-12 | Pakistani side near Lahore |
+| RU1-3 | EASA CZIB 2025-01 R3, western Russia | 2025-01-09 | Kaliningrad; NW Russia slice; Krasnodar coast |
+
+On 2026-10-26: inside vs outside flagged share was 14.4% vs 0.8% for Lebanon (17×),
+21.9% vs 7.2% near Lahore (3×), and 100% vs 45% for Kaliningrad (2.2×). Turkey (0.58×)
+and Cyprus (0.49×) came out lower inside: both are broad FIR-wide notices, and
+"outside" is the rest of the same study region, which holds hotter areas (the northern
+Black Sea; Lebanon and Israel). A ratio below 1 does not contradict a warning. The
+Krasnodar box has no judgeable cells: almost no civil traffic is tracked there.
+
 ## 7. Gold set
 
 `gnssguard gold-sample` picks cell-windows with at least 3 usable aircraft, stratified
@@ -221,17 +248,31 @@ by region and by stratum (likely normal, uncertain, likely jamming, spoofing
 candidate), topping up at random when a stratum is small. The CSV leaves out rule
 votes and probabilities on purpose.
 
-To label:
+To label, use the labeling tool:
 
-1. `gnssguard map --region <r> --date <d> --gold labels/gold.csv`, open the HTML. The
-   coastlines and borders are built into the page and work offline; "Street map
-   (online)" adds a detailed CARTO background when you have internet.
-2. Gold cells have black outlines with their ID. Use the "Degraded share" view and
-   the hover details. Do not use the Label view while labeling.
-3. Fill `label` with `jamming`, `spoofing`, `both`, `normal` or `unsure`, plus your
-   initials in `labeler` and anything notable in `notes`.
-4. A week later, relabel 10% blind and record agreement.
-5. Keep the gold days out of training in Phase 3. Commit `labels/gold.csv`.
+```bash
+gnssguard gold-tool        # writes reports/gold_tool.html
+```
+
+1. Open `reports/gold_tool.html` in your browser and enter your initials.
+2. Each screen shows one gold cell (black outline) with its 5 × 5 neighbourhood for the
+   window before, the window itself and the window after, and the cell's numbers. No
+   rule votes or model probabilities are shown.
+3. Press `1`-`5` for jamming, spoofing, both, normal, unsure; arrows move. It jumps to
+   the next unlabeled cell. Judge from the context the rules cannot see: neighbours
+   and the windows before and after. Use `unsure` freely.
+4. Labels save in the browser as you go. To finish (or stop for the day), press
+   **Download gold.csv** and replace `labels/gold.csv` with it; all other columns stay
+   exactly as they were. Commit it.
+5. A week later, relabel 10% blind and record agreement.
+6. Keep the gold days out of training in Phase 3.
+
+Edit `labels/gold.csv` in a text editor (VS Code), not Excel: Excel rewrites the
+`window` timestamps and the rows stop matching.
+
+The map viewer (`gnssguard map --region <r> --date <d> --gold labels/gold.csv`) also
+outlines gold cells. Its coastlines and borders are built in and work offline; "Street
+map (online)" adds a CARTO background when you have internet.
 
 ## 8. Not done yet
 

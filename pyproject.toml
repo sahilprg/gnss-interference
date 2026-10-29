@@ -43,6 +43,7 @@ extend-immutable-calls = ["gnssguard.features.cells.GridSpec", "GridSpec"]
 [tool.ruff.lint.per-file-ignores]
 # the embedded HTML/JS page template is not Python
 "src/gnssguard/viz/map.py" = ["E501"]
+"src/gnssguard/labels/goldtool.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
