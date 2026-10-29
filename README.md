@@ -11,8 +11,8 @@ Total running cost: zero.
 
 | Phase | State |
 | --- | --- |
-| 1. Data foundation: streaming ingest, regional Parquet store, coverage check | **in progress** |
-| 2. Labels: weak rules, official events, synthetic attacks, gold set | planned |
+| 1. Data foundation: streaming ingest, regional Parquet store, coverage check | done |
+| 2. Labels: weak rules, label model, synthetic attacks, map viewer, gold-set sampler | **done; gold set and event list to fill by hand** |
 | 3. Models: area detector, jamming vs spoofing, source localization | planned |
 | 4. Evaluation: time and region splits, ablations, failure analysis | planned |
 | 5. Product: daily pipeline, live map, static API | planned |
@@ -49,6 +49,32 @@ moved into place only when it finishes, so a crash never leaves partial data.
 See [docs/data.md](docs/data.md) for the archive format, the output columns, and why
 quality fields are carried forward with an age.
 
+## Labels (Phase 2)
+
+No labeled dataset of GNSS interference over aircraft exists, so labels are built from
+weak rules, a label model, synthetic attacks and a hand-checked gold set.
+
+```bash
+gnssguard cells          # 1° x 15-min grid-cell features for every stored day
+gnssguard label          # 7 rules -> label model -> jamming / spoofing / both / normal
+gnssguard map --region baltic --date 2026-10-26        # interactive HTML map
+gnssguard synth --region central_europe --date 2026-10-26 --seeds 0,1,2,3,4
+gnssguard gold-sample --dates 2026-10-26 --n 300       # cells for hand labeling
+```
+
+First results on one real day (2026-10-26):
+
+| | Result |
+| --- | --- |
+| Judged cell-windows flagged, Baltic | 46% |
+| Judged cell-windows flagged, Central Europe / US Midwest (calm controls) | 0.65% / 0% |
+| Synthetic jamming detected (5 runs) | 76% of affected cell-windows |
+| Synthetic spoofing detected (5 runs) | 77% (range 54-97%) |
+| False alarms away from synthetic events | 1.1% |
+
+Key findings, the open questions and the gold-set protocol are in
+[docs/labels.md](docs/labels.md).
+
 ## Running on a laptop
 
 Measured on one full day (2026-10-26, all six regions):
@@ -81,10 +107,15 @@ Tips:
 
 ```
 configs/regions.yaml        study regions (hotspots and calm controls)
+configs/events.csv          officially reported interference events (filled by hand)
+labels/gold.csv             gold test set for hand labeling (commit your labels)
 src/gnssguard/ingest/       release lookup, multi-part stream, trace decoder, Parquet writer
 src/gnssguard/analysis/     coverage report
-tests/                      unit tests with a synthetic split archive
-docs/                       data documentation
+src/gnssguard/features/     grid-cell x time-window features
+src/gnssguard/labels/       rules, label model, events, synthetic attacks, gold sampler
+src/gnssguard/viz/          HTML map viewer
+tests/                      unit tests (no network)
+docs/                       data and labeling documentation
 ```
 
 ## Data license
