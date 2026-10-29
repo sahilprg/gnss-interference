@@ -13,8 +13,13 @@ import time
 from collections.abc import Sequence
 
 import requests
+import urllib3
 
 log = logging.getLogger(__name__)
+
+# A dropped connection mid-download surfaces as urllib3's ProtocolError (e.g.
+# "IncompleteRead"), which is neither an OSError nor a requests exception.
+RETRYABLE = (OSError, requests.RequestException, urllib3.exceptions.HTTPError)
 
 USER_AGENT = "gnssguard/0.1 (research; github.com/sahilprg/gnss-interference)"
 
@@ -26,8 +31,9 @@ class MultiPartStream(io.RawIOBase):
         self,
         sources: Sequence[str],
         *,
-        retries: int = 6,
+        retries: int = 8,
         timeout: float = 60.0,
+        backoff: float = 2.0,
         session: requests.Session | None = None,
     ):
         super().__init__()
@@ -35,6 +41,7 @@ class MultiPartStream(io.RawIOBase):
             raise ValueError("no sources")
         self.sources = list(sources)
         self.retries = retries
+        self.backoff = backoff
         self.timeout = timeout
         self.session = session or requests.Session()
         self.session.headers.setdefault("User-Agent", USER_AGENT)
@@ -52,7 +59,7 @@ class MultiPartStream(io.RawIOBase):
 
     def readinto(self, b) -> int:
         while True:
-            if self._fh is None:
+            if self._idx >= len(self.sources):
                 return 0
             n = self._read_current(b)
             if n:
@@ -88,10 +95,9 @@ class MultiPartStream(io.RawIOBase):
             return
         src = self.sources[self._idx]
         log.info("opening part %d/%d: %s", self._idx + 1, len(self.sources), src.rsplit("/", 1)[-1])
-        if self._is_url(src):
-            self._open_http(src, 0)
-        else:
+        if not self._is_url(src):
             self._fh = open(src, "rb")  # noqa: SIM115 - closed in _close_current
+        # URLs open on first read, inside the retry loop, so a failed connect is retried too
 
     def _open_http(self, url: str, offset: int) -> None:
         headers = {"Range": f"bytes={offset}-"} if offset else {}
@@ -112,20 +118,22 @@ class MultiPartStream(io.RawIOBase):
             return self._fh.readinto(b)
         for attempt in range(self.retries + 1):
             try:
+                if self._fh is None:  # reconnect after a failure, resuming where we stopped
+                    self._open_http(src, self._part_offset)
                 data = self._fh.read(len(b))
                 b[: len(data)] = data
                 if not data and self._part_size is not None and self._part_offset < self._part_size:
                     raise OSError("connection closed before end of part")
                 return len(data)
-            except (OSError, requests.RequestException) as e:
+            except RETRYABLE as e:
                 if attempt == self.retries:
                     raise
-                wait = min(60, 2**attempt)
-                log.warning("read error at byte %d of %s (%s); retry in %ds",
-                            self._part_offset, src.rsplit("/", 1)[-1], e, wait)
+                wait = min(60, self.backoff * 2**attempt)
+                log.warning("read error at byte %d of %s (%s); retry %d/%d in %.0fs",
+                            self._part_offset, src.rsplit("/", 1)[-1], e, attempt + 1,
+                            self.retries, wait)
                 time.sleep(wait)
                 self._close_current()
-                self._open_http(src, self._part_offset)
         return 0
 
     def _check_part_complete(self) -> None:

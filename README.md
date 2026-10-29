@@ -13,7 +13,7 @@ Total running cost: zero.
 | --- | --- |
 | 1. Data foundation: streaming ingest, regional Parquet store, coverage check | done |
 | 2. Labels: weak rules, label model, synthetic attacks, map viewer, gold-set sampler | **done; gold set and event list to fill by hand** |
-| 3. Models: area detector, jamming vs spoofing, source localization | planned |
+| 3. Models: jamming and spoofing detectors, source localization | **first version done; gold set in progress** |
 | 4. Evaluation: time and region splits, ablations, failure analysis | planned |
 | 5. Product: daily pipeline, live map, static API | planned |
 
@@ -79,6 +79,28 @@ First results on one real day (2026-10-26):
 Key findings, the open questions and the gold-set protocol are in
 [docs/labels.md](docs/labels.md).
 
+## Detection model (Phase 3)
+
+Two LightGBM models (jamming, spoofing) trained on the rules' weak labels plus synthetic
+attacks, using each cell's neighbours and the windows before and after. No location
+features. Test day kept sealed for the gold set.
+
+```bash
+gnssguard train      # train 20-24 Oct, validate 25 Oct, test 26 Oct (the gold-set day)
+gnssguard evaluate   # gold, synthetic (standard + hard), real flag rates, ablations
+```
+
+| Test (26 Oct) | Rules | Model |
+| --- | --- | --- |
+| Gold labels, interference vs normal (45 cells so far) | 100% | 97.8% |
+| Hard synthetic attacks: jamming caught | 51% | **95%** |
+| Hard synthetic attacks: footprint edges caught | 14% | **92%** |
+| Hard synthetic attacks: spoofing caught | 74% | **91%** |
+| False alarms, calm Central Europe (real data) | 0.65% | **0.57%** |
+| Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
+
+Ablations, limits and the full tables: [docs/model.md](docs/model.md).
+
 ## Running on a laptop
 
 Measured on one full day (2026-10-26, all six regions):
@@ -118,6 +140,7 @@ src/gnssguard/ingest/       release lookup, multi-part stream, trace decoder, Pa
 src/gnssguard/analysis/     coverage report
 src/gnssguard/features/     grid-cell x time-window features
 src/gnssguard/labels/       rules, label model, events, synthetic attacks, gold sampler
+src/gnssguard/model/        detector dataset, training, evaluation, source localization
 src/gnssguard/viz/          HTML map viewer
 tests/                      unit tests (no network)
 docs/                       data and labeling documentation

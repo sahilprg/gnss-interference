@@ -11,7 +11,8 @@ def test_load_and_check(tmp_path):
     p = tmp_path / "adv.csv"
     p.write_text(HEADER + "A1,NOTAM X,Testland,50,52,10,12,2026-10-01T00:00:00Z,,"
                  "https://example.org,approximate\n"
-                 "A2,NOTAM Y,Testland,50,52,10,12,2026-11-01T00:00:00Z,,https://example.org,\n")
+                 "A2,NOTAM Y,Testland,50,52,10,12,2026-11-01T00:00:00Z,,https://example.org,\n",
+                 encoding="utf-8")
     adv = load_advisories(p)
     assert pd.isna(adv.loc[0, "end_utc"])  # still in force
 
@@ -30,10 +31,11 @@ def test_load_and_check(tmp_path):
 
 def test_validation(tmp_path):
     p = tmp_path / "adv.csv"
-    p.write_text(HEADER + "A1,N,T,52,50,10,12,2026-10-01T00:00:00Z,,https://example.org,\n")
+    p.write_text(HEADER + "A1,N,T,52,50,10,12,2026-10-01T00:00:00Z,,https://example.org,\n",
+                 encoding="utf-8")
     with pytest.raises(ValueError, match="lat_min < lat_max"):
         load_advisories(p)
-    p.write_text(HEADER + "A1,N,T,50,52,10,12,2026-10-01T00:00:00Z,,,\n")
+    p.write_text(HEADER + "A1,N,T,50,52,10,12,2026-10-01T00:00:00Z,,,\n", encoding="utf-8")
     with pytest.raises(ValueError, match="source_url"):
         load_advisories(p)
 
@@ -56,7 +58,7 @@ def test_gold_tool_payload(tmp_path):
     build_all(tmp_path / "processed", tmp_path / "cells")
     gold = tmp_path / "gold.csv"
     gold.write_text("gold_id,region,date,cell_lat,cell_lon,window,label,labeler,notes\n"
-                    "G0001,r,2026-10-26,50.0,10.0,2026-10-26 10:00:00+00:00,,,\n")
+                    "G0001,r,2026-10-26,50.0,10.0,2026-10-26 10:00:00+00:00,,,\n", encoding="utf-8")
     data = build_payload(gold, tmp_path / "cells")
     item = data["items"][0]
     focal = [r for r in item["ctx"] if r[:3] == [0, 0, 1]][0]
@@ -64,7 +66,7 @@ def test_gold_tool_payload(tmp_path):
         focal[3 + data["metrics"].index("n_ac_degraded")]
     assert (usable, degraded) == (4, 2)
     assert data["rows"][0]["window"] == "2026-10-26 10:00:00+00:00"  # kept verbatim
-    html = write_tool(gold, tmp_path / "cells", tmp_path / "tool.html").read_text()
+    html = write_tool(gold, tmp_path / "cells", tmp_path / "tool.html").read_text(encoding="utf-8")
     blob = re.search(r'id="data">(.*?)</script>', html, re.S).group(1)
     assert json.loads(blob.replace("<\\/", "</"))["file_id"] == data["file_id"]
     assert "p_jamming" not in html and "spoof_votes" not in html  # blind

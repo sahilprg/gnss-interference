@@ -45,7 +45,7 @@ def is_done(out_root: Path, day: dt.date) -> bool:
     if not path.exists():
         return False
     try:
-        return bool(json.loads(path.read_text()).get("complete_day"))
+        return bool(json.loads(path.read_text(encoding="utf-8")).get("complete_day"))
     except json.JSONDecodeError:
         return False
 
@@ -74,7 +74,7 @@ def ingest_day(
     out_root = Path(out_root)
     if is_done(out_root, day) and not force:
         log.info("%s already ingested; use --force to redo", day)
-        return json.loads(manifest_path(out_root, day).read_text())
+        return json.loads(manifest_path(out_root, day).read_text(encoding="utf-8"))
 
     sources = list(sources) if sources else resolve_day(day)
     tmp_root = out_root / f".tmp-{day.isoformat()}"
@@ -144,6 +144,6 @@ def ingest_day(
 
     mpath = manifest_path(out_root, day)
     mpath.parent.mkdir(parents=True, exist_ok=True)
-    mpath.write_text(json.dumps(manifest, indent=2))
+    mpath.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     log.info("%s done: %s rows in %.0fs", day, sum(rows.values()), manifest["seconds"])
     return manifest

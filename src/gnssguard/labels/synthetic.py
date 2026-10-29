@@ -173,9 +173,24 @@ def inject(points: pd.DataFrame, events: list[Event], seed: int = 0
     return out, truth.reset_index(drop=True)
 
 
+# Attack profiles. "hard" is a deliberately different distribution used only for testing:
+# short, weak jammers that mostly degrade aircraft partially, and slow spoofing drifts
+# that keep integrity high. A model that only learned the "standard" generator's habits
+# will fall down here.
+PROFILES = {
+    "standard": {"durations": [45, 60, 90, 120, 180], "jam_range": (120, 300), "core_frac": 0.6,
+                 "p_drop": 0.15, "spoof_radius": (60, 150), "drift": (150, 400),
+                 "p_nic_kept": 0.7, "modes": ["drift", "jump"]},
+    "hard": {"durations": [15, 30, 45], "jam_range": (60, 140), "core_frac": 0.25,
+             "p_drop": 0.3, "spoof_radius": (40, 80), "drift": (60, 150),
+             "p_nic_kept": 0.9, "modes": ["drift"]},
+}
+
+
 def random_events(points: pd.DataFrame, n_jamming: int, n_spoofing: int, seed: int = 0,
-                  min_sep_km: float = 450.0) -> list[Event]:
+                  min_sep_km: float = 450.0, profile: str = "standard") -> list[Event]:
     """Place events where there is traffic, separated in space or time."""
+    pr = PROFILES[profile]
     rng = np.random.default_rng(seed)
     alt = points["alt_baro"].astype("float64")
     pool = points[~points["on_ground"].astype(bool) & (alt >= 20_000)
@@ -189,7 +204,7 @@ def random_events(points: pd.DataFrame, n_jamming: int, n_spoofing: int, seed: i
         for _ in range(200):
             p = pool.iloc[int(rng.integers(len(pool)))]
             start = p["ts"].floor("15min")
-            end = start + pd.Timedelta(minutes=int(rng.choice([45, 60, 90, 120, 180])))
+            end = start + pd.Timedelta(minutes=int(rng.choice(pr["durations"])))
             clash = any(
                 _haversine_km(p["lat"], p["lon"], la, lo) < min_sep_km and start < e and end > s
                 for la, lo, s, e in placed)
@@ -200,16 +215,17 @@ def random_events(points: pd.DataFrame, n_jamming: int, n_spoofing: int, seed: i
         if kind == "jamming":
             events.append(Jamming(
                 eid, float(p["lat"]), float(p["lon"]), start.isoformat(), end.isoformat(),
-                range_km=float(rng.uniform(120, 300)), height_m=float(rng.uniform(10, 100)),
-                p_mlat=0.0))
+                range_km=float(rng.uniform(*pr["jam_range"])),
+                height_m=float(rng.uniform(10, 100)), core_frac=pr["core_frac"],
+                p_drop=pr["p_drop"], p_mlat=0.0))
         else:
             b = rng.uniform(0, 2 * np.pi)
             tl, to = _destination(p["lat"], p["lon"], b, rng.uniform(80, 200))
-            mode = str(rng.choice(["drift", "jump"]))
+            mode = str(rng.choice(pr["modes"]))
             events.append(Spoofing(
-                eid, float(p["lat"]), float(p["lon"]), float(rng.uniform(60, 150)),
+                eid, float(p["lat"]), float(p["lon"]), float(rng.uniform(*pr["spoof_radius"])),
                 start.isoformat(), end.isoformat(), float(tl), float(to), mode=mode,
-                drift_kt=float(rng.uniform(150, 400)),
+                drift_kt=float(rng.uniform(*pr["drift"])), p_nic_kept=pr["p_nic_kept"],
                 spoof_alt_ft=300.0 if mode == "jump" else None))
     return events
 
@@ -311,7 +327,7 @@ def evaluate(pred: pd.DataFrame, truth_cw: pd.DataFrame, spec: GridSpec,
 
 def save_events(events: list[Event], path: str | Path) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    Path(path).write_text(json.dumps([asdict(e) for e in events], indent=2))
+    Path(path).write_text(json.dumps([asdict(e) for e in events], indent=2), encoding="utf-8")
 
 
 def run_experiment(processed: str | Path, region: str, date: str, *, n_jamming: int = 4,
