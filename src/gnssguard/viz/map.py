@@ -1,7 +1,9 @@
 """Self-contained HTML map of one region-day: cells, labels and gold-set cells.
 
 Open the file in a browser. It loads Leaflet from unpkg (pinned version, integrity
-checked) and OpenStreetMap tiles; everything else is embedded in the page.
+checked); everything else is embedded, including coastlines and borders from Natural
+Earth, so the map needs no tile server. A street-map background (CARTO) can be
+switched on but needs internet access.
 
 Views
 * Degraded share: share of usable aircraft with NIC < 7 (sequential blue). Cells with
@@ -23,6 +25,7 @@ import pandas as pd
 
 from gnssguard.features.cells import CELL_KEYS
 from gnssguard.labels.rules import MIN_USABLE
+from gnssguard.viz.basemap import background
 
 LABEL_CODES = {"normal": 0, "jamming": 1, "spoofing": 2, "both": 3, "unknown": 4}
 
@@ -63,7 +66,10 @@ def _payload(cells: pd.DataFrame, labels: pd.DataFrame | None,
             gold_ids.index(gid) if isinstance(gid, str) else -1,
         ])
     deg = float(c["cell_deg"].iloc[0]) if "cell_deg" in c else 1.0
+    box = (float(cell_list.cell_lat.min()), float(cell_list.cell_lat.max() + deg),
+           float(cell_list.cell_lon.min()), float(cell_list.cell_lon.max() + deg))
     return {
+        "basemap": background(box),
         "region": str(c["region"].iloc[0]) if "region" in c else "",
         "date": str(c["date"].iloc[0]) if "date" in c else "",
         "cell_deg": deg,
@@ -133,6 +139,7 @@ _TEMPLATE = r"""<!doctype html>
   #time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 92px; }
   #map { height: 62vh; min-height: 360px; margin: 0 16px; border-radius: 8px;
          border: 1px solid var(--border); }
+  #map.leaflet-container { background: #e3eaf0; }  /* sea */
   .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
             padding: 8px 16px; font-size: 12.5px; color: var(--ink-2); }
   .sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px;
@@ -172,6 +179,8 @@ _TEMPLATE = r"""<!doctype html>
     </select>
   </label>
   <label><input type="checkbox" id="day"> Whole day</label>
+  <label title="Needs internet. The default background (coastlines and borders) works offline.">
+    <input type="checkbox" id="street"> Street map (online)</label>
   <button id="prev" aria-label="Previous window">&#9664;</button>
   <input type="range" id="slider" min="0" value="0" aria-label="Time window">
   <button id="next" aria-label="Next window">&#9654;</button>
@@ -223,9 +232,31 @@ _TEMPLATE = r"""<!doctype html>
   }));
 
   const map = L.map('map', {preferCanvas: true, zoomSnap: 0.5}).fitBounds(D.bounds, {padding: [10, 10]});
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 11, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  // Offline background: Natural Earth land and borders, embedded in this page.
+  const ll = ring => ring.map(p => [p[1], p[0]]);
+  const LAND = {color: '#b9b7ae', weight: 0.7, opacity: 1, fillColor: '#f3f2ee', fillOpacity: 1, interactive: false};
+  const BORDER = {color: '#a9a79f', weight: 0.8, opacity: 0.9, dashArray: '4 3', interactive: false};
+  const land = L.polygon(D.basemap.land.map(poly => poly.map(ll)), LAND).addTo(map);
+  const borders = L.polyline(D.basemap.borders.map(ll), BORDER).addTo(map);
+  // Do not zoom or pan beyond the area the embedded outlines cover.
+  map.setMinZoom(Math.max(map.getBoundsZoom(D.basemap.extent, true), map.getZoom() - 1));
+  map.setMaxBounds(L.latLngBounds(D.basemap.extent).pad(0.05));
+  map.attributionControl.setPrefix(false);
+  map.attributionControl.addAttribution('<a href="https://leafletjs.com">Leaflet</a> · coastlines: Natural Earth');
+  // Optional street map: needs internet; tiles from CARTO (OpenStreetMap data).
+  const street = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 12,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  });
+  document.getElementById('street').onchange = e => {
+    if (e.target.checked) {
+      street.addTo(map);
+      land.setStyle({fillOpacity: 0, opacity: 0}); borders.setStyle({opacity: 0});
+    } else {
+      map.removeLayer(street);
+      land.setStyle(LAND); borders.setStyle(BORDER);
+    }
+  };
   const goldLayer = L.layerGroup().addTo(map);
 
   let current = new Map();  // cell index -> record for the view

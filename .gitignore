@@ -1,6 +1,6 @@
 # data and outputs never go into git (versioned with DVC / published on Hugging Face)
-data/
-reports/
+/data/
+/reports/
 mlruns/
 logs_*.txt
 *.parquet
