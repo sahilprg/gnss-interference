@@ -1,6 +1,7 @@
-.PHONY: install test lint sample ingest coverage
+.PHONY: install test lint sample ingest coverage cells label synth gold maps phase2
 
 DATE ?= 2026-10-26
+REGION ?= baltic
 
 install:
 	pip install -e ".[dev,fast]"
@@ -22,3 +23,21 @@ ingest:
 
 coverage:
 	gnssguard coverage --data data/processed --save reports/coverage
+
+# Phase 2: labels
+cells:
+	gnssguard cells
+
+label:
+	gnssguard label
+
+synth:
+	gnssguard synth --region central_europe --date $(DATE) --seeds 0,1,2,3,4
+
+gold:
+	gnssguard gold-sample --dates $(DATE) --n 300
+
+maps:
+	gnssguard map --region $(REGION) --date $(DATE) --gold labels/gold.csv
+
+phase2: cells label synth maps
