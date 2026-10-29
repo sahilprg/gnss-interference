@@ -16,7 +16,7 @@ import requests
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = "gnssguard/0.1 (research; github.com/<your-user>/gnss-interference)"
+USER_AGENT = "gnssguard/0.1 (research; github.com/sahilprg/gnss-interference)"
 
 
 class MultiPartStream(io.RawIOBase):

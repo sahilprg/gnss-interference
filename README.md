@@ -20,7 +20,7 @@ Total running cost: zero.
 ## Quickstart
 
 ```bash
-git clone https://github.com/<your-user>/gnss-interference
+git clone https://github.com/sahilprg/gnss-interference
 cd gnss-interference
 pip install -e ".[dev,fast]"
 
