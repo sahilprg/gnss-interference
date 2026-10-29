@@ -99,11 +99,15 @@ def cmd_label(args) -> int:
     from gnssguard.labels.pipeline import run
 
     labels = run(args.cells, args.out, args.events, args.report, _split(args.dates),
-                 _split(args.regions))
+                 _split(args.regions), advisories_csv=args.advisories)
     table = (labels.groupby(["region", "label"], observed=False).size()
              .unstack(fill_value=0))
-    with pd.option_context("display.width", 120):
+    with pd.option_context("display.width", 140):
         print(table.to_string())
+        adv = Path(args.report) / "advisory_check.csv"
+        if args.advisories and adv.exists():
+            print("\nOfficial advisories: flagged share inside vs outside the warned area")
+            print(pd.read_csv(adv).to_string(index=False))
     print(f"\nlabels: {args.out}\nreports: {args.report}/")
     return 0
 
@@ -165,6 +169,16 @@ def cmd_gold(args) -> int:
     return 0
 
 
+def cmd_gold_tool(args) -> int:
+    from gnssguard.labels.goldtool import write_tool
+
+    out = write_tool(args.gold, args.cells, args.out)
+    print(f"labeling tool written to {out}")
+    print("Open it in your browser. Press 1-5 to label, arrows to move.")
+    print(f"When done, press 'Download gold.csv' and replace {args.gold} with it.")
+    return 0
+
+
 def _grid_args(p) -> None:
     p.add_argument("--cell-deg", type=float, default=1.0, help="grid cell size in degrees")
     p.add_argument("--window-min", type=int, default=15, help="time window in minutes")
@@ -208,6 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     pb.add_argument("--cells", default="data/cells")
     pb.add_argument("--out", default="data/labels/labels.parquet")
     pb.add_argument("--events", default="configs/events.csv")
+    pb.add_argument("--advisories", default="configs/advisories.csv")
     pb.add_argument("--report", default="reports/labels")
     pb.add_argument("--dates")
     pb.add_argument("--regions")
@@ -246,6 +261,12 @@ def main(argv: list[str] | None = None) -> int:
     pg.add_argument("--out", default="labels/gold.csv")
     pg.add_argument("--force", action="store_true")
     pg.set_defaults(func=cmd_gold)
+
+    pt = sub.add_parser("gold-tool", help="HTML page for labeling the gold set")
+    pt.add_argument("--gold", default="labels/gold.csv")
+    pt.add_argument("--cells", default="data/cells")
+    pt.add_argument("--out", default="reports/gold_tool.html")
+    pt.set_defaults(func=cmd_gold_tool)
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,

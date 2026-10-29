@@ -60,7 +60,11 @@ gnssguard label          # 7 rules -> label model -> jamming / spoofing / both /
 gnssguard map --region baltic --date 2026-10-26        # interactive HTML map
 gnssguard synth --region central_europe --date 2026-10-26 --seeds 0,1,2,3,4
 gnssguard gold-sample --dates 2026-10-26 --n 300       # cells for hand labeling
+gnssguard gold-tool                                    # labeling page (keyboard, autosave)
 ```
+
+`configs/advisories.csv` holds official area-wide warnings (NOTAMs, EASA bulletins);
+`gnssguard label` compares flagged rates inside and outside each warned area.
 
 First results on one real day (2026-10-26):
 
@@ -108,6 +112,7 @@ Tips:
 ```
 configs/regions.yaml        study regions (hotspots and calm controls)
 configs/events.csv          officially reported interference events (filled by hand)
+configs/advisories.csv      official area-wide warnings: NOTAMs, EASA bulletins
 labels/gold.csv             gold test set for hand labeling (commit your labels)
 src/gnssguard/ingest/       release lookup, multi-part stream, trace decoder, Parquet writer
 src/gnssguard/analysis/     coverage report

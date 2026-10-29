@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from gnssguard.features.cells import load_cells
+from gnssguard.labels.advisories import advisory_check, load_advisories
 from gnssguard.labels.events import load_events, match_events
 from gnssguard.labels.labelmodel import DawidSkene, majority_vote
 from gnssguard.labels.rules import INTEGRITY_RULES, MOTION_RULES, apply_rules, rule_summary
@@ -61,7 +62,8 @@ def label_cells(cells: pd.DataFrame, events: pd.DataFrame | None = None
 
 def run(cells_dir: str | Path, out_file: str | Path, events_csv: str | Path | None,
         report_dir: str | Path, dates: list[str] | None = None,
-        regions: list[str] | None = None) -> pd.DataFrame:
+        regions: list[str] | None = None,
+        advisories_csv: str | Path | None = None) -> pd.DataFrame:
     cells = load_cells(cells_dir, dates, regions)
     if cells.empty:
         raise ValueError(f"no cell tables in {cells_dir}; run `gnssguard cells` first")
@@ -86,6 +88,10 @@ def run(cells_dir: str | Path, out_file: str | Path, events_csv: str | Path | No
             detected=("label", lambda s: round(float(s.isin(["jamming", "spoofing",
                                                                "both"]).mean()), 3)),
         ).reset_index().to_csv(rep / "event_recall.csv", index=False)
+    if advisories_csv:
+        adv = load_advisories(advisories_csv)
+        if not adv.empty:
+            advisory_check(labels, adv).to_csv(rep / "advisory_check.csv", index=False)
     (rep / "label_model.json").write_text(json.dumps({
         "prior_jamming": model.prior_, "iterations": model.n_iter_,
         "one_sided_rules": model.one_sided_, "cell_windows": len(labels),
