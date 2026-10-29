@@ -223,7 +223,9 @@ votes and probabilities on purpose.
 
 To label:
 
-1. `gnssguard map --region <r> --date <d> --gold labels/gold.csv`, open the HTML.
+1. `gnssguard map --region <r> --date <d> --gold labels/gold.csv`, open the HTML. The
+   coastlines and borders are built into the page and work offline; "Street map
+   (online)" adds a detailed CARTO background when you have internet.
 2. Gold cells have black outlines with their ID. Use the "Degraded share" view and
    the hover details. Do not use the Label view while labeling.
 3. Fill `label` with `jamming`, `spoofing`, `both`, `normal` or `unsure`, plus your

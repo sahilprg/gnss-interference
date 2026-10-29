@@ -77,3 +77,19 @@ def test_map_html_embeds_data_safely():
     assert data["region"] == "test</script><b>" and len(data["cells"]) == 1
     assert data["rows"][0][0][2] == 4  # four usable aircraft in the only cell
     assert "integrity=" in html  # pinned, integrity-checked Leaflet
+    assert data["basemap"]["land"], "embedded coastlines around central Europe"
+    assert "tile.openstreetmap.org" not in html  # OSM refuses pages opened from disk
+
+
+def test_basemap_clip():
+    from gnssguard.viz.basemap import _clip_ring, background
+
+    square = [[0, 0], [10, 0], [10, 10], [0, 10]]  # [lon, lat]
+    clipped = _clip_ring(square, (2, 5, -5, 4))  # lat 2..5, lon -5..4
+    lons, lats = [p[0] for p in clipped], [p[1] for p in clipped]
+    assert min(lons) == 0 and max(lons) == 4 and min(lats) == 2 and max(lats) == 5
+    assert _clip_ring(square, (20, 30, 20, 30)) == []
+
+    bg = background((53.0, 60.5, 18.0, 28.5))  # Baltic
+    pts = [p for poly in bg["land"] for ring in poly for p in ring]
+    assert pts and all(-2 <= p[0] <= 48.5 and 45 <= p[1] <= 68.5 for p in pts)
