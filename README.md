@@ -49,6 +49,34 @@ moved into place only when it finishes, so a crash never leaves partial data.
 See [docs/data.md](docs/data.md) for the archive format, the output columns, and why
 quality fields are carried forward with an age.
 
+## Running on a laptop
+
+Measured on one full day (2026-10-26, all six regions):
+
+| Resource | Ingest | Coverage report |
+| --- | --- | --- |
+| Peak RAM | ~0.9 GB | ~1.0-1.2 GB, flat as days are added |
+| Disk written | ~130 MB per day | none |
+| Download | ~3.8 GB per day, streamed, never saved | none |
+
+Disk plan for 20 GB free:
+
+| Item | Size |
+| --- | --- |
+| Python dependencies for Phase 1 | ~0.3 GB |
+| 40 days, all six regions | ~5.5 GB |
+| 40 days without `us_midwest` (half the volume) | ~2.7 GB |
+| PyTorch with GPU support, needed from Phase 3 (approximate) | ~5 GB |
+
+Tips:
+
+- Install with `pip install --no-cache-dir ...` so pip does not keep a second copy.
+- Choose regions per run: `--regions baltic,east_med,black_sea,punjab,central_europe`.
+- Put data on another drive with `--out D:/gnss-data` (and `--data` for coverage).
+- On Windows without `make`, run the `gnssguard ...` commands from the Makefile directly.
+- Download volume is the real cost: 40 days is ~150 GB. On a capped connection, run the
+  ingest in a free Google Colab notebook and download only the Parquet output.
+
 ## Repository layout
 
 ```
