@@ -47,20 +47,19 @@ def cmd_ingest(args) -> int:
 
 
 def cmd_coverage(args) -> int:
-    from gnssguard.analysis.coverage import coverage_report, hourly_degraded, load
+    from gnssguard.analysis.coverage import scan
 
-    df = load(args.data, args.dates.split(",") if args.dates else None,
-              args.regions.split(",") if args.regions else None)
-    if df.empty:
+    report, hourly = scan(args.data, args.dates.split(",") if args.dates else None,
+                          args.regions.split(",") if args.regions else None)
+    if report.empty:
         print("no data found", file=sys.stderr)
         return 1
-    report = coverage_report(df)
     print(report.to_string(index=False))
     if args.save:
         out = Path(args.save)
         out.mkdir(parents=True, exist_ok=True)
         report.to_csv(out / "coverage.csv", index=False)
-        hourly_degraded(df).to_csv(out / "hourly_degraded.csv", index=False)
+        hourly.to_csv(out / "hourly_degraded.csv", index=False)
         print(f"saved to {out}/")
     return 0
 
