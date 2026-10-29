@@ -1,0 +1,28 @@
+# Study regions. Boxes are [lat_min, lat_max, lon_min, lon_max] in degrees.
+# role: hotspot = reported GNSS interference; control = expected to be calm.
+# Run `gnssguard coverage` after the first ingest and drop regions with too few aircraft.
+regions:
+  baltic:
+    bbox: [53.0, 60.5, 18.0, 28.5]
+    role: hotspot
+    note: Kaliningrad, NE Poland, Lithuania, Latvia, Estonia, Gulf of Finland
+  east_med:
+    bbox: [31.0, 36.5, 31.5, 37.5]
+    role: hotspot
+    note: Cyprus, Lebanon, Israel, Syrian coast
+  black_sea:
+    bbox: [41.0, 46.5, 28.0, 41.5]
+    role: hotspot
+    note: Romania and Turkey coasts, Black Sea
+  punjab:
+    bbox: [29.0, 33.5, 72.0, 76.5]
+    role: hotspot
+    note: India-Pakistan border area around Amritsar and Lahore
+  central_europe:
+    bbox: [47.5, 51.5, 7.0, 13.0]
+    role: control
+    note: Southern Germany, dense traffic, no known interference
+  us_midwest:
+    bbox: [38.0, 42.5, -95.0, -85.0]
+    role: control
+    note: Dense receiver coverage, no known interference
