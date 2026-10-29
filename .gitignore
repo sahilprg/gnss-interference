@@ -1,0 +1,26 @@
+# data and outputs never go into git (versioned with DVC / published on Hugging Face)
+data/
+reports/
+mlruns/
+logs_*.txt
+*.parquet
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# secrets
+.env
+*.pem
+*.key
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
