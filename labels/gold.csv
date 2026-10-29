@@ -1,55 +1,55 @@
 gold_id,region,date,cell_lat,cell_lon,window,label,labeler,notes
-G0001,punjab,2026-10-26,29.0,75.0,2026-10-26 11:00:00+00:00,,,
-G0002,punjab,2026-10-26,29.0,75.0,2026-10-26 18:30:00+00:00,,,
-G0003,baltic,2026-10-26,53.0,19.0,2026-10-26 10:30:00+00:00,,,
-G0004,punjab,2026-10-26,30.0,75.0,2026-10-26 19:15:00+00:00,,,
-G0005,central_europe,2026-10-26,47.0,10.0,2026-10-26 16:00:00+00:00,,,
-G0006,east_med,2026-10-26,34.0,37.0,2026-10-26 15:15:00+00:00,,,
-G0007,east_med,2026-10-26,31.0,36.0,2026-10-26 22:15:00+00:00,,,
-G0008,punjab,2026-10-26,32.0,75.0,2026-10-26 06:30:00+00:00,,,
-G0009,black_sea,2026-10-26,41.0,40.0,2026-10-26 15:00:00+00:00,,,
-G0010,central_europe,2026-10-26,48.0,12.0,2026-10-26 03:45:00+00:00,,,
-G0011,central_europe,2026-10-26,48.0,9.0,2026-10-26 21:30:00+00:00,,,
-G0012,baltic,2026-10-26,54.0,25.0,2026-10-26 09:30:00+00:00,,,
-G0013,punjab,2026-10-26,31.0,73.0,2026-10-26 21:15:00+00:00,,,
-G0014,central_europe,2026-10-26,47.0,7.0,2026-10-26 10:00:00+00:00,,,
-G0015,baltic,2026-10-26,60.0,21.0,2026-10-26 14:45:00+00:00,,,
-G0016,black_sea,2026-10-26,41.0,41.0,2026-10-26 07:00:00+00:00,,,
-G0017,baltic,2026-10-26,56.0,19.0,2026-10-26 10:15:00+00:00,,,
-G0018,black_sea,2026-10-26,44.0,33.0,2026-10-26 15:15:00+00:00,,,
-G0019,baltic,2026-10-26,59.0,28.0,2026-10-26 12:45:00+00:00,,,
-G0020,east_med,2026-10-26,35.0,33.0,2026-10-26 07:15:00+00:00,,,
-G0021,punjab,2026-10-26,29.0,75.0,2026-10-26 06:00:00+00:00,,,
-G0022,central_europe,2026-10-26,49.0,12.0,2026-10-26 17:45:00+00:00,,,
-G0023,central_europe,2026-10-26,50.0,8.0,2026-10-26 00:30:00+00:00,,,
-G0024,central_europe,2026-10-26,51.0,10.0,2026-10-26 18:00:00+00:00,,,
-G0025,punjab,2026-10-26,30.0,75.0,2026-10-26 17:15:00+00:00,,,
-G0026,central_europe,2026-10-26,51.0,7.0,2026-10-26 07:15:00+00:00,,,
-G0027,punjab,2026-10-26,30.0,75.0,2026-10-26 05:00:00+00:00,,,
-G0028,central_europe,2026-10-26,50.0,8.0,2026-10-26 07:15:00+00:00,,,
-G0029,central_europe,2026-10-26,50.0,10.0,2026-10-26 04:30:00+00:00,,,
-G0030,baltic,2026-10-26,53.0,23.0,2026-10-26 07:30:00+00:00,,,
-G0031,black_sea,2026-10-26,44.0,33.0,2026-10-26 15:30:00+00:00,,,
-G0032,black_sea,2026-10-26,42.0,28.0,2026-10-26 13:30:00+00:00,,,
-G0033,baltic,2026-10-26,53.0,21.0,2026-10-26 19:45:00+00:00,,,
-G0034,central_europe,2026-10-26,49.0,12.0,2026-10-26 22:15:00+00:00,,,
-G0035,punjab,2026-10-26,30.0,76.0,2026-10-26 17:15:00+00:00,,,
-G0036,east_med,2026-10-26,33.0,34.0,2026-10-26 15:30:00+00:00,,,
-G0037,east_med,2026-10-26,33.0,33.0,2026-10-26 15:45:00+00:00,,,
-G0038,punjab,2026-10-26,31.0,74.0,2026-10-26 17:45:00+00:00,,,
-G0039,east_med,2026-10-26,35.0,33.0,2026-10-26 14:15:00+00:00,,,
-G0040,baltic,2026-10-26,58.0,28.0,2026-10-26 13:45:00+00:00,,,
-G0041,punjab,2026-10-26,31.0,74.0,2026-10-26 18:45:00+00:00,,,
-G0042,black_sea,2026-10-26,41.0,29.0,2026-10-26 14:30:00+00:00,,,
-G0043,black_sea,2026-10-26,43.0,28.0,2026-10-26 11:15:00+00:00,,,
-G0044,baltic,2026-10-26,60.0,24.0,2026-10-26 09:30:00+00:00,,,
-G0045,black_sea,2026-10-26,41.0,40.0,2026-10-26 16:00:00+00:00,,,
-G0046,east_med,2026-10-26,34.0,35.0,2026-10-26 01:00:00+00:00,,,
-G0047,central_europe,2026-10-26,47.0,8.0,2026-10-26 10:30:00+00:00,,,
-G0048,black_sea,2026-10-26,42.0,29.0,2026-10-26 10:45:00+00:00,,,
-G0049,baltic,2026-10-26,54.0,22.0,2026-10-26 10:00:00+00:00,,,
-G0050,black_sea,2026-10-26,42.0,29.0,2026-10-26 08:45:00+00:00,,,
-G0051,black_sea,2026-10-26,41.0,31.0,2026-10-26 11:00:00+00:00,,,
+G0001,punjab,2026-10-26,29.0,75.0,2026-10-26 11:00:00+00:00,normal,SP,No integrity or motion anomalies; surrounding cells and adjacent windows show no degradation.
+G0002,punjab,2026-10-26,29.0,75.0,2026-10-26 18:30:00+00:00,both,SP,Integrity degradation and GPS–baro altitude anomalies coexist; degradation also present before and in neighbouring cells.
+G0003,baltic,2026-10-26,53.0,19.0,2026-10-26 10:30:00+00:00,jamming,SP,"Multiple aircraft lose GPS integrity, with widespread neighbouring degradation persisting into After; no motion anomalies."
+G0004,punjab,2026-10-26,30.0,75.0,2026-10-26 19:15:00+00:00,spoofing,SP,Repeated GPS–baro altitude anomalies with intact integrity this window; neighbouring cells show degradation.
+G0005,central_europe,2026-10-26,47.0,10.0,2026-10-26 16:00:00+00:00,normal,SP,No integrity or motion anomalies across all three windows; neighbours overwhelmingly healthy.
+G0006,east_med,2026-10-26,34.0,37.0,2026-10-26 15:15:00+00:00,jamming,SP,Integrity degradation without motion anomalies; nearby degradation continues in After. Sparse coverage and no Before data in target cell.
+G0007,east_med,2026-10-26,31.0,36.0,2026-10-26 22:15:00+00:00,normal,SP,"Current cell has no integrity or motion anomalies; surrounding coverage is mostly healthy, with isolated sparse signals."
+G0008,punjab,2026-10-26,32.0,75.0,2026-10-26 06:30:00+00:00,normal,SP,No integrity or motion anomalies; no degradation nearby or in adjacent windows.
+G0009,black_sea,2026-10-26,41.0,40.0,2026-10-26 15:00:00+00:00,jamming,SP,Integrity degradation across adjacent cells and the preceding window; no motion anomalies.
+G0010,central_europe,2026-10-26,48.0,12.0,2026-10-26 03:45:00+00:00,jamming,SP,Multiple aircraft show integrity loss without motion anomalies; neighbouring degradation persists into After.
+G0011,central_europe,2026-10-26,48.0,9.0,2026-10-26 21:30:00+00:00,normal,SP,No integrity or motion anomalies; consistently healthy surrounding cells with strong coverage.
+G0012,baltic,2026-10-26,54.0,25.0,2026-10-26 09:30:00+00:00,jamming,SP,"Integrity loss without motion anomalies; degradation also present before and nearby, with sparse surrounding coverage."
+G0013,punjab,2026-10-26,31.0,73.0,2026-10-26 21:15:00+00:00,jamming,SP,"Integrity degradation without motion anomalies; nearby signals and persistence into After, though affected counts are small."
+G0014,central_europe,2026-10-26,47.0,7.0,2026-10-26 10:00:00+00:00,normal,SP,No integrity or motion anomalies; consistently healthy neighbours and strong coverage.
+G0015,baltic,2026-10-26,60.0,21.0,2026-10-26 14:45:00+00:00,normal,SP,Target and immediate neighbours healthy across all windows; degradation confined to cells farther southeast.
+G0016,black_sea,2026-10-26,41.0,41.0,2026-10-26 07:00:00+00:00,normal,SP,Target healthy across all windows; isolated neighbouring degradation without target anomalies.
+G0017,baltic,2026-10-26,56.0,19.0,2026-10-26 10:15:00+00:00,jamming,SP,"Integrity loss without motion anomalies, supported by simultaneous degradation in multiple neighbouring cells."
+G0018,black_sea,2026-10-26,44.0,33.0,2026-10-26 15:15:00+00:00,both,SP,"Integrity degradation and altitude anomalies coexist, persist across windows, and strengthen in After."
+G0019,baltic,2026-10-26,59.0,28.0,2026-10-26 12:45:00+00:00,jamming,SP,"Persistent widespread integrity loss and MLAT fallback; no jump or speed anomalies, altitude comparison unavailable."
+G0020,east_med,2026-10-26,35.0,33.0,2026-10-26 07:15:00+00:00,normal,SP,No target integrity or motion anomalies across all windows; surrounding cells overwhelmingly healthy.
+G0021,punjab,2026-10-26,29.0,75.0,2026-10-26 06:00:00+00:00,normal,SP,"Current window healthy with no motion anomalies; no surrounding degradation, only one low-NACp reading before."
+G0022,central_europe,2026-10-26,49.0,12.0,2026-10-26 17:45:00+00:00,jamming,SP,Low-level integrity degradation repeats across windows and nearby cells; no motion anomalies.
+G0023,central_europe,2026-10-26,50.0,8.0,2026-10-26 00:30:00+00:00,normal,SP,No integrity or motion anomalies across all windows; immediate neighbours healthy.
+G0024,central_europe,2026-10-26,51.0,10.0,2026-10-26 18:00:00+00:00,normal,SP,No anomalies in the current window; low-level scattered degradation nearby and one affected aircraft after.
+G0025,punjab,2026-10-26,30.0,75.0,2026-10-26 17:15:00+00:00,spoofing,SP,"Altitude disagreement affects all four aircraft despite intact integrity; repeats before and after, with nearby degradation."
+G0026,central_europe,2026-10-26,51.0,7.0,2026-10-26 07:15:00+00:00,normal,SP,No integrity or motion anomalies; consistently healthy neighbours with strong coverage.
+G0027,punjab,2026-10-26,30.0,75.0,2026-10-26 05:00:00+00:00,normal,SP,"Current window has no anomalies; earlier motion flags do not persist, and surrounding cells are largely healthy."
+G0028,central_europe,2026-10-26,50.0,8.0,2026-10-26 07:15:00+00:00,normal,SP,No integrity or motion anomalies; consistently healthy surrounding cells with strong coverage.4
+G0029,central_europe,2026-10-26,50.0,10.0,2026-10-26 04:30:00+00:00,normal,SP,Target has no current anomalies following earlier regional degradation; residual signals remain nearby.
+G0030,baltic,2026-10-26,53.0,23.0,2026-10-26 07:30:00+00:00,unsure,SP,Target currently healthy with only three aircraft; strong adjacent degradation reaches target in After.
+G0031,black_sea,2026-10-26,44.0,33.0,2026-10-26 15:30:00+00:00,both,SP,All five usable aircraft show degradation and altitude anomalies; both signals persist across adjacent windows.
+G0032,black_sea,2026-10-26,42.0,28.0,2026-10-26 13:30:00+00:00,unsure,SP,"Target healthy this window with good coverage, but degradation persists eastward and appears in target before and after."
+G0033,baltic,2026-10-26,53.0,21.0,2026-10-26 19:45:00+00:00,jamming,SP,Persistent integrity loss and MLAT fallback across target and neighbours; no motion anomalies.
+G0034,central_europe,2026-10-26,49.0,12.0,2026-10-26 22:15:00+00:00,normal,SP,No integrity or motion anomalies; target and surrounding cells consistently healthy.
+G0035,punjab,2026-10-26,30.0,76.0,2026-10-26 17:15:00+00:00,spoofing,SP,Altitude anomalies affect all three aircraft despite intact integrity and persist in After; no Before coverage.
+G0036,east_med,2026-10-26,33.0,34.0,2026-10-26 15:30:00+00:00,jamming,SP,Multiple-aircraft integrity degradation with neighbouring support; isolated speed mismatch is insufficient for both.
+G0037,east_med,2026-10-26,33.0,33.0,2026-10-26 15:45:00+00:00,unsure,SP,"Multiple motion flags with single-aircraft integrity loss; nearby/prior degradation, but no confirmed repetition of motion anomalies."
+G0038,punjab,2026-10-26,31.0,74.0,2026-10-26 17:45:00+00:00,jamming,SP,Persistent integrity degradation with neighbouring support; altitude anomalies recur but affect only one aircraft this window.
+G0039,east_med,2026-10-26,35.0,33.0,2026-10-26 14:15:00+00:00,normal,SP,Current target and immediate neighbours healthy; scattered integrity degradation appears after.
+G0040,baltic,2026-10-26,58.0,28.0,2026-10-26 13:45:00+00:00,jamming,SP,"Persistent widespread integrity loss and MLAT fallback; no jump or speed anomalies, altitude comparison unavailable."
+G0041,punjab,2026-10-26,31.0,74.0,2026-10-26 18:45:00+00:00,spoofing,SP,Multiple altitude anomalies and one jump with intact integrity; altitude disagreement persists into After.
+G0042,black_sea,2026-10-26,41.0,29.0,2026-10-26 14:30:00+00:00,spoofing,SP,"Four speed mismatches with intact integrity; motion anomaly also present after, alongside strong nearby degradation."
+G0043,black_sea,2026-10-26,43.0,28.0,2026-10-26 11:15:00+00:00,normal,SP,Target and immediate neighbours consistently healthy; no integrity or motion anomalies.
+G0044,baltic,2026-10-26,60.0,24.0,2026-10-26 09:30:00+00:00,unsure,SP,Target currently healthy; surrounding degradation persists from Before and clears in After.
+G0045,black_sea,2026-10-26,41.0,40.0,2026-10-26 16:00:00+00:00,jamming,SP,"Integrity degradation peaks this window, with affected neighbours and persistence before/after; no motion anomalies."
+G0046,east_med,2026-10-26,34.0,35.0,2026-10-26 01:00:00+00:00,jamming,SP,"Integrity loss and MLAT fallback across multiple aircraft, supported by nearby and preceding degradation; no motion anomalies."
+G0047,central_europe,2026-10-26,47.0,8.0,2026-10-26 10:30:00+00:00,normal,SP,"Current window healthy with strong coverage; no surrounding degradation, only one low-NACp reading after."
+G0048,black_sea,2026-10-26,42.0,29.0,2026-10-26 10:45:00+00:00,unsure,SP,Single-aircraft integrity loss amid neighbouring degradation; insufficient target evidence for jamming.
+G0049,baltic,2026-10-26,54.0,22.0,2026-10-26 10:00:00+00:00,jamming,SP,"Widespread integrity loss and MLAT fallback, persisting into After; no observed motion anomalies."
+G0050,black_sea,2026-10-26,42.0,29.0,2026-10-26 08:45:00+00:00,jamming,SP,Multiple-aircraft integrity degradation supported by neighbouring and preceding signals; no observed motion anomalies.
+G0051,black_sea,2026-10-26,41.0,31.0,2026-10-26 11:00:00+00:00,unsure,SP,"Current target healthy, but nearby degradation and target anomalies before/after leave mixed context."
 G0052,punjab,2026-10-26,31.0,74.0,2026-10-26 01:00:00+00:00,,,
 G0053,east_med,2026-10-26,33.0,37.0,2026-10-26 13:15:00+00:00,,,
 G0054,central_europe,2026-10-26,49.0,11.0,2026-10-26 04:00:00+00:00,,,
