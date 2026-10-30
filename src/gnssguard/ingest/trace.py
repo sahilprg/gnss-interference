@@ -89,11 +89,17 @@ def _float(v):
 
 
 def iter_rows(
-    obj: dict, regions: Sequence[Region], bounds: Bounds | None = None
+    obj: dict, regions: Sequence[Region], bounds: Bounds | None = None,
+    stats: dict | None = None,
 ) -> Iterator[tuple[str, tuple]]:
     """Yield (region_name, row) for every trace point inside a region.
 
     A point inside two overlapping regions is yielded once per region.
+    Positions whose timestamp does not move forward (exact duplicates or out of order)
+    are dropped; their quality fields are still carried forward. On 2026-10-17 one
+    parked aircraft produced 2.4 million points in 6 hours, 2.1 million of them exact
+    duplicates. Normal traces do have points under a second apart; those are kept.
+    `stats["points_not_forward"]` counts the drops when a dict is passed.
     `row` follows COLUMNS order; `ts` is epoch milliseconds.
     """
     trace = obj.get("trace")
@@ -108,6 +114,7 @@ def iter_rows(
 
     q = dict.fromkeys(QUALITY_KEYS)
     q_t = None
+    last_t = None
 
     for p in trace:
         n = len(p)
@@ -127,6 +134,11 @@ def iter_rows(
         lat, lon = p[1], p[2]
         if lat is None or lon is None:
             continue
+        if last_t is not None and t <= last_t:
+            if stats is not None:
+                stats["points_not_forward"] = stats.get("points_not_forward", 0) + 1
+            continue
+        last_t = t
         if not (blat0 <= lat <= blat1 and blon0 <= lon <= blon1):
             continue
         hits = [b[0] for b in boxes if b[1] <= lat <= b[2] and b[3] <= lon <= b[4]]
