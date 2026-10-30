@@ -1,4 +1,4 @@
-from conftest import BASE_TS, REGIONS
+from conftest import BASE_TS, REGIONS, det, make_trace
 
 from gnssguard.ingest.trace import COLUMNS, iter_rows
 
@@ -46,6 +46,22 @@ def test_geometric_altitude_flag_and_missing_position(sample_traces):
 
 def test_no_hits_outside_regions(sample_traces):
     assert rows_by_region(sample_traces[2]) == {}
+
+
+def test_drops_non_forward_points_but_keeps_their_quality():
+    pts = [
+        [0.0, 50.5, 10.5, 30000, 400.0, 90.0, 0, 0, None, "adsb_icao"],
+        [0.0, 50.5, 10.5, 30000, 400.0, 90.0, 0, 0, det(3, 4), "adsb_icao"],    # duplicate
+        [0.2, 50.5, 10.5, 30000, 400.0, 90.0, 0, 0, None, "adsb_icao"],         # kept
+        [0.1, 50.5, 10.6, 30000, 400.0, 90.0, 0, 0, None, "adsb_icao"],         # backwards
+        [1.0, 50.5, 10.7, 30000, 400.0, 90.0, 0, 0, None, "adsb_icao"],
+    ]
+    stats = {}
+    rows = [dict(zip(COLUMNS, r, strict=True))
+            for _, r in iter_rows(make_trace("abc", pts), REGIONS[:1], stats=stats)]
+    assert [r["ts"] for r in rows] == [int((BASE_TS + s) * 1000) for s in (0.0, 0.2, 1.0)]
+    assert stats["points_not_forward"] == 2
+    assert rows[1]["nic"] == 3  # NIC from the dropped duplicate is still carried forward
 
 
 def test_empty_trace():

@@ -82,7 +82,8 @@ def ingest_day(
     writer = RegionWriter(tmp_root, day.isoformat())
     bounds = bounds_of(regions)
 
-    stats = {"trace_files": 0, "traces_with_hits": 0, "decode_errors": 0, "points_kept": 0}
+    stats = {"trace_files": 0, "traces_with_hits": 0, "decode_errors": 0, "points_kept": 0,
+             "points_not_forward": 0}
     t0 = time.time()
     stream = MultiPartStream(sources)
     complete = True
@@ -104,7 +105,7 @@ def ingest_day(
                     stats["decode_errors"] += 1
                     continue
                 hit = False
-                for region, row in iter_rows(obj, regions, bounds):
+                for region, row in iter_rows(obj, regions, bounds, stats):
                     writer.add(region, row)
                     stats["points_kept"] += 1
                     hit = True

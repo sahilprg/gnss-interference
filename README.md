@@ -86,17 +86,17 @@ attacks, using each cell's neighbours and the windows before and after. No locat
 features. Test day kept sealed for the gold set.
 
 ```bash
-gnssguard train      # train 20-24 Oct, validate 25 Oct, test 26 Oct (the gold-set day)
+gnssguard train      # train on all earlier days, validate on the day before the test day
 gnssguard evaluate   # gold, synthetic (standard + hard), real flag rates, ablations
 ```
 
-| Test (26 Oct) | Rules | Model |
+| Test (26 Oct; trained on 26 days) | Rules | Model |
 | --- | --- | --- |
 | Gold labels, interference vs normal (45 cells so far) | 100% | 97.8% |
 | Hard synthetic attacks: jamming caught | 51% | **95%** |
-| Hard synthetic attacks: footprint edges caught | 14% | **92%** |
-| Hard synthetic attacks: spoofing caught | 74% | **91%** |
-| False alarms, calm Central Europe (real data) | 0.65% | **0.57%** |
+| Hard synthetic attacks: footprint edges caught | 14% | **91%** |
+| Hard synthetic attacks: spoofing caught | 74% | **95%** |
+| False alarms, calm Central Europe (real data) | 0.65% | **0.53%** |
 | Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
 
 Ablations, limits and the full tables: [docs/model.md](docs/model.md).

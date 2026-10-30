@@ -35,7 +35,7 @@ from gnssguard.model.dataset import (
     synthetic_rows,
     with_context,
 )
-from gnssguard.model.localize import aircraft_points, incidents, localize_incidents, match_to_events
+from gnssguard.model.localize import incidents, localize_incidents, match_to_events
 from gnssguard.model.train import Detectors, train
 
 log = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ def synthetic_eval(runs_rows: pd.DataFrame, runs: list[dict], predictors: dict,
     for run in runs:
         cw = runs_rows[runs_rows["seed"] == run["seed"]]
         cw = cw[cw["date"] == run["date"]].reset_index(drop=True)
-        ac = aircraft_points(run["points"], spec) if localize_with else None
+        ac = run["aircraft"] if localize_with else None
         for name, fn in predictors.items():
             pred = fn(cw)
             frame = pd.concat([cw[CELL_KEYS], pred], axis=1)
@@ -217,14 +217,15 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame, det: 
     results = {}
     if gold_csv and Path(gold_csv).exists():
         results["gold"] = gold_eval(gold_csv, test_cells, predictors)
-    rows, runs = synthetic_rows(processed, synth_region, test_dates, list(synth_seeds), spec=spec)
+    rows, runs = synthetic_rows(processed, synth_region, test_dates, list(synth_seeds), spec=spec,
+                                keep_runs=True)
     syn = synthetic_eval(rows, runs, predictors, spec, localize_with=("rules", "model_full"))
     results.update(synthetic=syn["summary"], edge=syn["edge"],
                    localization=localization_summary(syn["localization"]),
                    localization_events=syn["localization"])
     hard_rows, hard_runs = synthetic_rows(processed, synth_region, test_dates,
                                           [s + 100 for s in synth_seeds], spec=spec,
-                                          profile="hard")
+                                          profile="hard", keep_runs=True)
     hard = synthetic_eval(hard_rows, hard_runs, predictors, spec)
     results.update(synthetic_hard=hard["summary"], edge_hard=hard["edge"])
     results["real_flag_rates"] = real_flag_rates(test_cells, predictors)

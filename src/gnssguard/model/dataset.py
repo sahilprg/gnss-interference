@@ -132,14 +132,18 @@ def real_targets(cells: pd.DataFrame, model: DawidSkene) -> pd.DataFrame:
 
 def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: list[int],
                    n_jamming: int = 4, n_spoofing: int = 4, spec: GridSpec = GridSpec(),
-                   p_mlat: float = 0.0, profile: str = "standard"
+                   p_mlat: float = 0.0, profile: str = "standard", keep_runs: bool = False
                    ) -> tuple[pd.DataFrame, list[dict]]:
     """Cell-windows with context and exact targets from attacks injected into `region`.
 
     Truth positive: >= 2 affected aircraft. Negative: no affected aircraft and outside a
     one-cell, one-window buffer. Everything in between is left out (ambiguous).
-    Also returns, per run, the injected points and events (for localization).
+
+    With keep_runs, also returns per run the events, truth and a compact aircraft table
+    for localization. The injected points themselves (~300 MB per busy region-day) are
+    never kept: holding one copy per run ran to ~15 GB with four weeks of training days.
     """
+    from gnssguard.model.localize import aircraft_points
     frames, runs = [], []
     for date in dates:
         folder = Path(processed) / f"region={region}" / f"date={date}"
@@ -172,8 +176,11 @@ def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: 
                                               np.nan))
             cw["seed"] = seed
             frames.append(cw)
-            runs.append({"region": region, "date": date, "seed": seed, "events": events,
-                         "points": inj, "truth": truth})
+            if keep_runs:
+                runs.append({"region": region, "date": date, "seed": seed, "events": events,
+                             "aircraft": aircraft_points(inj, spec), "truth": truth})
+            del inj
+        del pts
     rows = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
     return rows, runs
 
