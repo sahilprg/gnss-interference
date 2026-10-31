@@ -69,7 +69,29 @@ class Jamming:
     p_drop: float = 0.15
     p_geom_lost: float = 0.5
     p_mlat: float = 0.0
+    on_min: float | None = None  # duty cycle: on for on_min, off for off_min, repeating
+    off_min: float = 0.0
+    speed_kt: float = 0.0  # moving jammer
+    heading_deg: float = 0.0
     type: str = field(default="jamming", init=False)
+
+    def position_at(self, ts: pd.Series) -> tuple[np.ndarray, np.ndarray]:
+        """Jammer position at each timestamp (fixed unless speed_kt > 0)."""
+        n = len(ts)
+        if not self.speed_kt:
+            return np.full(n, self.lat), np.full(n, self.lon)
+        t0, t1 = pd.Timestamp(self.start), pd.Timestamp(self.end)
+        mid = t0 + (t1 - t0) / 2
+        hours = ((ts - mid).dt.total_seconds() / 3600.0).to_numpy()
+        dist = self.speed_kt * 1.852 * hours
+        b = np.where(dist >= 0, np.radians(self.heading_deg), np.radians(self.heading_deg + 180))
+        return _destination(np.full(n, self.lat), np.full(n, self.lon), b, np.abs(dist))
+
+    def is_on(self, ts: pd.Series) -> np.ndarray:
+        if not self.on_min:
+            return np.ones(len(ts), dtype=bool)
+        mins = (ts - pd.Timestamp(self.start)).dt.total_seconds().to_numpy() / 60.0
+        return (mins % (self.on_min + self.off_min)) < self.on_min
 
 
 @dataclass
@@ -119,8 +141,17 @@ def inject(points: pd.DataFrame, events: list[Event], seed: int = 0
     for ev in events:
         t0, t1 = pd.Timestamp(ev.start), pd.Timestamp(ev.end)
         live = airborne & (ts >= t0) & (ts < t1) & (df["inj_type"] == "")
-        d = pd.Series(_haversine_km(df["true_lat"], df["true_lon"], ev.lat, ev.lon),
-                      index=df.index)
+        if isinstance(ev, Jamming):
+            idx = df.index[live]
+            jl, jo = ev.position_at(ts[live])
+            d = pd.Series(np.inf, index=df.index)
+            d[idx] = _haversine_km(df.loc[idx, "true_lat"], df.loc[idx, "true_lon"], jl, jo)
+            on = pd.Series(False, index=df.index)
+            on[idx] = ev.is_on(ts[live])
+            live = live & on
+        else:
+            d = pd.Series(_haversine_km(df["true_lat"], df["true_lon"], ev.lat, ev.lon),
+                          index=df.index)
         if isinstance(ev, Jamming):
             reach = np.minimum(ev.range_km, radio_horizon_km(alt_ft, ev.height_m))
             inside = live & (d <= reach)
@@ -184,6 +215,16 @@ PROFILES = {
     "hard": {"durations": [15, 30, 45], "jam_range": (60, 140), "core_frac": 0.25,
              "p_drop": 0.3, "spoof_radius": (40, 80), "drift": (60, 150),
              "p_nic_kept": 0.9, "modes": ["drift"]},
+    # "stress": what real jammers do that neither generator above does. Test only.
+    # Half the jammers switch on and off, a third move (vehicle or ship), half come with
+    # a second jammer 60-200 km away at the same time, and half of the aircraft that lose
+    # GPS in the core fall back to MLAT positions (seen in real Baltic data).
+    "stress": {"durations": [15, 30, 45, 60, 90, 120], "jam_range": (60, 300), "core_frac": 0.4,
+               "p_drop": 0.3, "p_mlat": 0.5, "p_intermittent": 0.5, "on_min": [5, 10, 15],
+               "off_min": [5, 10, 20], "p_moving": 0.33, "speed_kt": (15, 60),
+               "p_paired": 0.5, "pair_km": (60, 200),
+               "spoof_radius": (40, 150), "drift": (60, 400), "p_nic_kept": 0.8,
+               "modes": ["drift", "jump"]},
 }
 
 
@@ -213,11 +254,23 @@ def random_events(points: pd.DataFrame, n_jamming: int, n_spoofing: int, seed: i
         placed.append((p["lat"], p["lon"], start, end))
         eid = f"{kind[0].upper()}{i + 1:02d}"
         if kind == "jamming":
-            events.append(Jamming(
-                eid, float(p["lat"]), float(p["lon"]), start.isoformat(), end.isoformat(),
-                range_km=float(rng.uniform(*pr["jam_range"])),
-                height_m=float(rng.uniform(10, 100)), core_frac=pr["core_frac"],
-                p_drop=pr["p_drop"], p_mlat=0.0))
+            jams = [(eid, float(p["lat"]), float(p["lon"]))]
+            if "p_paired" in pr and rng.random() < pr["p_paired"]:
+                la, lo = _destination(p["lat"], p["lon"], rng.uniform(0, 2 * np.pi),
+                                      rng.uniform(*pr["pair_km"]))
+                jams.append((f"{eid}b", float(la), float(lo)))
+            for jid, la, lo in jams:
+                ev = Jamming(jid, la, lo, start.isoformat(), end.isoformat(),
+                             range_km=float(rng.uniform(*pr["jam_range"])),
+                             height_m=float(rng.uniform(10, 100)), core_frac=pr["core_frac"],
+                             p_drop=pr["p_drop"], p_mlat=pr.get("p_mlat", 0.0))
+                if "p_intermittent" in pr and rng.random() < pr["p_intermittent"]:
+                    ev.on_min = float(rng.choice(pr["on_min"]))
+                    ev.off_min = float(rng.choice(pr["off_min"]))
+                if "p_moving" in pr and rng.random() < pr["p_moving"]:
+                    ev.speed_kt = float(rng.uniform(*pr["speed_kt"]))
+                    ev.heading_deg = float(rng.uniform(0, 360))
+                events.append(ev)
         else:
             b = rng.uniform(0, 2 * np.pi)
             tl, to = _destination(p["lat"], p["lon"], b, rng.uniform(80, 200))

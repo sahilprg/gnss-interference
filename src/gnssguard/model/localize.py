@@ -10,7 +10,14 @@
          reach = min(R, 4.12 * (sqrt(h_aircraft_m) + sqrt(h_jammer_m)))
      so high aircraft are affected from farther away than low ones. A grid search over
      jammer position and power range R picks the hypothesis that best separates degraded
-     from healthy aircraft (balanced accuracy). Near-best hypotheses give the uncertainty.
+     from healthy aircraft (balanced accuracy). Near-best hypotheses give the raw
+     uncertainty.
+4. Honest uncertainty. The raw spread is too small (it covered the truth for only 75%
+   of synthetic test events). It is scaled and floored with constants fitted on
+   synthetic events from earlier days (`fit_uncertainty`), aiming at 90% coverage. A fit
+   that separates degraded from healthy aircraft poorly (score < MIN_SCORE) usually
+   means several jammers were merged into one incident; such estimates are marked
+   `confident = False` and should be shown as an area, not a point.
 
 On real data only coarse estimates should be published (docs/model.md).
 """
@@ -33,6 +40,15 @@ from gnssguard.labels.synthetic import Jamming, radio_horizon_km
 
 R_GRID_KM = np.arange(50, 451, 25)
 JAMMER_HEIGHT_M = 30.0
+
+# Fitted with `fit_uncertainty` on 168 synthetic jamming events (standard, hard and
+# stress profiles, 3 seeds each) injected on 22-25 Oct 2026, never on the test day:
+# 90.7% of the 107 confident estimates fell inside 3.75 x the raw spread. See docs/model.md.
+UNCERTAINTY_SCALE = 3.75
+UNCERTAINTY_FLOOR_KM = 0.0
+MIN_SCORE = 0.85
+SCALE_GRID = np.arange(1.0, 6.01, 0.25)
+FLOOR_GRID_KM = np.arange(0.0, 80.1, 5.0)
 
 
 def aircraft_points(points: pd.DataFrame, spec: GridSpec = GridSpec()) -> pd.DataFrame:
@@ -124,7 +140,36 @@ def localize_incidents(ac: pd.DataFrame, inc: pd.DataFrame, spec: GridSpec = Gri
             continue
         rows.append({"incident_id": int(iid), "cell_windows": len(g),
                      "start": g["window"].min(), "end": g["window"].max(), **est})
-    return pd.DataFrame(rows)
+    return calibrate_uncertainty(pd.DataFrame(rows))
+
+
+def calibrate_uncertainty(est: pd.DataFrame, scale: float | None = None,
+                          floor_km: float | None = None, min_score: float = MIN_SCORE
+                          ) -> pd.DataFrame:
+    """Add uncertainty_cal_km (scaled, floored raw spread) and the confident flag."""
+    if est.empty:
+        return est
+    scale = UNCERTAINTY_SCALE if scale is None else scale
+    floor_km = UNCERTAINTY_FLOOR_KM if floor_km is None else floor_km
+    return est.assign(uncertainty_cal_km=np.maximum(est["uncertainty_km"] * scale, floor_km),
+                      confident=est["score"] >= min_score)
+
+
+def fit_uncertainty(loc: pd.DataFrame, target: float = 0.9,
+                    scales: np.ndarray = SCALE_GRID, floors: np.ndarray = FLOOR_GRID_KM
+                    ) -> dict:
+    """Smallest (scale, floor) whose interval covers the truth for `target` of the
+    confident, found events, choosing the narrowest median interval among those."""
+    f = loc[loc["found"] & (loc["score"] >= MIN_SCORE)]
+    best = None
+    for s in scales:
+        for fl in floors:
+            width = np.maximum(f["uncertainty_km"] * s, fl)
+            cover = float((f["fit_error_km"] <= width).mean())
+            if cover >= target and (best is None or width.median() < best["median_km"]):
+                best = {"scale": float(s), "floor_km": float(fl), "coverage": round(cover, 3),
+                        "median_km": float(width.median()), "events": len(f)}
+    return best or {}
 
 
 def match_to_events(est: pd.DataFrame, events: list, spec: GridSpec = GridSpec(),
@@ -148,6 +193,10 @@ def match_to_events(est: pd.DataFrame, events: list, spec: GridSpec = GridSpec()
                     row.update(found=True, fit_error_km=fit_err,
                                centroid_error_km=float(d.iloc[j]),
                                uncertainty_km=float(m.uncertainty_km),
-                               fitted_range_km=float(m.range_km))
+                               uncertainty_cal_km=float(m.uncertainty_cal_km),
+                               confident=bool(m.confident),
+                               fitted_range_km=float(m.range_km), score=float(m.score),
+                               n_degraded=int(m.n_degraded), n_healthy=int(m.n_healthy),
+                               cell_windows=int(m.cell_windows))
         rows.append(row)
     return pd.DataFrame(rows)

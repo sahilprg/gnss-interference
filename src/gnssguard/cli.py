@@ -237,12 +237,38 @@ def cmd_evaluate(args) -> int:
               synth_region=args.synth_region, ablations=not args.no_ablations, spec=_grid(args))
     with pd.option_context("display.width", 160, "display.max_columns", 20):
         for name in ("gold", "synthetic_mean", "edge", "synthetic_hard_mean", "edge_hard",
-                     "real_flag_rates", "localization", "advisories"):
+                     "synthetic_stress_mean", "edge_stress", "real_flag_rates", "localization",
+                     "calibration", "advisories"):
             df = res.get(name)
             if df is not None and not df.empty:
                 print(f"\n== {name}")
                 print(df.to_string(index=False))
     print(f"\nreports: {args.report}/  (no per-cell predictions for the test day are written)")
+    return 0
+
+
+def cmd_rolling(args) -> int:
+    import pandas as pd
+
+    from gnssguard.analysis.coverage import partitions
+    from gnssguard.model.rolling import run
+
+    table = pd.read_parquet(args.table)
+    stored = sorted({d for _, d, _ in partitions(args.cells)})
+    days = _split(args.test_dates) or stored[-args.days:]
+    print(f"rolling test days: {', '.join(days)}")
+    res = run(args.data, args.cells, table, days, args.report, synth_region=args.synth_region,
+              n_seeds=args.seeds, spec=_grid(args))
+    with pd.option_context("display.width", 160, "display.max_columns", 20):
+        for name in ("rolling_synthetic_overall", "rolling_real_flag_rates"):
+            df = res.get(name)
+            if df is not None and not df.empty:
+                if name == "rolling_real_flag_rates":
+                    df = df.pivot_table(index=["region", "predictor"], columns="test_day",
+                                        values="flagged_share")
+                print(f"\n== {name}")
+                print(df.to_string())
+    print(f"\nreports: {args.report}/rolling_*.csv")
     return 0
 
 
@@ -360,6 +386,13 @@ def main(argv: list[str] | None = None) -> int:
     pe.add_argument("--no-ablations", action="store_true", help="skip retraining variants")
     _grid_args(pe)
     pe.set_defaults(func=cmd_evaluate)
+
+    pw = sub.add_parser("rolling", help="retrain and test day by day over the last N days")
+    _model_args(pw)
+    pw.add_argument("--days", type=int, default=7, help="test the last N stored days")
+    pw.add_argument("--seeds", type=int, default=3, help="synthetic runs per profile per day")
+    _grid_args(pw)
+    pw.set_defaults(func=cmd_rolling)
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,

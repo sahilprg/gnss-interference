@@ -1,8 +1,11 @@
 """Train the jamming and spoofing detectors (two LightGBM binary models).
 
 Training rows come from real days (weak labels) and synthetic attacks (exact truth).
-The validation day is used only for early stopping. Saved models are plain LightGBM
-text files plus a JSON with everything needed to reproduce and score.
+The validation day is used for early stopping and to calibrate the probabilities
+(isotonic, `model/calibrate.py`). Labels are decided on the raw score at 0.5, exactly as
+in every reported result; the calibrated probability is what is shown and published.
+Saved models are plain LightGBM text files plus a JSON with everything needed to
+reproduce and score.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ import pandas as pd
 from gnssguard.features.cells import GridSpec, load_cells
 from gnssguard.labels.labelmodel import DawidSkene
 from gnssguard.labels.pipeline import LABELS
+from gnssguard.model.calibrate import Calibrator, fit_isotonic
 from gnssguard.model.dataset import (
     FEATURES,
     fit_label_model,
@@ -66,14 +70,27 @@ class Detectors:
     features: list[str]
     label_model: DawidSkene | None = None
     meta: dict = field(default_factory=dict)
+    calibrators: dict[str, Calibrator] = field(default_factory=dict)
 
-    def predict(self, df: pd.DataFrame, threshold: float = 0.5) -> pd.DataFrame:
+    def predict(self, df: pd.DataFrame, threshold: float = 0.5,
+                calibrated: bool = False) -> pd.DataFrame:
+        """p_jamming / p_spoofing (raw model scores) and a label.
+
+        With calibrated=True the probabilities are replaced by calibrated ones and the
+        raw scores kept as score_jamming / score_spoofing. The label never changes: it
+        is always decided on the raw score.
+        """
         out = pd.DataFrame(index=df.index)
         x = df[self.features]
         for target, col in TARGETS.items():
             out[col] = self.models[target].predict(x)
         jam = out["p_jamming"] >= threshold
         spoof = out["p_spoofing"] >= threshold
+        if calibrated:
+            for target, col in TARGETS.items():
+                out[col.replace("p_", "score_")] = out[col]
+                if target in self.calibrators:
+                    out[col] = self.calibrators[target](out[col])
         nothing = df["n_ac_usable"].fillna(0) < 1
         label = np.select([nothing, jam & spoof, jam, spoof],
                           ["unknown", "both", "jamming", "spoofing"], default="normal")
@@ -87,6 +104,7 @@ class Detectors:
             m.save_model(str(folder / f"{target}.txt"))
         lm = self.label_model
         meta = {**self.meta, "features": self.features,
+                "calibration": {t: c.to_dict() for t, c in self.calibrators.items()},
                 "label_model": None if lm is None else {
                     "rules": lm.rules_, "one_sided": lm.one_sided_, "prior": lm.prior_,
                     "conf": lm.conf_.tolist()}}
@@ -104,7 +122,8 @@ class Detectors:
             lm = DawidSkene()
             lm.rules_, lm.one_sided_, lm.prior_ = d["rules"], d["one_sided"], d["prior"]
             lm.conf_ = np.array(d["conf"])
-        return cls(models, meta["features"], lm, meta)
+        cal = {t: Calibrator.from_dict(d) for t, d in (meta.get("calibration") or {}).items()}
+        return cls(models, meta["features"], lm, meta, cal)
 
 
 def train(table: pd.DataFrame, features: list[str] = FEATURES, *, sources=("real", "synthetic"),
@@ -112,7 +131,7 @@ def train(table: pd.DataFrame, features: list[str] = FEATURES, *, sources=("real
           label_model: DawidSkene | None = None) -> Detectors:
     params = {**PARAMS, **(params or {})}
     t = table[table["source"].isin(sources)]
-    models, info = {}, {}
+    models, info, cal = {}, {}, {}
     for target in TARGETS:
         tr = t[(t["split"] == "train") & t[target].notna()]
         va = t[(t["split"] == "val") & t[target].notna()]
@@ -126,11 +145,12 @@ def train(table: pd.DataFrame, features: list[str] = FEATURES, *, sources=("real
         info[target] = {"best_iteration": m.best_iteration, "train_rows": len(tr),
                         "train_positives": int(tr[target].sum()), "val_rows": len(va),
                         "val_logloss": round(float(m.best_score["valid_0"]["binary_logloss"]), 5)}
+        cal[target] = fit_isotonic(m.predict(va[features]), va[target], va["weight"])
         log.info("%s: %s", target, info[target])
     meta = {"sources": list(sources), "targets": info, "params": params,
             "train_dates": sorted(t.loc[t["split"] == "train", "date"].unique()),
             "val_dates": sorted(t.loc[t["split"] == "val", "date"].unique())}
-    return Detectors(models, list(features), label_model, meta)
+    return Detectors(models, list(features), label_model, meta, cal)
 
 
 def importance(det: Detectors) -> pd.DataFrame:

@@ -2,9 +2,11 @@
 
 1. Gold set (hand labels on the test day): aggregate agreement only. No per-cell
    predictions for the test day are written anywhere, so labeling can stay blind.
-2. Synthetic attacks injected into the test day of a calm region (new seeds): recall
-   for jamming and spoofing, false alarms away from events, recall at the edge vs the
-   core of jamming footprints, and source localization error.
+2. Synthetic attacks injected into the test day of a calm region (new seeds), in three
+   profiles (standard; hard; stress: intermittent, moving and paired jammers with MLAT
+   fallback): recall for jamming and spoofing, false alarms away from events, recall at
+   the edge vs the core of jamming footprints, source localization error and whether
+   the stated uncertainty covers it, and probability calibration.
 3. Official advisories: flagged share inside vs outside warned areas on the test day.
 4. Ablations: the same evaluation for models trained without context features, without
    the "after" window (causal), on real data only, and on synthetic data only.
@@ -26,6 +28,7 @@ from gnssguard.labels import synthetic as S
 from gnssguard.labels.advisories import advisory_check, load_advisories
 from gnssguard.labels.pipeline import score
 from gnssguard.labels.rules import apply_rules
+from gnssguard.model.calibrate import ece
 from gnssguard.model.dataset import (
     AFTER,
     BEFORE,
@@ -36,7 +39,7 @@ from gnssguard.model.dataset import (
     with_context,
 )
 from gnssguard.model.localize import incidents, localize_incidents, match_to_events
-from gnssguard.model.train import Detectors, train
+from gnssguard.model.train import TARGETS, Detectors, train
 
 log = logging.getLogger(__name__)
 FLAGGED = ("jamming", "spoofing", "both")
@@ -152,16 +155,60 @@ def localization_summary(loc: pd.DataFrame) -> pd.DataFrame:
     if loc.empty:
         return loc
     rows = []
-    for name, g in loc.groupby("predictor"):
+    keys = ["profile", "predictor"] if "profile" in loc else ["predictor"]
+    for key, g in loc.groupby(keys):
         f = g[g["found"]]
-        rows.append({"predictor": name, "events": len(g), "found": len(f),
-                     "fit_median_km": round(float(f["fit_error_km"].median()), 1),
-                     "fit_p90_km": round(float(f["fit_error_km"].quantile(0.9)), 1),
-                     "centroid_median_km": round(float(f["centroid_error_km"].median()), 1),
-                     "centroid_p90_km": round(float(f["centroid_error_km"].quantile(0.9)), 1),
-                     "error_within_stated_uncertainty": round(float(
-                         (f["fit_error_km"] <= f["uncertainty_km"]).mean()), 3)})
+        conf = f[f["confident"].astype(bool)] if "confident" in f else f
+        key = key if isinstance(key, tuple) else (key,)
+        row = dict(zip(keys, key, strict=True))
+        row.update({
+            "events": len(g), "found": len(f),
+            "fit_median_km": round(float(f["fit_error_km"].median()), 1),
+            "fit_p90_km": round(float(f["fit_error_km"].quantile(0.9)), 1),
+            "centroid_median_km": round(float(f["centroid_error_km"].median()), 1),
+            "centroid_p90_km": round(float(f["centroid_error_km"].quantile(0.9)), 1),
+            "raw_uncertainty_coverage": round(float(
+                (f["fit_error_km"] <= f["uncertainty_km"]).mean()), 3)})
+        if "uncertainty_cal_km" in f:
+            row.update({
+                "confident": len(conf),
+                "confident_median_km": round(float(conf["fit_error_km"].median()), 1),
+                "confident_p90_km": round(float(conf["fit_error_km"].quantile(0.9)), 1),
+                "calibrated_coverage_confident": round(float(
+                    (conf["fit_error_km"] <= conf["uncertainty_cal_km"]).mean()), 3),
+                "calibrated_median_uncertainty_km": round(float(
+                    conf["uncertainty_cal_km"].median()), 1),
+                "low_confidence_median_km": round(float(
+                    f.loc[~f["confident"].astype(bool), "fit_error_km"].median()), 1)})
+        rows.append(row)
     return pd.DataFrame(rows)
+
+
+def calibration_report(rows_by_profile: dict[str, pd.DataFrame], det: Detectors
+                       ) -> pd.DataFrame:
+    """Raw vs calibrated probabilities against exact synthetic truth.
+
+    mid_ece is measured on the cells the raw model is unsure about (0.05-0.95): almost
+    every cell sits near 0 or 1, so plain ECE hides how wrong the uncertain ones are.
+    """
+    out = []
+    for prof, rows in rows_by_profile.items():
+        for target, col in TARGETS.items():
+            r = rows[rows[target].notna()]
+            if r.empty:
+                continue
+            y = r[target].to_numpy()
+            p = det.predict(r, calibrated=True)
+            raw, cal = p[col.replace("p_", "score_")].to_numpy(), p[col].to_numpy()
+            unsure = (raw >= 0.05) & (raw < 0.95)
+            out.append({"profile": prof, "target": col, "cells": len(r),
+                        "unsure_cells": int(unsure.sum()),
+                        "ece_raw": round(ece(raw, y), 4), "ece_calibrated": round(ece(cal, y), 4),
+                        "mid_ece_raw": round(ece(raw[unsure], y[unsure]), 3),
+                        "mid_ece_calibrated": round(ece(cal[unsure], y[unsure]), 3),
+                        "brier_raw": round(float(((raw - y) ** 2).mean()), 5),
+                        "brier_calibrated": round(float(((cal - y) ** 2).mean()), 5)})
+    return pd.DataFrame(out)
 
 
 # -- 3. advisories ---------------------------------------------------------------------------
@@ -217,17 +264,23 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame, det: 
     results = {}
     if gold_csv and Path(gold_csv).exists():
         results["gold"] = gold_eval(gold_csv, test_cells, predictors)
-    rows, runs = synthetic_rows(processed, synth_region, test_dates, list(synth_seeds), spec=spec,
-                                keep_runs=True)
-    syn = synthetic_eval(rows, runs, predictors, spec, localize_with=("rules", "model_full"))
-    results.update(synthetic=syn["summary"], edge=syn["edge"],
-                   localization=localization_summary(syn["localization"]),
-                   localization_events=syn["localization"])
-    hard_rows, hard_runs = synthetic_rows(processed, synth_region, test_dates,
-                                          [s + 100 for s in synth_seeds], spec=spec,
-                                          profile="hard", keep_runs=True)
-    hard = synthetic_eval(hard_rows, hard_runs, predictors, spec)
-    results.update(synthetic_hard=hard["summary"], edge_hard=hard["edge"])
+    syn_rows, loc_frames = {}, []
+    for prof, offset in (("standard", 0), ("hard", 100), ("stress", 200)):
+        rows, runs = synthetic_rows(processed, synth_region, test_dates,
+                                    [s + offset for s in synth_seeds], spec=spec, profile=prof,
+                                    keep_runs=True)
+        loc_with = ("rules", "model_full") if prof == "standard" else ("model_full",)
+        res = synthetic_eval(rows, runs, predictors, spec, localize_with=loc_with)
+        sfx = "" if prof == "standard" else f"_{prof}"
+        results[f"synthetic{sfx}"], results[f"edge{sfx}"] = res["summary"], res["edge"]
+        if not res["localization"].empty:
+            loc_frames.append(res["localization"].assign(profile=prof))
+        syn_rows[prof] = rows[list(dict.fromkeys([*det.features, "n_ac_usable", *TARGETS]))]
+        del rows, runs
+    loc = pd.concat(loc_frames, ignore_index=True) if loc_frames else pd.DataFrame()
+    results.update(localization=localization_summary(loc), localization_events=loc)
+    if det.calibrators:
+        results["calibration"] = calibration_report(syn_rows, det)
     results["real_flag_rates"] = real_flag_rates(test_cells, predictors)
     if advisories_csv and Path(advisories_csv).exists():
         results["advisories"] = advisory_eval(test_cells, advisories_csv,
@@ -236,8 +289,9 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame, det: 
     cols = ["recall_jamming", "recall_spoofing", "false_positive_rate_away_from_events"]
     results["synthetic_mean"] = (results["synthetic"].groupby("predictor")[cols]
                                  .mean().round(3).reset_index())
-    results["synthetic_hard_mean"] = (results["synthetic_hard"].groupby("predictor")[cols]
-                                      .mean().round(3).reset_index())
+    for prof in ("hard", "stress"):
+        results[f"synthetic_{prof}_mean"] = (results[f"synthetic_{prof}"].groupby("predictor")
+                                             [cols].mean().round(3).reset_index())
     for name, df in results.items():
         if isinstance(df, pd.DataFrame) and not df.empty:
             df.to_csv(rep / f"{name}.csv", index=False)

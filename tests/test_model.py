@@ -82,6 +82,13 @@ def test_train_predict_save_load(tmp_path):
     det.save(tmp_path / "m")
     again = Detectors.load(tmp_path / "m").predict(df)
     assert np.allclose(again["p_jamming"], p["p_jamming"])
+    # calibration: fitted on the validation rows, saved, never changes the label
+    assert set(det.calibrators) == {"y_jam", "y_spoof"}
+    cal = Detectors.load(tmp_path / "m").predict(df, calibrated=True)
+    assert np.allclose(cal["score_jamming"], p["p_jamming"])
+    assert (cal["label"] == p["label"]).all()
+    order = np.argsort(cal["score_jamming"].to_numpy())
+    assert np.all(np.diff(cal["p_jamming"].to_numpy()[order]) >= -1e-12)
 
 
 def test_hard_profile_differs_and_standard_is_unchanged():

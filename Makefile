@@ -1,4 +1,4 @@
-.PHONY: install test lint sample ingest coverage cells label synth gold gold-tool maps phase2 train evaluate phase3
+.PHONY: install test lint sample ingest coverage cells label synth gold gold-tool maps phase2 train evaluate rolling phase3
 
 DATE ?= 2026-10-26
 REGION ?= baltic
@@ -52,4 +52,7 @@ train:
 evaluate:
 	gnssguard evaluate
 
-phase3: train evaluate
+rolling:
+	gnssguard rolling
+
+phase3: train evaluate rolling

@@ -68,3 +68,18 @@ satellite and are much sparser.
 share of ADS-B vs MLAT positions, share of points with fresh quality fields, and a
 first-look share of airborne ADS-B points above 10,000 ft with NIC below 7. The last
 figure is a quick indicator, not a label.
+
+## Coverage drift
+
+adsb.lol is fed by volunteers, so coverage changes when a receiver joins or leaves.
+In Punjab a new feeder appeared on 8 Oct 2026: judged cell-windows per day went from
+about 180 to about 6,000, roughly ten times more. Central Europe stayed stable over the
+whole period. Consequences:
+
+- **A flagged share is only comparable between days with similar coverage.** A region
+  can look "quieter" or "busier" simply because more aircraft are visible. The public
+  map therefore shows coverage (aircraft judged per cell) next to every flag, and a cell
+  with no usable aircraft is "no data", never "normal".
+- **Rolling evaluation** (`gnssguard rolling`, docs/model.md) reports results day by day
+  for exactly this reason: one test day can hide a coverage jump.
+- `gnssguard coverage` per day is the first check when a region's numbers move suddenly.

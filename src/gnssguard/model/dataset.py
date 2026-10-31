@@ -132,7 +132,7 @@ def real_targets(cells: pd.DataFrame, model: DawidSkene) -> pd.DataFrame:
 
 def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: list[int],
                    n_jamming: int = 4, n_spoofing: int = 4, spec: GridSpec = GridSpec(),
-                   p_mlat: float = 0.0, profile: str = "standard", keep_runs: bool = False
+                   p_mlat: float | None = None, profile: str = "standard", keep_runs: bool = False
                    ) -> tuple[pd.DataFrame, list[dict]]:
     """Cell-windows with context and exact targets from attacks injected into `region`.
 
@@ -154,7 +154,7 @@ def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: 
         for seed in seeds:
             events = S.random_events(pts, n_jamming, n_spoofing, seed=seed, profile=profile)
             for e in events:
-                if isinstance(e, S.Jamming):
+                if isinstance(e, S.Jamming) and p_mlat is not None:
                     e.p_mlat = p_mlat
             inj, _ = S.inject(pts, events, seed=seed)
             cw, _ = build_from_points(inj, spec)

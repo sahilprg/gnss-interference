@@ -1,8 +1,8 @@
 import pandas as pd
 
-l = pd.read_parquet("data/labels/labels.parquet")
-l["flagged"] = l["label"].isin(["jamming", "spoofing", "both"])
-judged = l[l["label"] != "unknown"]
+labels = pd.read_parquet("data/labels/labels.parquet")
+labels["flagged"] = labels["label"].isin(["jamming", "spoofing", "both"])
+judged = labels[labels["label"] != "unknown"]
 
 print("Flagged share of judged cells, per region and day:")
 print((judged.groupby(["region", "date"])["flagged"].mean() * 100)

@@ -13,8 +13,8 @@ Total running cost: zero.
 | --- | --- |
 | 1. Data foundation: streaming ingest, regional Parquet store, coverage check | done |
 | 2. Labels: weak rules, label model, synthetic attacks, map viewer, gold-set sampler | **done; gold set and event list to fill by hand** |
-| 3. Models: jamming and spoofing detectors, source localization | **first version done; gold set in progress** |
-| 4. Evaluation: time and region splits, ablations, failure analysis | planned |
+| 3. Models: jamming and spoofing detectors, source localization | **done; gold set in progress** |
+| 4. Evaluation: rolling 7-day test, stress attacks, ablations, calibration | **done; final gold numbers pending** |
 | 5. Product: daily pipeline, live map, static API | planned |
 
 ## Quickstart
@@ -87,7 +87,8 @@ features. Test day kept sealed for the gold set.
 
 ```bash
 gnssguard train      # train on all earlier days, validate on the day before the test day
-gnssguard evaluate   # gold, synthetic (standard + hard), real flag rates, ablations
+gnssguard evaluate   # gold, synthetic (standard, hard, stress), real flag rates, ablations
+gnssguard rolling    # retrain and test separately on each of the last 7 days
 ```
 
 | Test (26 Oct; trained on 26 days) | Rules | Model |
@@ -96,8 +97,14 @@ gnssguard evaluate   # gold, synthetic (standard + hard), real flag rates, ablat
 | Hard synthetic attacks: jamming caught | 51% | **95%** |
 | Hard synthetic attacks: footprint edges caught | 14% | **91%** |
 | Hard synthetic attacks: spoofing caught | 74% | **95%** |
+| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **97%** |
 | False alarms, calm Central Europe (real data) | 0.65% | **0.53%** |
 | Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
+| Stated location uncertainty that contains the truth (confident estimates) | | **94%** (was 75%) |
+
+Over seven separate test days (20-26 Oct, each model trained only on earlier days), the
+model caught more synthetic attacks than the rules on every day and raised fewer flags
+in calm Central Europe on every day. Probabilities are calibrated before publishing.
 
 Ablations, limits and the full tables: [docs/model.md](docs/model.md).
 
@@ -142,6 +149,7 @@ src/gnssguard/features/     grid-cell x time-window features
 src/gnssguard/labels/       rules, label model, events, synthetic attacks, gold sampler
 src/gnssguard/model/        detector dataset, training, evaluation, source localization
 src/gnssguard/viz/          HTML map viewer
+scripts/                    one-off fitting scripts (localization uncertainty)
 tests/                      unit tests (no network)
 docs/                       data and labeling documentation
 ```

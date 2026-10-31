@@ -1,0 +1,6 @@
+# Store and check out text files with LF line endings on every OS, so Windows clones
+# do not warn "LF will be replaced by CRLF". Python, VS Code and Git handle LF fine.
+* text=auto eol=lf
+*.gz binary
+*.parquet binary
+*.png binary
