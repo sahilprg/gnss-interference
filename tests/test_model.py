@@ -124,3 +124,14 @@ def test_localize_needs_degraded_aircraft(n):
     pts = pd.DataFrame({"lat": [50.0] * n, "lon": [10.0] * n, "alt_ft": [30000.0] * n,
                         "degraded": [False] * n})
     assert localize(pts) is None
+
+
+def test_real_flag_rates_split_dense_and_sparse():
+    from gnssguard.model.evaluate import real_flag_rates
+
+    cells = pd.DataFrame({"region": "r", "n_ac_usable": [5, 5, 4, 1, 2, 0]})
+    labels = ["jamming", "normal", "normal", "jamming", "jamming", "unknown"]
+    out = real_flag_rates(cells, {"p": lambda c: pd.DataFrame({"label": labels})}).iloc[0]
+    assert out["judged"] == 5 and out["flagged_share"] == 0.6
+    assert out["judged_dense"] == 3 and round(out["flagged_share_dense"], 3) == 0.333
+    assert out["judged_sparse"] == 2 and out["flagged_share_sparse"] == 1.0

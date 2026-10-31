@@ -154,6 +154,15 @@ border.
 - `speed_mismatch` agrees with the other rules only 21% of the time: expected for a
   spoofing signal, but unverified.
 
+**What the 300 gold labels said** (docs/model.md, section 1). Every spoofing candidate
+in the gold set was labeled spoofing or both (Punjab 20 of 20, Black Sea 16 of 16), except
+two East Med cells labeled unsure; cells where `alt_mismatch` fired: 25 of 25,
+`speed_mismatch`: 16 of 18. This is weaker evidence than it looks. The labeler sees the
+same quantities the rules use, so the gold set confirms that the evidence is there and
+looks like spoofing in context, not that it was spoofing: a weather-driven GPS-baro
+difference over Punjab would look the same. An independent source (pilot reports,
+NOTAMs naming spoofing, or MLAT vs ADS-B position checks) is still needed.
+
 ## 5. Synthetic attacks
 
 `gnssguard synth` injects attacks into a calm region-day and scores the labels.

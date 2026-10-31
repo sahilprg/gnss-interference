@@ -226,19 +226,32 @@ def advisory_eval(test_cells: pd.DataFrame, advisories_csv: str | Path, predicto
     return pd.concat(frames, ignore_index=True)
 
 
-def real_flag_rates(test_cells: pd.DataFrame, predictors: dict) -> pd.DataFrame:
-    """Flagged share of judged cell-windows per region on the real test day.
+def real_flag_rates(test_cells: pd.DataFrame, predictors: dict, min_usable: int = 3
+                    ) -> pd.DataFrame:
+    """Flagged share of judged cell-windows per region on a real day.
 
-    The calm control region's rate is the best real-data estimate of false alarms.
+    Reported twice: over cells with at least `min_usable` usable aircraft (where the
+    rules can judge and the gold set was drawn, so rules and model are comparable), and
+    over sparse cells with 1-2 usable aircraft, which only the model judges and which no
+    hand label covers. The calm region's rate is the best real-data false-alarm estimate.
     """
     rows = []
+    usable = test_cells["n_ac_usable"].fillna(0)
     for name, fn in predictors.items():
         lab = fn(test_cells)["label"].astype(str)
+        flag = lab.isin(FLAGGED)
         judged = lab != "unknown"
         for region in sorted(test_cells["region"].unique()):
-            m = judged & (test_cells["region"] == region)
-            rows.append({"predictor": name, "region": region, "judged": int(m.sum()),
-                         "flagged_share": round(float(lab[m].isin(FLAGGED).mean()), 4)})
+            r = judged & (test_cells["region"] == region)
+            dense, sparse = r & (usable >= min_usable), r & (usable < min_usable)
+            rows.append({"predictor": name, "region": region, "judged": int(r.sum()),
+                         "flagged_share": round(float(flag[r].mean()), 4),
+                         "judged_dense": int(dense.sum()),
+                         "flagged_share_dense": round(float(flag[dense].mean()), 4)
+                         if dense.any() else None,
+                         "judged_sparse": int(sparse.sum()),
+                         "flagged_share_sparse": round(float(flag[sparse].mean()), 4)
+                         if sparse.any() else None})
     return pd.DataFrame(rows)
 
 

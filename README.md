@@ -13,8 +13,8 @@ Total running cost: zero.
 | --- | --- |
 | 1. Data foundation: streaming ingest, regional Parquet store, coverage check | done |
 | 2. Labels: weak rules, label model, synthetic attacks, map viewer, gold-set sampler | **done; gold set and event list to fill by hand** |
-| 3. Models: jamming and spoofing detectors, source localization | **done; gold set in progress** |
-| 4. Evaluation: rolling 7-day test, stress attacks, ablations, calibration | **done; final gold numbers pending** |
+| 3. Models: jamming and spoofing detectors, source localization | **done** |
+| 4. Evaluation: 300 gold labels, rolling 7-day test, stress attacks, ablations, calibration | **done** |
 | 5. Product: daily pipeline, live map, static API | planned |
 
 ## Quickstart
@@ -93,18 +93,20 @@ gnssguard rolling    # retrain and test separately on each of the last 7 days
 
 | Test (26 Oct; trained on 26 days) | Rules | Model |
 | --- | --- | --- |
-| Gold labels, interference vs normal (45 cells so far) | 100% | 97.8% |
+| 300 hand-labeled cells: interference vs normal (253 decided) | 96.8% | 96.8% |
+| Hand-labeled normal cells wrongly flagged (of 112) | 0 | 0 |
 | Hard synthetic attacks: jamming caught | 51% | **95%** |
-| Hard synthetic attacks: footprint edges caught | 14% | **91%** |
-| Hard synthetic attacks: spoofing caught | 74% | **95%** |
-| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **97%** |
-| False alarms, calm Central Europe (real data) | 0.65% | **0.53%** |
+| Hard synthetic attacks: footprint edges caught | 14% | **92%** |
+| Hard synthetic attacks: spoofing caught | 74% | **96%** |
+| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **98%** |
+| False alarms, calm Central Europe (real data) | 0.65% | 0.65% |
 | Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
 | Stated location uncertainty that contains the truth (confident estimates) | | **94%** (was 75%) |
 
-Over seven separate test days (20-26 Oct, each model trained only on earlier days), the
-model caught more synthetic attacks than the rules on every day and raised fewer flags
-in calm Central Europe on every day. Probabilities are calibrated before publishing.
+On real data the model agrees with the rules wherever both judge; its advantage at
+footprint edges is shown on synthetic attacks, so far not on real data. Over seven
+separate test days (20-26 Oct, each model trained only on earlier days), the model
+caught more synthetic attacks than the rules on every day.
 
 Ablations, limits and the full tables: [docs/model.md](docs/model.md).
 

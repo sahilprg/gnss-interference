@@ -132,12 +132,18 @@ def real_targets(cells: pd.DataFrame, model: DawidSkene) -> pd.DataFrame:
 
 def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: list[int],
                    n_jamming: int = 4, n_spoofing: int = 4, spec: GridSpec = GridSpec(),
-                   p_mlat: float | None = None, profile: str = "standard", keep_runs: bool = False
-                   ) -> tuple[pd.DataFrame, list[dict]]:
+                   p_mlat: float | None = None, profile: str = "standard", keep_runs: bool = False,
+                   label_model: DawidSkene | None = None) -> tuple[pd.DataFrame, list[dict]]:
     """Cell-windows with context and exact targets from attacks injected into `region`.
 
     Truth positive: >= 2 affected aircraft. Negative: no affected aircraft and outside a
     one-cell, one-window buffer. Everything in between is left out (ambiguous).
+
+    The background is real traffic, which can hold real interference: with a
+    label_model, background cells the weak labels flag keep that label instead of 0.
+    Without it, the same real cell appears as "jamming" in the real rows and "clean" in
+    every synthetic copy, and the model learns to ignore weak real interference (found
+    with the gold set: four hand-labeled Central Europe cells).
 
     With keep_runs, also returns per run the events, truth and a compact aircraft table
     for localization. The injected points themselves (~300 MB per busy region-day) are
@@ -174,6 +180,10 @@ def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: 
             cw["y_spoof"] = np.where(pos & (cw["inj_type"] == "spoofing"), 1.0,
                                      np.where(neg | (pos & (cw["inj_type"] != "spoofing")), 0.0,
                                               np.nan))
+            if label_model is not None:
+                weak = real_targets(cw, label_model)
+                for col in ("y_jam", "y_spoof"):
+                    cw[col] = np.where(neg & (weak[col] == 1), 1.0, cw[col])
             cw["seed"] = seed
             frames.append(cw)
             if keep_runs:

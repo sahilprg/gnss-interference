@@ -55,7 +55,8 @@ def build_table(processed: str | Path, cells_dir: str | Path, train_dates: list[
     real = pd.concat([real, real_targets(real, lm)], axis=1)
     real["source"] = "real"
 
-    synth, _ = synthetic_rows(processed, synth_region, days, list(synth_seeds), spec=spec)
+    synth, _ = synthetic_rows(processed, synth_region, days, list(synth_seeds), spec=spec,
+                              label_model=lm)
     synth["source"] = "synthetic"
     table = pd.concat([real, synth], ignore_index=True)
     table["split"] = np.where(table["date"].isin(train_dates), "train", "val")

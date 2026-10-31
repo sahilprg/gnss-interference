@@ -265,7 +265,7 @@ def cmd_rolling(args) -> int:
             if df is not None and not df.empty:
                 if name == "rolling_real_flag_rates":
                     df = df.pivot_table(index=["region", "predictor"], columns="test_day",
-                                        values="flagged_share")
+                                        values=["flagged_share_dense", "flagged_share_sparse"])
                 print(f"\n== {name}")
                 print(df.to_string())
     print(f"\nreports: {args.report}/rolling_*.csv")
