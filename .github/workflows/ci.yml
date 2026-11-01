@@ -29,11 +29,17 @@ jobs:
       - run: python -m pytest -q
 
   secrets-scan:
+    # Scans the whole history on every push. (The gitleaks GitHub Action scans only the
+    # pushed range, which breaks when history is rewritten and the old commit is gone.)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install gitleaks 8.21.2 (checksum-verified)
+        run: |
+          curl -sSL -o gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
+          echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks
+      - name: Scan the full history for secrets
+        run: ./gitleaks git --redact --verbose .
