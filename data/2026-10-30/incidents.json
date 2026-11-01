@@ -303,13 +303,8 @@
     "lon_min": 25.0,
     "lon_max": 27.0
    },
-   "source": {
-    "lat": 61.8,
-    "lon": 30.0,
-    "radius_km": 330.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "east_med",
@@ -591,13 +586,8 @@
     "lon_min": 28.0,
     "lon_max": 31.0
    },
-   "source": {
-    "lat": 43.8,
-    "lon": 33.0,
-    "radius_km": 230.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "punjab",

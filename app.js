@@ -14,6 +14,14 @@
   const state = {index: null, regions: [], date: null, region: null, w: -1,
                  summary: null, incidents: [], day: null, basemaps: {}};
   const map = L.map('map', {zoomSnap: 0.25, attributionControl: true});
+  // Re-fit the region when the window size changes, until the viewer pans or zooms.
+  let userMoved = false, fitBox = null;
+  ['mousedown', 'wheel', 'touchstart', 'keydown'].forEach(ev =>
+    $('map').addEventListener(ev, () => { userMoved = true; }, {passive: true}));
+  new ResizeObserver(() => {
+    map.invalidateSize();
+    if (fitBox && !userMoved) map.fitBounds(fitBox, {padding: [12, 12]});
+  }).observe($('map'));
   map.attributionControl.setPrefix(false);
   map.attributionControl.addAttribution('<a href="https://leafletjs.com">Leaflet</a> · outlines: Natural Earth · flight data: <a href="https://www.adsb.lol">adsb.lol</a> (ODbL)');
   const baseLayer = L.layerGroup().addTo(map);
@@ -131,7 +139,9 @@
         interactive: false}).addTo(baseLayer);
       map.invalidateSize();  // the panel layout may have changed the map's size
       // fit the whole cell grid: cells start at whole degrees and can reach past the box
-      map.fitBounds([[Math.floor(a), Math.floor(c)], [Math.ceil(b), Math.ceil(d)]], {padding: [12, 12]});
+      fitBox = [[Math.floor(a), Math.floor(c)], [Math.ceil(b), Math.ceil(d)]];
+      userMoved = false;
+      map.fitBounds(fitBox, {padding: [12, 12]});
     }
   }
 
@@ -211,7 +221,9 @@
       } else {
         const a = x.area;
         L.rectangle([[a.lat_min, a.lon_min], [a.lat_max, a.lon_max]], {color: COL.area, weight: 1, dashArray: '1 4', fill: false})
-          .bindTooltip(`<b>Affected area</b><br>${when}<br>Source not located with confidence.`, {sticky: true, className: 'tip'})
+          .bindTooltip(`<b>Affected area</b><br>${when}<br>` + (x.confidence === 'too_uncertain'
+            ? 'A source was fitted, but its 90% circle would be over 200 km wide.'
+            : 'Source not located with confidence.'), {sticky: true, className: 'tip'})
           .addTo(incLayer);
       }
     });

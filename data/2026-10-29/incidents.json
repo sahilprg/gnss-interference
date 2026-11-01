@@ -13,13 +13,8 @@
     "lon_min": 18.0,
     "lon_max": 20.0
    },
-   "source": {
-    "lat": 54.7,
-    "lon": 19.2,
-    "radius_km": 220.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "baltic",
@@ -102,13 +97,8 @@
     "lon_min": 21.0,
     "lon_max": 23.0
    },
-   "source": {
-    "lat": 54.7,
-    "lon": 19.2,
-    "radius_km": 250.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "baltic",
@@ -247,13 +237,8 @@
     "lon_min": 18.0,
     "lon_max": 21.0
    },
-   "source": {
-    "lat": 54.8,
-    "lon": 16.9,
-    "radius_km": 230.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "baltic",
@@ -580,13 +565,8 @@
     "lon_min": 28.0,
     "lon_max": 30.0
    },
-   "source": {
-    "lat": 45.2,
-    "lon": 32.4,
-    "radius_km": 270.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "black_sea",
@@ -599,13 +579,8 @@
     "lon_min": 29.0,
     "lon_max": 30.0
    },
-   "source": {
-    "lat": 44.3,
-    "lon": 33.5,
-    "radius_km": 270.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "black_sea",
@@ -684,13 +659,8 @@
     "lon_min": 28.0,
     "lon_max": 30.0
    },
-   "source": {
-    "lat": 44.7,
-    "lon": 33.0,
-    "radius_km": 230.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "black_sea",
@@ -731,13 +701,8 @@
     "lon_min": 73.0,
     "lon_max": 75.0
    },
-   "source": {
-    "lat": 33.9,
-    "lon": 74.9,
-    "radius_km": 720.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "punjab",
@@ -783,13 +748,8 @@
     "lon_min": 73.0,
     "lon_max": 76.0
    },
-   "source": {
-    "lat": 33.9,
-    "lon": 76.4,
-    "radius_km": 380.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "too_uncertain"
   },
   {
    "region": "central_europe",
