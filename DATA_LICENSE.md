@@ -13,4 +13,5 @@ the world-atlas 2.0.2 package.
 
 Any dataset derived from it and published by this project (processed Parquet files,
 aggregated interference grids, labels) is a derivative database and is released under
-ODbL 1.0 with this attribution. Published datasets drop or hash aircraft identifiers.
+ODbL 1.0 with this attribution. Published datasets contain no aircraft identifiers
+(no ICAO addresses, callsigns, registrations or tracks): only per-cell aggregates.

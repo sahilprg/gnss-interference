@@ -5,6 +5,9 @@ from [adsb.lol](https://www.adsb.lol). Goals: flag affected areas, tell jamming 
 spoofing, estimate where the interference comes from, and publish a daily public map.
 Total running cost: zero.
 
+**Live map and open data: https://sahilprg.github.io/gnss-interference/** (updated
+every night).
+
 > Research project. Not for navigation or operational decisions.
 
 ## Status
@@ -12,10 +15,10 @@ Total running cost: zero.
 | Phase | State |
 | --- | --- |
 | 1. Data foundation: streaming ingest, regional Parquet store, coverage check | done |
-| 2. Labels: weak rules, label model, synthetic attacks, map viewer, gold-set sampler | **done; gold set and event list to fill by hand** |
-| 3. Models: jamming and spoofing detectors, source localization | **done** |
-| 4. Evaluation: 300 gold labels, rolling 7-day test, stress attacks, ablations, calibration | **done** |
-| 5. Product: nightly pipeline, live map website, open data files | **built; goes live after setup** ([docs/product.md](docs/product.md)) |
+| 2. Labels: weak rules, label model, synthetic attacks, map viewer, 300 hand-labeled gold cells | done |
+| 3. Models: jamming and spoofing detectors, source localization | done |
+| 4. Evaluation: gold labels, rolling 7-day test, stress attacks, ablations, calibration, pre-declared protocol | done |
+| 5. Product: nightly pipeline, live map website, open data files | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
 
 ## Quickstart
 
@@ -83,7 +86,8 @@ Key findings, the open questions and the gold-set protocol are in
 
 Two LightGBM models (jamming, spoofing) trained on the rules' weak labels plus synthetic
 attacks, using each cell's neighbours and the windows before and after. No location
-features. Test day kept sealed for the gold set.
+features. The test day (26 Oct) carries the 300 hand labels and was never used for
+training.
 
 ```bash
 gnssguard train      # train on all earlier days, validate on the day before the test day
@@ -116,8 +120,8 @@ Ablations, limits and the full tables: [docs/model.md](docs/model.md).
 ## Daily map and open data (Phase 5)
 
 A nightly GitHub Actions job processes the previous day and publishes a map and data
-files on GitHub Pages: https://sahilprg.github.io/gnss-interference/ (live after the
-one-time setup in [docs/product.md](docs/product.md)). Only cell-level aggregates are
+files on GitHub Pages: https://sahilprg.github.io/gnss-interference/ (how it runs, the
+file formats and the setup: [docs/product.md](docs/product.md)). Only cell-level aggregates are
 published, cells with fewer than 3 aircraft are shown as low coverage, jammer areas are
 coarse circles, and days that fail the quality checks are withheld.
 
@@ -143,7 +147,7 @@ Disk plan for 20 GB free:
 | Python dependencies for Phase 1 | ~0.3 GB |
 | 40 days, all six regions | ~5.5 GB |
 | 40 days without `us_midwest` (half the volume) | ~2.7 GB |
-| PyTorch with GPU support, needed from Phase 3 (approximate) | ~5 GB |
+| Models (LightGBM, CPU only; no GPU needed) | ~0.1 GB |
 
 Tips:
 
@@ -160,7 +164,7 @@ Tips:
 configs/regions.yaml        study regions (hotspots and calm controls)
 configs/events.csv          officially reported interference events (filled by hand)
 configs/advisories.csv      official area-wide warnings: NOTAMs, EASA bulletins
-labels/gold.csv             gold test set for hand labeling (commit your labels)
+labels/gold.csv             300 hand-labeled gold cells (26 Oct 2026)
 src/gnssguard/ingest/       release lookup, multi-part stream, trace decoder, Parquet writer
 src/gnssguard/analysis/     coverage report
 src/gnssguard/features/     grid-cell x time-window features
@@ -171,8 +175,19 @@ src/gnssguard/product/      daily publishing, quality gates, website
 models/detector/            the model the nightly job uses (commit after training)
 scripts/                    protocol decisions, localization fitting and checks
 tests/                      unit tests (no network)
-docs/                       data, labels, model, model card, evaluation protocol
+docs/                       data, labels, model, model card, evaluation protocol, product
 ```
+
+## How to cite
+
+If you use the code, the method or the published data, please cite the repository
+(GitHub's "Cite this repository" button uses `CITATION.cff`):
+
+> sahilprg. *gnssguard: GNSS interference detection from open ADS-B data* (2026).
+> https://github.com/sahilprg/gnss-interference. Daily data:
+> https://sahilprg.github.io/gnss-interference/, derived from adsb.lol under ODbL 1.0.
+
+Derived data must keep the ODbL attribution ([DATA_LICENSE.md](DATA_LICENSE.md)).
 
 ## Data license
 

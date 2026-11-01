@@ -123,7 +123,8 @@ Learned on 2026-10-26 (`reports/labels/label_model_rules.csv`):
 
 `nic_cluster` and `nic_zero` are strongly correlated, which breaks the model's
 independence assumption and makes it overconfident: almost no cell gets a probability
-between 0.2 and 0.8. Calibration is a Phase 3 task.
+between 0.2 and 0.8. The detector's published probabilities are calibrated separately
+(docs/model.md, section 6).
 
 ## 4. Results on the real day
 
@@ -202,7 +203,8 @@ The same day with no attacks has 0.65% flagged cells, so the rules add little no
 
 - Jamming misses sit at the edge of the footprint, where about half the aircraft in a
   cell are affected (median 50%, against 97% in detected cells). The rules need 50%
-  degraded; the Phase 3 model should do better here.
+  degraded. The Phase 3 model does on synthetic attacks (edge recall 0.92-1.00 vs
+  0.14-0.49), though not yet shown on real data (docs/model.md).
 - Spoofing recall varies a lot between seeds (0.54-0.97): slow drifts in sparse cells
   are the hardest case.
 
@@ -254,6 +256,9 @@ Krasnodar box has no judgeable cells: almost no civil traffic is tracked there.
 
 ## 7. Gold set
 
+Status: all 300 cells labeled by hand on 31 Oct 2026 (`labels/gold.csv`); results in
+docs/model.md, section 1.
+
 `gnssguard gold-sample` picks cell-windows with at least 3 usable aircraft, stratified
 by region and by stratum (likely normal, uncertain, likely jamming, spoofing
 candidate), topping up at random when a stratum is small. The CSV leaves out rule
@@ -289,5 +294,6 @@ map (online)" adds a CARTO background when you have internet.
 
 - A satellite-geometry (DOP) rule from the GPS almanac, to rule out poor accuracy
   caused by satellite positions.
-- A rule using neighboring cells; this goes into the Phase 3 features.
-- Calibrated probabilities (the label model is overconfident).
+- Done since: neighbouring cells became detector features, and the detector's
+  probabilities are calibrated (docs/model.md, sections 4 and 6). The label model
+  itself is still overconfident.

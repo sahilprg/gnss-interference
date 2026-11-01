@@ -4,7 +4,8 @@ A public website with a daily map of GNSS interference over air traffic, and the
 results as downloadable files. Everything runs on free GitHub services: a nightly
 GitHub Actions job does the processing, and GitHub Pages serves the result.
 
-Live site: https://sahilprg.github.io/gnss-interference/ (after the setup below).
+Live site: https://sahilprg.github.io/gnss-interference/ (published since 1 Nov 2026,
+with days from 26 Oct 2026 onwards).
 
 ## How it runs
 
@@ -88,7 +89,7 @@ Coastlines and borders are Natural Earth outlines shipped with the site.
 * **How it works:** method, test results, known limits.
 * **Data:** file formats, a code example, and the licence (ODbL, from adsb.lol).
 
-## Setup (once)
+## Setup (done once; kept for forks and rebuilds)
 
 1. Copy your trained model into the repository and push:
    `models/detector/` with `meta.json`, `y_jam.txt`, `y_spoof.txt`.

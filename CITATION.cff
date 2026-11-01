@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software or its published data, please cite it as below."
+title: "gnssguard: GNSS interference detection from open ADS-B data"
+type: software
+authors:
+  - alias: sahilprg
+repository-code: "https://github.com/sahilprg/gnss-interference"
+url: "https://sahilprg.github.io/gnss-interference/"
+license: MIT
+version: "0.1.0"
+date-released: "2026-11-01"
+keywords:
+  - GNSS
+  - GPS jamming
+  - GPS spoofing
+  - ADS-B
+  - weak supervision
+  - aviation safety
