@@ -118,12 +118,28 @@ def fit_label_model(cells: pd.DataFrame, train_dates: list[str]) -> DawidSkene:
     return DawidSkene().fit(votes[INTEGRITY_RULES])
 
 
-def real_targets(cells: pd.DataFrame, model: DawidSkene) -> pd.DataFrame:
-    """Weak-label targets; rows no rule could judge get NaN targets."""
+def borderline(cells: pd.DataFrame) -> pd.Series:
+    """Cells with some jamming evidence: >= 1 degraded aircraft or a hot neighbour.
+
+    When the weak labels call such a cell clean, that "clean" is the least trustworthy
+    negative there is: it is exactly where the rules miss footprint edges.
+    """
+    return (cells["n_ac_degraded"].fillna(0) >= 1) | (cells["nb_hot"].fillna(0) >= 1)
+
+
+def real_targets(cells: pd.DataFrame, model: DawidSkene, unlabel_borderline: bool = False
+                 ) -> pd.DataFrame:
+    """Weak-label targets; rows no rule could judge get NaN targets.
+
+    With unlabel_borderline, borderline cells the weak labels call clean get no jamming
+    target (NaN) instead of 0.
+    """
     votes = apply_rules(cells)
     sc = score(votes, model)
     judged = sc["label"] != "unknown"
     y_jam = (sc["p_jamming"].fillna(0) >= 0.5).astype(float).where(judged)
+    if unlabel_borderline:
+        y_jam = y_jam.mask((y_jam == 0) & borderline(cells))
     y_spoof = (sc["spoof_votes"] >= 1).astype(float).where(judged)
     return pd.DataFrame({"y_jam": y_jam, "y_spoof": y_spoof, "rule_label": sc["label"].astype(str),
                          "rule_p_jamming": sc["p_jamming"], "rule_spoof_votes": sc["spoof_votes"]},
@@ -133,7 +149,8 @@ def real_targets(cells: pd.DataFrame, model: DawidSkene) -> pd.DataFrame:
 def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: list[int],
                    n_jamming: int = 4, n_spoofing: int = 4, spec: GridSpec = GridSpec(),
                    p_mlat: float | None = None, profile: str = "standard", keep_runs: bool = False,
-                   label_model: DawidSkene | None = None) -> tuple[pd.DataFrame, list[dict]]:
+                   label_model: DawidSkene | None = None, unlabel_borderline: bool = False
+                   ) -> tuple[pd.DataFrame, list[dict]]:
     """Cell-windows with context and exact targets from attacks injected into `region`.
 
     Truth positive: >= 2 affected aircraft. Negative: no affected aircraft and outside a
@@ -184,6 +201,9 @@ def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: 
                 weak = real_targets(cw, label_model)
                 for col in ("y_jam", "y_spoof"):
                     cw[col] = np.where(neg & (weak[col] == 1), 1.0, cw[col])
+            if unlabel_borderline:
+                cw["y_jam"] = np.where(neg & (cw["y_jam"] == 0) & borderline(cw), np.nan,
+                                       cw["y_jam"])
             cw["seed"] = seed
             frames.append(cw)
             if keep_runs:

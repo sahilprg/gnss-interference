@@ -206,13 +206,16 @@ def cmd_train(args) -> int:
 
     tr, va, te = _split_days(args)
     print(f"train: {', '.join(tr)}\nvalidation: {', '.join(va)}\ntest (sealed): {', '.join(te)}")
-    table, lm = build_table(args.data, args.cells, tr, va, synth_region=args.synth_region,
+    table, lm = build_table(args.data, args.cells, tr, va,
+                            synth_region=_split(args.synth_train_regions),
                             synth_seeds=tuple(int(s) for s in _split(args.synth_seeds)),
-                            spec=_grid(args))
+                            spec=_grid(args), unlabel_borderline=args.unlabel_borderline)
     Path(args.table).parent.mkdir(parents=True, exist_ok=True)
     table.to_parquet(args.table, index=False)
     det = train(table, label_model=lm)
     det.meta["test_dates"] = te
+    det.meta["training_options"] = {"synth_train_regions": _split(args.synth_train_regions),
+                                    "unlabel_borderline": args.unlabel_borderline}
     det.save(args.model)
     rep = Path(args.report)
     rep.mkdir(parents=True, exist_ok=True)
@@ -257,8 +260,9 @@ def cmd_rolling(args) -> int:
     stored = sorted({d for _, d, _ in partitions(args.cells)})
     days = _split(args.test_dates) or stored[-args.days:]
     print(f"rolling test days: {', '.join(days)}")
-    res = run(args.data, args.cells, table, days, args.report, synth_region=args.synth_region,
-              n_seeds=args.seeds, spec=_grid(args))
+    res = run(args.data, args.cells, table, days, args.report,
+              synth_region=_split(args.test_regions), n_seeds=args.seeds, spec=_grid(args),
+              unlabel_borderline=args.unlabel_borderline)
     with pd.option_context("display.width", 160, "display.max_columns", 20):
         for name in ("rolling_synthetic_overall", "rolling_real_flag_rates"):
             df = res.get(name)
@@ -377,6 +381,10 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--train-dates")
     pr.add_argument("--val-dates")
     pr.add_argument("--synth-seeds", default="0,1")
+    pr.add_argument("--synth-train-regions", default="central_europe,east_med",
+                    help="regions to inject training attacks into (comma-separated)")
+    pr.add_argument("--unlabel-borderline", action="store_true",
+                    help="leave weak negatives with some jamming evidence unlabeled")
     _grid_args(pr)
     pr.set_defaults(func=cmd_train)
 
@@ -391,6 +399,10 @@ def main(argv: list[str] | None = None) -> int:
     _model_args(pw)
     pw.add_argument("--days", type=int, default=7, help="test the last N stored days")
     pw.add_argument("--seeds", type=int, default=3, help="synthetic runs per profile per day")
+    pw.add_argument("--test-regions", default="central_europe,black_sea",
+                    help="regions to inject test attacks into (comma-separated)")
+    pw.add_argument("--unlabel-borderline", action="store_true",
+                    help="as in train; must match the table")
     _grid_args(pw)
     pw.set_defaults(func=cmd_rolling)
 

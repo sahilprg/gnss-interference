@@ -34,7 +34,7 @@ PROFILE_SEEDS = {"standard": 700, "hard": 800, "stress": 900}
 TARGET_COLS = ["y_jam", "y_spoof", "rule_label", "rule_p_jamming", "rule_spoof_votes"]
 
 
-def fold_table(table: pd.DataFrame, test_day: str
+def fold_table(table: pd.DataFrame, test_day: str, unlabel_borderline: bool = False
                ) -> tuple[pd.DataFrame, DawidSkene | None] | None:
     """Rows before test_day: train = all but the last stored day, val = the last one."""
     days = sorted(d for d in table["date"].unique() if d < test_day)
@@ -46,19 +46,22 @@ def fold_table(table: pd.DataFrame, test_day: str
     lm = None
     if real.any():
         lm = DawidSkene().fit(apply_rules(t[real & t["date"].isin(train_days)])[INTEGRITY_RULES])
-        t.loc[real, TARGET_COLS] = real_targets(t[real], lm)[TARGET_COLS]
+        t.loc[real, TARGET_COLS] = real_targets(t[real], lm, unlabel_borderline)[TARGET_COLS]
     t["split"] = (t["date"] == val_day).map({True: "val", False: "train"})
     return t, lm
 
 
 def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame,
-        test_days: list[str], report_dir: str | Path, *, synth_region: str = "central_europe",
-        n_seeds: int = 3, spec: GridSpec = GridSpec()) -> dict[str, pd.DataFrame]:
+        test_days: list[str], report_dir: str | Path, *,
+        synth_region: str | list[str] = "central_europe", n_seeds: int = 3,
+        spec: GridSpec = GridSpec(), unlabel_borderline: bool = False
+        ) -> dict[str, pd.DataFrame]:
+    test_regions = [synth_region] if isinstance(synth_region, str) else list(synth_region)
     rep = Path(report_dir)
     rep.mkdir(parents=True, exist_ok=True)
     synth_rows, flags, folds = [], [], []
     for day in test_days:
-        ft = fold_table(table, day)
+        ft = fold_table(table, day, unlabel_borderline)
         if ft is None:
             log.warning("%s: fewer than two earlier days; skipped", day)
             continue
@@ -75,25 +78,29 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame,
         cells = load_cells(cells_dir, [day])
         if not cells.empty:
             flags.append(real_flag_rates(with_context(cells), predictors).assign(test_day=day))
-        for prof, base in PROFILE_SEEDS.items():
-            seeds = [base + i for i in range(n_seeds)]
-            rows, runs = synthetic_rows(processed, synth_region, [day], seeds, spec=spec,
-                                        profile=prof, keep_runs=True)
-            for r in runs:
-                cw = rows[rows["seed"] == r["seed"]].reset_index(drop=True)
-                for name, fn in predictors.items():
-                    frame = pd.concat([cw[["cell_lat", "cell_lon", "window"]], fn(cw)], axis=1)
-                    summ, _ = S.evaluate(frame, r["truth"], spec)
-                    synth_rows.append({"test_day": day, "profile": prof, "predictor": name,
-                                       "seed": r["seed"], **summ})
+        for region in test_regions:
+            for prof, base in PROFILE_SEEDS.items():
+                seeds = [base + i for i in range(n_seeds)]
+                rows, runs = synthetic_rows(processed, region, [day], seeds, spec=spec,
+                                            profile=prof, keep_runs=True)
+                for r in runs:
+                    cw = rows[rows["seed"] == r["seed"]].reset_index(drop=True)
+                    for name, fn in predictors.items():
+                        frame = pd.concat([cw[["cell_lat", "cell_lon", "window"]], fn(cw)],
+                                          axis=1)
+                        summ, _ = S.evaluate(frame, r["truth"], spec)
+                        synth_rows.append({"test_day": day, "synth_region": region,
+                                           "profile": prof, "predictor": name,
+                                           "seed": r["seed"], **summ})
+                del rows, runs
         log.info("fold %s done", day)
 
     synthetic = pd.DataFrame(synth_rows)
     real = pd.concat(flags, ignore_index=True) if flags else pd.DataFrame()
     cols = ["recall_jamming", "recall_spoofing", "false_positive_rate_away_from_events"]
-    per_day = (synthetic.groupby(["test_day", "profile", "predictor"])[cols].mean().round(3)
-               .reset_index()) if not synthetic.empty else synthetic
-    overall = (per_day.groupby(["profile", "predictor"])[cols]
+    per_day = (synthetic.groupby(["test_day", "synth_region", "profile", "predictor"])[cols]
+               .mean().round(3).reset_index()) if not synthetic.empty else synthetic
+    overall = (per_day.groupby(["synth_region", "profile", "predictor"])[cols]
                .agg(["mean", "min", "max"]).round(3)) if not per_day.empty else per_day
     if not overall.empty:
         overall.columns = [f"{a}_{b}" for a, b in overall.columns]

@@ -160,8 +160,10 @@ two East Med cells labeled unsure; cells where `alt_mismatch` fired: 25 of 25,
 `speed_mismatch`: 16 of 18. This is weaker evidence than it looks. The labeler sees the
 same quantities the rules use, so the gold set confirms that the evidence is there and
 looks like spoofing in context, not that it was spoofing: a weather-driven GPS-baro
-difference over Punjab would look the same. An independent source (pilot reports,
-NOTAMs naming spoofing, or MLAT vs ADS-B position checks) is still needed.
+difference over Punjab would look the same. An independent source (pilot reports or
+NOTAMs naming spoofing) is still needed. An MLAT vs ADS-B position check was tried and
+is not usable here: there are no MLAT positions over the Black Sea or Punjab
+(docs/evaluation_protocol.md).
 
 ## 5. Synthetic attacks
 

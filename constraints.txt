@@ -1,0 +1,15 @@
+# Exact versions the published results were produced and tested with (Python 3.12-3.13,
+# Linux and Windows). Install with:  pip install -e ".[dev,fast]" -c constraints.txt
+# Unpinned installs may pick newer versions that move results slightly.
+numpy==2.5.4
+pandas==3.1.0
+pyarrow==26.0.0
+lightgbm==4.7.0
+scipy==1.18.1
+narwhals==2.28.0
+pyyaml==6.0.3
+requests==2.34.2
+urllib3==2.8.0
+orjson==3.13.0
+pytest==9.2.0
+ruff==0.17.3

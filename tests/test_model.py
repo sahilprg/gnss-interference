@@ -135,3 +135,32 @@ def test_real_flag_rates_split_dense_and_sparse():
     assert out["judged"] == 5 and out["flagged_share"] == 0.6
     assert out["judged_dense"] == 3 and round(out["flagged_share_dense"], 3) == 0.333
     assert out["judged_sparse"] == 2 and out["flagged_share_sparse"] == 1.0
+
+
+def test_borderline_negatives_can_be_left_unlabeled():
+    from gnssguard.model.dataset import borderline
+
+    cells = pd.DataFrame({"n_ac_degraded": [0, 1, 0, 0], "nb_hot": [0, 0, 2, np.nan]})
+    assert borderline(cells).tolist() == [False, True, True, False]
+
+
+def test_gold_weighting_by_stratum(tmp_path):
+    from gnssguard.model.evaluate import gold_eval
+
+    w = pd.Timestamp("2026-10-26T10:00Z")
+    keys = {"region": "r", "date": "2026-10-26", "window": w}
+    # population: 90 likely-normal cells, 10 likely-jamming cells
+    pop = pd.DataFrame({**keys, "cell_lat": np.arange(100.0), "cell_lon": 0.0,
+                        "n_ac_usable": 5, "p_jamming": [0.01] * 90 + [0.95] * 10,
+                        "spoof_votes": 0})
+    # gold: 2 cells per stratum; the predictor misses one likely-normal cell
+    gold = pd.DataFrame({"gold_id": ["a", "b", "c", "d"], **keys,
+                         "cell_lat": [0.0, 1.0, 90.0, 91.0], "cell_lon": 0.0,
+                         "label": ["jamming", "normal", "jamming", "jamming"]})
+    gold.to_csv(tmp_path / "gold.csv", index=False)
+    cells = pop.drop(columns=["p_jamming", "spoof_votes"])
+    pred = {"p": lambda c: pd.DataFrame({"label": np.where(c["cell_lat"] >= 90, "jamming",
+                                                           "normal")}, index=c.index)}
+    out = gold_eval(tmp_path / "gold.csv", cells, pred, pop).iloc[0]
+    assert out["binary_agreement"] == 0.75
+    assert out["weighted_binary_agreement"] == pytest.approx(0.9 * 0.5 + 0.1 * 1.0)

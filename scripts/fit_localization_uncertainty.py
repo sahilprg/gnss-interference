@@ -2,8 +2,9 @@
 
 Injects synthetic jamming (standard, hard and stress profiles, 3 seeds each) into the
 calm control region on four days BEFORE the test day, localizes the incidents the saved
-detector flags, and finds the smallest scale on the raw spread that covers 90% of the
-confident estimates. Takes about an hour on 2 CPU cores.
+detector flags (with the optional second-jammer fit, so one run gives both the
+one-jammer and the two-jammer results), and finds the smallest scale on the raw spread
+that covers 90% of the confident estimates. Takes about an hour on 2 CPU cores.
 
     python scripts/fit_localization_uncertainty.py reports/model
 """
@@ -32,7 +33,7 @@ for prof, base in (("standard", 400), ("hard", 500), ("stress", 600)):
         for run in runs:
             cw = rows[rows.seed == run["seed"]].reset_index(drop=True)
             flag = det.predict(cw)["p_jamming"] >= 0.5
-            est = localize_incidents(run["aircraft"], incidents(cw[flag]))
+            est = localize_incidents(run["aircraft"], incidents(cw[flag]), two_sources=True)
             loc = match_to_events(est, run["events"])
             ev = {e.event_id: e for e in run["events"]}
             loc["moving"] = [bool(getattr(ev[i], "speed_kt", 0)) for i in loc.event_id]
@@ -41,6 +42,13 @@ for prof, base in (("standard", 400), ("hard", 500), ("stress", 600)):
         print(prof, date, flush=True)
 loc = pd.concat(frames, ignore_index=True)
 loc.to_csv(f"{out}/localization_fit_events.csv", index=False)
-print("all profiles:", fit_uncertainty(loc))
-for prof, g in loc.groupby("profile"):
-    print(prof, fit_uncertainty(g))
+one = loc.assign(fit_error_km=loc["first_error_km"], uncertainty_km=loc["first_uncertainty_km"],
+                 score=loc["first_score"])
+f1, f2 = one[one["found"]], loc[loc["found"]]
+print("one jammer : median error", round(f1["fit_error_km"].median(), 1), fit_uncertainty(one))
+print("two jammers: median error", round(f2["fit_error_km"].median(), 1), fit_uncertainty(loc))
+for prof in sorted(loc["profile"].unique()):
+    a, b = f1[f1["profile"] == prof], f2[f2["profile"] == prof]
+    n2 = int((b["n_sources"] == 2).sum())
+    print(f"  {prof}: median error one {a['fit_error_km'].median():.1f} km, "
+          f"two {b['fit_error_km'].median():.1f} km, two-source fits {n2}")

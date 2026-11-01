@@ -42,21 +42,28 @@ TARGETS = {"y_jam": "p_jamming", "y_spoof": "p_spoofing"}
 
 
 def build_table(processed: str | Path, cells_dir: str | Path, train_dates: list[str],
-                val_dates: list[str], *, synth_region: str = "central_europe",
+                val_dates: list[str], *,
+                synth_region: str | list[str] = ("central_europe", "east_med"),
                 synth_seeds: tuple[int, ...] = (0, 1), spec: GridSpec = GridSpec(),
-                regions: list[str] | None = None) -> tuple[pd.DataFrame, DawidSkene]:
-    """Real (weak labels) + synthetic (exact truth) rows for the given days."""
+                regions: list[str] | None = None, unlabel_borderline: bool = False
+                ) -> tuple[pd.DataFrame, DawidSkene]:
+    """Real (weak labels) + synthetic (exact truth) rows for the given days.
+
+    synth_region: one region or several to inject synthetic attacks into.
+    """
     days = train_dates + val_dates
     cells = load_cells(cells_dir, days, regions)
     if cells.empty:
         raise ValueError(f"no cell tables in {cells_dir} for {days}")
     lm = fit_label_model(cells, train_dates)
     real = with_context(cells)
-    real = pd.concat([real, real_targets(real, lm)], axis=1)
+    real = pd.concat([real, real_targets(real, lm, unlabel_borderline)], axis=1)
     real["source"] = "real"
 
-    synth, _ = synthetic_rows(processed, synth_region, days, list(synth_seeds), spec=spec,
-                              label_model=lm)
+    regions_s = [synth_region] if isinstance(synth_region, str) else list(synth_region)
+    synth = pd.concat([synthetic_rows(processed, r, days, list(synth_seeds), spec=spec,
+                                      label_model=lm, unlabel_borderline=unlabel_borderline)[0]
+                       for r in regions_s], ignore_index=True)
     synth["source"] = "synthetic"
     table = pd.concat([real, synth], ignore_index=True)
     table["split"] = np.where(table["date"].isin(train_dates), "train", "val")
@@ -127,6 +134,20 @@ class Detectors:
         return cls(models, meta["features"], lm, meta, cal)
 
 
+def environment() -> dict:
+    """Package versions, recorded with every saved model so results can be reproduced."""
+    import importlib.metadata as md
+    import platform
+
+    out = {"python": platform.python_version(), "os": platform.system()}
+    for pkg in ("gnssguard", "lightgbm", "numpy", "pandas", "pyarrow", "scipy"):
+        try:
+            out[pkg] = md.version(pkg)
+        except md.PackageNotFoundError:
+            out[pkg] = None
+    return out
+
+
 def train(table: pd.DataFrame, features: list[str] = FEATURES, *, sources=("real", "synthetic"),
           rounds: int = 3000, early_stop: int = 100, params: dict | None = None,
           label_model: DawidSkene | None = None) -> Detectors:
@@ -149,6 +170,7 @@ def train(table: pd.DataFrame, features: list[str] = FEATURES, *, sources=("real
         cal[target] = fit_isotonic(m.predict(va[features]), va[target], va["weight"])
         log.info("%s: %s", target, info[target])
     meta = {"sources": list(sources), "targets": info, "params": params,
+            "versions": environment(),
             "train_dates": sorted(t.loc[t["split"] == "train", "date"].unique()),
             "val_dates": sorted(t.loc[t["split"] == "val", "date"].unique())}
     return Detectors(models, list(features), label_model, meta, cal)

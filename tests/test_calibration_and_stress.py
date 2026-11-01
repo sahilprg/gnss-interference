@@ -111,3 +111,24 @@ def test_rolling_fold_uses_only_the_past():
     assert set(ft.loc[ft["split"] == "val", "date"]) == {"2026-10-22"}
     assert set(ft.loc[ft["split"] == "train", "date"]) == {"2026-10-20", "2026-10-21"}
     assert fold_table(t, "2026-10-21") is None  # fewer than two earlier days
+
+
+def test_two_source_localization_finds_both_jammers():
+    from gnssguard.model.localize import localize
+
+    rng = np.random.default_rng(3)
+    lat = rng.uniform(48, 54, 3000)
+    lon = rng.uniform(8, 20, 3000)
+    alt = rng.uniform(20_000, 38_000, 3000)
+    jams = [(50.0, 10.5), (52.0, 17.5)]  # about 520 km apart
+    deg = np.zeros(3000, dtype=bool)
+    for jl, jo in jams:
+        deg |= _haversine_km(lat, lon, jl, jo) <= 150
+    pts = pd.DataFrame({"lat": lat, "lon": lon, "alt_ft": alt, "degraded": deg})
+    one = localize(pts)
+    two = localize(pts, two_sources=True)
+    assert one["n_sources"] == 1 and one["score"] < 0.85
+    assert two["n_sources"] == 2 and two["score"] >= one["score"] + 0.03
+    found = [(two["lat"], two["lon"]), (two["lat2"], two["lon2"])]
+    for jl, jo in jams:
+        assert min(_haversine_km(a, b, jl, jo) for a, b in found) < 30

@@ -22,7 +22,7 @@ Total running cost: zero.
 ```bash
 git clone https://github.com/sahilprg/gnss-interference
 cd gnss-interference
-pip install -e ".[dev,fast]"
+pip install -e ".[dev,fast]" -c constraints.txt   # exact tested versions
 
 make test                      # unit tests, no network
 make sample DATE=2026-10-26    # first 5,000 aircraft of one day, ~2 min
@@ -94,19 +94,22 @@ gnssguard rolling    # retrain and test separately on each of the last 7 days
 | Test (26 Oct; trained on 26 days) | Rules | Model |
 | --- | --- | --- |
 | 300 hand-labeled cells: interference vs normal (253 decided) | 96.8% | 96.8% |
+| Same, weighted to all cells of the day | 94.7% | 94.7% |
 | Hand-labeled normal cells wrongly flagged (of 112) | 0 | 0 |
 | Hard synthetic attacks: jamming caught | 51% | **95%** |
 | Hard synthetic attacks: footprint edges caught | 14% | **92%** |
 | Hard synthetic attacks: spoofing caught | 74% | **96%** |
-| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **98%** |
+| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **96%** |
+| Hard spoofing over the Black Sea (7 test days) | 33% | 47% |
 | False alarms, calm Central Europe (real data) | 0.65% | 0.65% |
 | Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
-| Stated location uncertainty that contains the truth (confident estimates) | | **94%** (was 75%) |
+| Stated location uncertainty that contains the truth (confident estimates) | | **90-100%** |
 
 On real data the model agrees with the rules wherever both judge; its advantage at
-footprint edges is shown on synthetic attacks, so far not on real data. Over seven
-separate test days (20-26 Oct, each model trained only on earlier days), the model
-caught more synthetic attacks than the rules on every day.
+footprint edges is shown on synthetic attacks, not yet on real data, and spoofing over
+busy hotspots remains weak. Every change in the last round was accepted or rejected by
+rules written before any result ([docs/evaluation_protocol.md](docs/evaluation_protocol.md)).
+Intended use and limits: [docs/model_card.md](docs/model_card.md).
 
 Ablations, limits and the full tables: [docs/model.md](docs/model.md).
 
@@ -151,9 +154,9 @@ src/gnssguard/features/     grid-cell x time-window features
 src/gnssguard/labels/       rules, label model, events, synthetic attacks, gold sampler
 src/gnssguard/model/        detector dataset, training, evaluation, source localization
 src/gnssguard/viz/          HTML map viewer
-scripts/                    one-off fitting scripts (localization uncertainty)
+scripts/                    protocol decisions, localization fitting and checks
 tests/                      unit tests (no network)
-docs/                       data and labeling documentation
+docs/                       data, labels, model, model card, evaluation protocol
 ```
 
 ## Data license

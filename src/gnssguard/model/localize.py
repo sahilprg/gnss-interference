@@ -41,12 +41,17 @@ from gnssguard.labels.synthetic import Jamming, radio_horizon_km
 R_GRID_KM = np.arange(50, 451, 25)
 JAMMER_HEIGHT_M = 30.0
 
-# Fitted with `fit_uncertainty` on 168 synthetic jamming events (standard, hard and
-# stress profiles, 3 seeds each) injected on 22-25 Oct 2026, never on the test day:
-# 90.7% of the 107 confident estimates fell inside 3.75 x the raw spread. See docs/model.md.
-UNCERTAINTY_SCALE = 3.75
+# Fitted with `fit_uncertainty` (scripts/fit_localization_uncertainty.py) for the current
+# detector on 168 synthetic jamming events (standard, hard and stress profiles, 3 seeds
+# each) injected on 22-25 Oct 2026, never on the test day: 91.6% of the 83 confident
+# estimates fell inside 4 x the raw spread. See docs/model.md.
+UNCERTAINTY_SCALE = 4.0
 UNCERTAINTY_FLOOR_KM = 0.0
 MIN_SCORE = 0.85
+# Two-jammer fit: implemented, tested by the evaluation protocol on 1 Nov 2026 and
+# rejected (it changed 4 of 168 events and never fired on paired stress jammers), so it
+# is off by default. docs/evaluation_protocol.md.
+TWO_SOURCE_GAIN = 0.03
 SCALE_GRID = np.arange(1.0, 6.01, 0.25)
 FLOOR_GRID_KM = np.arange(0.0, 80.1, 5.0)
 
@@ -85,7 +90,41 @@ def incidents(flagged: pd.DataFrame, spec: GridSpec = GridSpec()) -> pd.DataFram
     return f.assign(incident_id=comp)
 
 
-def localize(pts: pd.DataFrame, *, jammer_height_m: float = JAMMER_HEIGHT_M,
+def localize(pts: pd.DataFrame, *, two_sources: bool = False, min_gain: float = TWO_SOURCE_GAIN,
+             **kw) -> dict | None:
+    """Estimate the jammer(s) from aircraft points (lat, lon, alt_ft, degraded).
+
+    With two_sources, a fit scoring below MIN_SCORE is retried with a second jammer for
+    the degraded aircraft the first does not explain; two sources are kept only if the
+    joint fit separates degraded from healthy aircraft better by at least min_gain.
+    """
+    one = _fit_one(pts, **kw)
+    if one is None:
+        return None
+    one["n_sources"] = 1
+    if not two_sources or one["score"] >= MIN_SCORE:
+        return one
+    deg = pts["degraded"].to_numpy(bool)
+    in1 = one.pop("_inside")
+    rest = pts[~in1]
+    two = _fit_one(rest, **kw) if (deg & ~in1).sum() >= 3 else None
+    if two is None:
+        return one
+    in2 = np.zeros(len(pts), dtype=bool)
+    in2[~in1] = two.pop("_inside")
+    inside = in1 | in2
+    n_ok = (~deg).sum()
+    joint = ((inside & deg).sum() / deg.sum()
+             + (((~inside) & ~deg).sum() / n_ok if n_ok else 0.5)) / 2
+    if joint < one["score"] + min_gain:
+        return one
+    one.update(n_sources=2, score_one_source=one["score"], score=float(joint),
+               lat2=two["lat"], lon2=two["lon"], range2_km=two["range_km"],
+               uncertainty2_km=two["uncertainty_km"])
+    return one
+
+
+def _fit_one(pts: pd.DataFrame, *, jammer_height_m: float = JAMMER_HEIGHT_M,
              search_deg: float = 4.0, step_deg: float = 0.1,
              r_grid: np.ndarray = R_GRID_KM, near_best: float = 0.005) -> dict | None:
     """Estimate one jammer from aircraft points (lat, lon, alt_ft, degraded)."""
@@ -114,7 +153,9 @@ def localize(pts: pd.DataFrame, *, jammer_height_m: float = JAMMER_HEIGHT_M,
     ci, rj = np.nonzero(best >= top - near_best)
     est_lat, est_lon = float(cand_lat[ci].mean()), float(cand_lon[ci].mean())
     spread = _haversine_km(est_lat, est_lon, cand_lat[ci], cand_lon[ci])
-    return {"lat": est_lat, "lon": est_lon, "range_km": float(np.median(r_grid[rj])),
+    r_best = float(np.median(r_grid[rj]))
+    inside_best = _haversine_km(est_lat, est_lon, lat, lon) <= np.minimum(r_best, horizon)
+    return {"_inside": np.asarray(inside_best), "lat": est_lat, "lon": est_lon, "range_km": r_best,
             "score": float(top),
             # never claim better than the search grid can resolve
             "uncertainty_km": float(max(np.percentile(spread, 90), step_deg * 111.2)),
@@ -123,7 +164,8 @@ def localize(pts: pd.DataFrame, *, jammer_height_m: float = JAMMER_HEIGHT_M,
 
 
 def localize_incidents(ac: pd.DataFrame, inc: pd.DataFrame, spec: GridSpec = GridSpec(),
-                       margin_deg: float = 3.0, min_cells: int = 3) -> pd.DataFrame:
+                       margin_deg: float = 3.0, min_cells: int = 3,
+                       two_sources: bool = False) -> pd.DataFrame:
     """One estimate per incident with at least `min_cells` flagged cell-windows."""
     ac = ac.assign(window=pd.to_datetime(ac["window"], utc=True))
     rows = []
@@ -135,9 +177,10 @@ def localize_incidents(ac: pd.DataFrame, inc: pd.DataFrame, spec: GridSpec = Gri
                                    g["cell_lat"].max() + spec.cell_deg + margin_deg)
                & ac["lon"].between(g["cell_lon"].min() - margin_deg,
                                    g["cell_lon"].max() + spec.cell_deg + margin_deg))
-        est = localize(ac[sel])
+        est = localize(ac[sel], two_sources=two_sources)
         if est is None:
             continue
+        est.pop("_inside", None)
         rows.append({"incident_id": int(iid), "cell_windows": len(g),
                      "start": g["window"].min(), "end": g["window"].max(), **est})
     return calibrate_uncertainty(pd.DataFrame(rows))
@@ -151,8 +194,11 @@ def calibrate_uncertainty(est: pd.DataFrame, scale: float | None = None,
         return est
     scale = UNCERTAINTY_SCALE if scale is None else scale
     floor_km = UNCERTAINTY_FLOOR_KM if floor_km is None else floor_km
-    return est.assign(uncertainty_cal_km=np.maximum(est["uncertainty_km"] * scale, floor_km),
-                      confident=est["score"] >= min_score)
+    out = est.assign(uncertainty_cal_km=np.maximum(est["uncertainty_km"] * scale, floor_km),
+                     confident=est["score"] >= min_score)
+    if "uncertainty2_km" in out:
+        out["uncertainty2_cal_km"] = np.maximum(out["uncertainty2_km"] * scale, floor_km)
+    return out
 
 
 def fit_uncertainty(loc: pd.DataFrame, target: float = 0.9,
@@ -190,10 +236,19 @@ def match_to_events(est: pd.DataFrame, events: list, spec: GridSpec = GridSpec()
                 if d.iloc[j] <= max_km:
                     m = live.iloc[j]
                     fit_err = float(_haversine_km(m.lat, m.lon, e.lat, e.lon))
+                    unc, unc_cal = float(m.uncertainty_km), float(m.uncertainty_cal_km)
+                    # the first source alone is exactly the one-jammer fit
+                    row.update(first_error_km=fit_err, first_uncertainty_km=unc,
+                               first_score=float(m.get("score_one_source", m.score)))
+                    if m.get("n_sources", 1) == 2:  # score against the nearer source
+                        err2 = float(_haversine_km(m.lat2, m.lon2, e.lat, e.lon))
+                        if err2 < fit_err:
+                            fit_err, unc = err2, float(m.uncertainty2_km)
+                            unc_cal = float(m.uncertainty2_cal_km)
                     row.update(found=True, fit_error_km=fit_err,
                                centroid_error_km=float(d.iloc[j]),
-                               uncertainty_km=float(m.uncertainty_km),
-                               uncertainty_cal_km=float(m.uncertainty_cal_km),
+                               uncertainty_km=unc, uncertainty_cal_km=unc_cal,
+                               n_sources=int(m.get("n_sources", 1)),
                                confident=bool(m.confident),
                                fitted_range_km=float(m.range_km), score=float(m.score),
                                n_degraded=int(m.n_degraded), n_healthy=int(m.n_healthy),

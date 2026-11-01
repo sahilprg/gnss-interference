@@ -79,8 +79,25 @@ def model_frame(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
 
 # -- 1. gold -----------------------------------------------------------------------------
 
-def gold_eval(gold_csv: str | Path, test_cells: pd.DataFrame, predictors: dict) -> pd.DataFrame:
-    """Agreement with hand labels. Only aggregate numbers leave this function."""
+def gold_strata(cells: pd.DataFrame) -> pd.Series:
+    """The stratum each cell belonged to when the gold set was drawn (labels/gold.py)."""
+    from gnssguard.labels.gold import BINS
+
+    st = pd.cut(cells["p_jamming"], [b[0] for b in BINS] + [BINS[-1][1]],
+                labels=[b[2] for b in BINS], right=False).astype(str)
+    st = st.where(cells["spoof_votes"] < 1, "spoof_candidate")
+    return cells["region"].astype(str) + "/" + st
+
+
+def gold_eval(gold_csv: str | Path, test_cells: pd.DataFrame, predictors: dict,
+              population: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Agreement with hand labels. Only aggregate numbers leave this function.
+
+    population: the Phase 2 labels of every cell of the test day. When given, agreement
+    is also weighted by stratum size, because the gold sample over-represents uncertain
+    and affected cells: the weighted figure estimates agreement over all judged cells
+    with 3+ usable aircraft.
+    """
     g = pd.read_csv(gold_csv, dtype=str, keep_default_na=False)
     g = g[g["label"] != ""].copy()
     if g.empty:
@@ -91,6 +108,18 @@ def gold_eval(gold_csv: str | Path, test_cells: pd.DataFrame, predictors: dict) 
     g = g.rename(columns={"label": "human_label"})[
         ["region", "date", *CELL_KEYS, "human_label"]]
     m = g.merge(c, on=["region", "date", *CELL_KEYS], how="inner")
+    weights = None
+    if population is not None and not population.empty:
+        from gnssguard.labels.rules import MIN_USABLE
+
+        pop = population[population["date"].isin(m["date"].unique())
+                         & (population["n_ac_usable"] >= MIN_USABLE)
+                         & population["p_jamming"].notna()].copy()
+        pop["window"] = pd.to_datetime(pop["window"], utc=True)
+        pop["stratum"] = gold_strata(pop)
+        m = m.merge(pop[["region", "date", *CELL_KEYS, "stratum"]],
+                    on=["region", "date", *CELL_KEYS], how="left")
+        weights = pop["stratum"].value_counts()
     rows = []
     for name, fn in predictors.items():
         pred = fn(m)["label"].astype(str)
@@ -112,6 +141,11 @@ def gold_eval(gold_csv: str | Path, test_cells: pd.DataFrame, predictors: dict) 
             "unsure_cells": int((~sure).sum()),
             "unsure_flagged": int(p_flag[~sure].sum()),
         })
+        if weights is not None:
+            agree = (h_flag == p_flag)[sure].groupby(m.loc[sure, "stratum"]).mean()
+            w = weights.reindex(agree.index).fillna(0)
+            rows[-1]["weighted_binary_agreement"] = round(float((agree * w).sum() / w.sum()), 4)
+            rows[-1]["weighted_strata_share"] = round(float(w.sum() / weights.sum()), 3)
     return pd.DataFrame(rows)
 
 
@@ -261,7 +295,8 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame, det: 
         test_dates: list[str], gold_csv: str | Path | None, advisories_csv: str | Path | None,
         report_dir: str | Path, *, synth_region: str = "central_europe",
         synth_seeds: tuple[int, ...] = (100, 101, 102, 103, 104), ablations: bool = True,
-        spec: GridSpec = GridSpec()) -> dict:
+        spec: GridSpec = GridSpec(), labels_path: str | Path | None = "data/labels/labels.parquet"
+        ) -> dict:
     rep = Path(report_dir)
     rep.mkdir(parents=True, exist_ok=True)
     test_cells = with_context(load_cells(cells_dir, test_dates))
@@ -276,7 +311,10 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame, det: 
 
     results = {}
     if gold_csv and Path(gold_csv).exists():
-        results["gold"] = gold_eval(gold_csv, test_cells, predictors)
+        population = None
+        if labels_path and Path(labels_path).exists():
+            population = pd.read_parquet(labels_path)
+        results["gold"] = gold_eval(gold_csv, test_cells, predictors, population)
     syn_rows, loc_frames = {}, []
     for prof, offset in (("standard", 0), ("hard", 100), ("stress", 200)):
         rows, runs = synthetic_rows(processed, synth_region, test_dates,
