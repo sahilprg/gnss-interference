@@ -28,7 +28,7 @@ gnssguard = "gnssguard.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-gnssguard = ["viz/data/*.json.gz"]
+gnssguard = ["viz/data/*.json.gz", "product/site/*"]
 
 [tool.ruff]
 line-length = 100

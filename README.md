@@ -15,7 +15,7 @@ Total running cost: zero.
 | 2. Labels: weak rules, label model, synthetic attacks, map viewer, gold-set sampler | **done; gold set and event list to fill by hand** |
 | 3. Models: jamming and spoofing detectors, source localization | **done** |
 | 4. Evaluation: 300 gold labels, rolling 7-day test, stress attacks, ablations, calibration | **done** |
-| 5. Product: daily pipeline, live map, static API | planned |
+| 5. Product: nightly pipeline, live map website, open data files | **built; goes live after setup** ([docs/product.md](docs/product.md)) |
 
 ## Quickstart
 
@@ -113,6 +113,19 @@ Intended use and limits: [docs/model_card.md](docs/model_card.md).
 
 Ablations, limits and the full tables: [docs/model.md](docs/model.md).
 
+## Daily map and open data (Phase 5)
+
+A nightly GitHub Actions job processes the previous day and publishes a map and data
+files on GitHub Pages: https://sahilprg.github.io/gnss-interference/ (live after the
+one-time setup in [docs/product.md](docs/product.md)). Only cell-level aggregates are
+published, cells with fewer than 3 aircraft are shown as low coverage, jammer areas are
+coarse circles, and days that fail the quality checks are withheld.
+
+```bash
+gnssguard publish --dates 2026-10-26   # public files + website for a stored day -> public/
+python -m http.server -d public 8000   # preview at http://localhost:8000
+```
+
 ## Running on a laptop
 
 Measured on one full day (2026-10-26, all six regions):
@@ -154,6 +167,8 @@ src/gnssguard/features/     grid-cell x time-window features
 src/gnssguard/labels/       rules, label model, events, synthetic attacks, gold sampler
 src/gnssguard/model/        detector dataset, training, evaluation, source localization
 src/gnssguard/viz/          HTML map viewer
+src/gnssguard/product/      daily publishing, quality gates, website
+models/detector/            the model the nightly job uses (commit after training)
 scripts/                    protocol decisions, localization fitting and checks
 tests/                      unit tests (no network)
 docs/                       data, labels, model, model card, evaluation protocol

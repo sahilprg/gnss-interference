@@ -276,6 +276,56 @@ def cmd_rolling(args) -> int:
     return 0
 
 
+PRODUCT_REGIONS = "baltic,east_med,black_sea,punjab,central_europe"
+
+
+def _default_model() -> str:
+    # the model committed with the repository (models/) is what the nightly job uses
+    committed = Path("models/detector")
+    return str(committed) if (committed / "meta.json").exists() else "data/models/detector"
+
+
+def cmd_publish(args) -> int:
+    from gnssguard.product.publish import publish_day
+    from gnssguard.product.site import build_site
+
+    regions = _split(args.regions)
+    for day in _split(args.dates) or []:
+        s = publish_day(day, regions, args.data, args.cells, args.model or _default_model(),
+                        args.out, spec=_grid(args))
+        print(f"{day}: " + ", ".join(f"{r} {v['status']}" for r, v in s["regions"].items())
+              + f"; {s['incidents']} incidents")
+    build_site(args.out, args.config, regions)
+    print(f"site written to {args.out}/  (preview: python -m http.server -d {args.out} 8000)")
+    return 0
+
+
+def cmd_daily(args) -> int:
+    import datetime as dt
+
+    from gnssguard.product.daily import run
+
+    dates = [dt.date.fromisoformat(d) for d in _split(args.dates)] if args.dates else None
+    done = run(args.out, processed=args.data, cells_dir=args.cells,
+               model_dir=args.model or _default_model(), config=args.config,
+               regions=_split(args.regions), dates=dates, lookback=args.lookback,
+               cleanup=args.cleanup, spec=_grid(args))
+    for s in done:
+        print(f"{s['date']}: " + ", ".join(f"{r} {v['status']}" for r, v in s["regions"].items()))
+    if not done:
+        print("nothing new to publish")
+    return 0
+
+
+def _product_args(p) -> None:
+    p.add_argument("--out", default="public", help="website folder")
+    p.add_argument("--data", default="data/processed")
+    p.add_argument("--cells", default="data/cells")
+    p.add_argument("--model", help="model folder (default: models/detector if present)")
+    p.add_argument("--config", default="configs/regions.yaml")
+    p.add_argument("--regions", default=PRODUCT_REGIONS)
+
+
 def _model_args(p) -> None:
     p.add_argument("--data", default="data/processed")
     p.add_argument("--cells", default="data/cells")
@@ -405,6 +455,20 @@ def main(argv: list[str] | None = None) -> int:
                     help="as in train; must match the table")
     _grid_args(pw)
     pw.set_defaults(func=cmd_rolling)
+
+    pp = sub.add_parser("publish", help="write the public files and website for stored days")
+    _product_args(pp)
+    pp.add_argument("--dates", help="comma-separated days that are already ingested")
+    _grid_args(pp)
+    pp.set_defaults(func=cmd_publish)
+
+    pd_ = sub.add_parser("daily", help="ingest, process and publish the days not yet published")
+    _product_args(pd_)
+    pd_.add_argument("--dates", help="comma-separated days to (re)do instead of the look-back")
+    pd_.add_argument("--lookback", type=int, default=3, help="days back from today to check")
+    pd_.add_argument("--cleanup", action="store_true", help="delete processed data afterwards")
+    _grid_args(pd_)
+    pd_.set_defaults(func=cmd_daily)
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,

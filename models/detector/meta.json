@@ -1,0 +1,218 @@
+{
+  "sources": [
+    "real",
+    "synthetic"
+  ],
+  "targets": {
+    "y_jam": {
+      "best_iteration": 461,
+      "train_rows": 423025,
+      "train_positives": 74683,
+      "val_rows": 15495,
+      "val_logloss": 0.00129
+    },
+    "y_spoof": {
+      "best_iteration": 234,
+      "train_rows": 423025,
+      "train_positives": 12391,
+      "val_rows": 15495,
+      "val_logloss": 0.0033
+    }
+  },
+  "params": {
+    "objective": "binary",
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "min_data_in_leaf": 40,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 1,
+    "lambda_l2": 1.0,
+    "verbose": -1,
+    "seed": 0,
+    "deterministic": true,
+    "num_threads": 4
+  },
+  "versions": {
+    "python": "3.12.2",
+    "os": "Windows",
+    "gnssguard": "0.1.0",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pyarrow": "26.0.0",
+    "scipy": "1.18.1"
+  },
+  "train_dates": [
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+    "2026-10-02",
+    "2026-10-03",
+    "2026-10-04",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+    "2026-10-09",
+    "2026-10-10",
+    "2026-10-11",
+    "2026-10-12",
+    "2026-10-13",
+    "2026-10-14",
+    "2026-10-15",
+    "2026-10-16",
+    "2026-10-17",
+    "2026-10-18",
+    "2026-10-19",
+    "2026-10-20",
+    "2026-10-21",
+    "2026-10-22",
+    "2026-10-23",
+    "2026-10-24"
+  ],
+  "val_dates": [
+    "2026-10-25"
+  ],
+  "test_dates": [
+    "2026-10-26"
+  ],
+  "training_options": {
+    "synth_train_regions": [
+      "central_europe",
+      "east_med"
+    ],
+    "unlabel_borderline": false
+  },
+  "features": [
+    "n_aircraft",
+    "n_ac_usable",
+    "n_ac_degraded",
+    "share_ac_degraded",
+    "n_ac_nic0",
+    "n_ac_nacp_low",
+    "share_ac_nacp_low",
+    "n_ac_mlat_fallback",
+    "n_ac_jump",
+    "n_ac_switch_jump",
+    "n_ac_speed_mismatch",
+    "n_ac_altpair",
+    "n_ac_altdev",
+    "share_ac_altdev",
+    "share_pts_degraded",
+    "n_chronic",
+    "mean_alt_ft",
+    "max_alt_ft",
+    "nb_cells",
+    "nb_ac_usable",
+    "nb_ac_degraded",
+    "nb_ac_nic0",
+    "nb_ac_mlat_fallback",
+    "nb_ac_speed_mismatch",
+    "nb_ac_jump",
+    "nb_ac_altdev",
+    "nb_share_degraded",
+    "nb_max_share",
+    "nb_hot",
+    "prev_n_ac_usable",
+    "prev_n_ac_degraded",
+    "prev_n_ac_mlat_fallback",
+    "prev_n_ac_speed_mismatch",
+    "prev_n_ac_jump",
+    "prev_share_ac_degraded",
+    "prev_nb_share_degraded",
+    "next_n_ac_usable",
+    "next_n_ac_degraded",
+    "next_n_ac_mlat_fallback",
+    "next_n_ac_speed_mismatch",
+    "next_n_ac_jump",
+    "next_share_ac_degraded",
+    "next_nb_share_degraded"
+  ],
+  "calibration": {
+    "y_jam": {
+      "x": [
+        0.00021546121818162299,
+        0.82374780969298,
+        0.999705209795103
+      ],
+      "y": [
+        7.750736319950395e-05,
+        0.75,
+        1.0
+      ],
+      "n": 15495
+    },
+    "y_spoof": {
+      "x": [
+        0.00012136437412313617,
+        0.00914131668765995,
+        0.13017114791481763,
+        0.7880177052571268,
+        0.9960904985358374
+      ],
+      "y": [
+        0.0,
+        0.006944444444444444,
+        0.1509433962264151,
+        0.9130434782608695,
+        1.0
+      ],
+      "n": 15495
+    }
+  },
+  "label_model": {
+    "rules": [
+      "lf_nic_cluster",
+      "lf_nic_zero",
+      "lf_nacp_cluster",
+      "lf_mlat_fallback"
+    ],
+    "one_sided": [
+      "lf_mlat_fallback"
+    ],
+    "prior": 0.2163899540022575,
+    "conf": [
+      [
+        [
+          0.9999892715465741,
+          1.0728453425889657e-05
+        ],
+        [
+          5.420797368722016e-05,
+          0.9999457920263127
+        ]
+      ],
+      [
+        [
+          0.9999900766512011,
+          9.92334879891417e-06
+        ],
+        [
+          4.208355454350215e-05,
+          0.9999579164454565
+        ]
+      ],
+      [
+        [
+          0.9999184058234832,
+          8.15941765167692e-05
+        ],
+        [
+          0.4930960772080179,
+          0.5069039227919822
+        ]
+      ],
+      [
+        [
+          0.9827618169796097,
+          0.01723818302039019
+        ],
+        [
+          0.16919507610883155,
+          0.8308049238911684
+        ]
+      ]
+    ]
+  }
+}

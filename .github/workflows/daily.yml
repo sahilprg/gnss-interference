@@ -1,0 +1,75 @@
+name: daily
+
+# Every night: download the days adsb.lol has published since the last run, run the
+# detector, and publish the results to the gh-pages branch (served by GitHub Pages).
+# Run it by hand from the Actions tab to backfill specific days.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # 05:17 UTC; adsb.lol usually publishes a day within a day
+  workflow_dispatch:
+    inputs:
+      dates:
+        description: "Days to (re)do, e.g. 2026-10-27,2026-10-28. Empty: recent days not yet published."
+        required: false
+        default: ""
+
+permissions:
+  contents: write   # push to the gh-pages branch
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -e ".[fast]" -c constraints.txt
+
+      - name: Check the model is committed
+        run: |
+          test -f models/detector/meta.json || {
+            echo "::error::models/detector is missing. Copy data/models/detector to models/detector and commit it."
+            exit 1
+          }
+
+      - name: Get the published site
+        run: |
+          if git fetch --depth=1 origin gh-pages; then
+            git worktree add -B gh-pages public origin/gh-pages
+          else
+            git worktree add --detach public
+            git -C public checkout --orphan gh-pages
+            git -C public rm -rf --quiet .
+          fi
+
+      - name: Process and publish
+        env:
+          DATES: ${{ inputs.dates }}
+        run: |
+          args=(--out public --model models/detector --cleanup)
+          if [ -n "$DATES" ]; then
+            [[ "$DATES" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}(,[0-9]{4}-[0-9]{2}-[0-9]{2})*$ ]] \
+              || { echo "::error::dates must look like 2026-10-27,2026-10-28"; exit 1; }
+            args+=(--dates "$DATES")
+          fi
+          gnssguard daily "${args[@]}"
+
+      - name: Commit to gh-pages
+        run: |
+          cd public
+          git add -A
+          if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit --quiet -m "Publish $(date -u +%Y-%m-%d)"
+          git push origin gh-pages

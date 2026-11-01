@@ -24,3 +24,6 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# local website preview (the nightly job publishes to the gh-pages branch)
+/public/
