@@ -1,0 +1,72 @@
+{
+ "schema": "gnssguard-public/1",
+ "latest": "2026-10-31",
+ "days": [
+  {
+   "date": "2026-10-31",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  },
+  {
+   "date": "2026-10-30",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  },
+  {
+   "date": "2026-10-29",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  },
+  {
+   "date": "2026-10-28",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  },
+  {
+   "date": "2026-10-27",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  }
+ ]
+}

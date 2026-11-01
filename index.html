@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNSS interference map</title>
+<meta name="description" content="Daily map of GPS jamming and spoofing affecting aircraft, from open ADS-B data.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <b>GNSS interference over air traffic</b>
+    <span>Where aircraft lost or were fed false GPS, day by day, from open flight data</span>
+  </div>
+  <div class="pick">
+    <label for="date">Day (UTC)</label>
+    <select id="date"></select>
+  </div>
+  <div class="tabs" id="regions" role="group" aria-label="Region"></div>
+  <nav><a href="index.html" aria-current="page">Map</a><a href="about.html">How it works</a><a href="data.html">Data</a></nav>
+</header>
+
+<main class="app">
+  <aside class="notes" aria-label="Chart notes">
+    <h2 id="region-name">Loading</h2>
+    <p class="small" id="region-note"></p>
+    <div class="status" id="status" role="status"></div>
+    <dl class="figures" id="figures"></dl>
+
+    <h3>Legend</h3>
+    <ul class="legend">
+      <li><span class="sw jam"></span>Jamming: GPS lost or degraded</li>
+      <li><span class="sw spoof"></span>Spoofing: positions moved by a false signal</li>
+      <li><span class="sw both"></span>Both</li>
+      <li><span class="sw normal"></span>Normal (3 or more aircraft checked)</li>
+      <li><span class="sw low"></span>Low coverage: 1-2 aircraft, not judged</li>
+      <li><span class="sw src"></span>Likely jammer area (90% circle)</li>
+      <li><span class="sw area"></span>Affected area, source not located</li>
+    </ul>
+    <p class="small">Over the whole day, colour strength shows the share of 15-minute
+      windows in which a cell was affected. Cells without aircraft are left blank: no
+      data is not the same as normal.</p>
+    <label class="small"><input type="checkbox" id="show-inc" checked> Show incident areas</label>
+
+    <h3>Download this day</h3>
+    <div class="downloads" id="downloads"></div>
+
+    <p class="notice">Research output. Not for navigation, flight planning or any
+      operational decision. Jammer areas are statistical estimates, not attributions.
+      <a href="about.html#limits">Known limits</a>.</p>
+  </aside>
+
+  <section class="chart" aria-label="Map">
+    <div id="map"></div>
+    <div class="strip">
+      <div class="strip-head">
+        <strong id="when">Whole day</strong>
+        <span id="when-detail"></span>
+        <button id="whole-day" type="button">Show whole day</button>
+      </div>
+      <div class="bars" id="bars" aria-hidden="true"></div>
+      <div class="hours"><span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span></div>
+      <label class="small" for="slider">15-minute window</label>
+      <input type="range" id="slider" min="-1" max="95" value="-1"
+             aria-describedby="when-detail">
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

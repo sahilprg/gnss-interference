@@ -1,0 +1,688 @@
+{
+ "schema": "gnssguard-public/1",
+ "date": "2026-10-27",
+ "incidents": [
+  {
+   "region": "baltic",
+   "start": "2026-10-27T04:30:00+00:00",
+   "end": "2026-10-27T05:30:00+00:00",
+   "cell_windows": 13,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 55.0,
+    "lon_min": 18.0,
+    "lon_max": 23.0
+   },
+   "source": {
+    "lat": 55.2,
+    "lon": 20.3,
+    "radius_km": 50.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T07:30:00+00:00",
+   "end": "2026-10-27T08:45:00+00:00",
+   "cell_windows": 9,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 55.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T09:00:00+00:00",
+   "end": "2026-10-27T09:45:00+00:00",
+   "cell_windows": 6,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 55.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T09:15:00+00:00",
+   "end": "2026-10-27T16:45:00+00:00",
+   "cell_windows": 235,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 61.0,
+    "lon_min": 18.0,
+    "lon_max": 29.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T11:45:00+00:00",
+   "end": "2026-10-27T15:15:00+00:00",
+   "cell_windows": 31,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 55.0,
+    "lon_min": 18.0,
+    "lon_max": 21.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T15:30:00+00:00",
+   "end": "2026-10-27T21:00:00+00:00",
+   "cell_windows": 85,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 57.0,
+    "lon_min": 18.0,
+    "lon_max": 26.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T18:45:00+00:00",
+   "end": "2026-10-27T19:45:00+00:00",
+   "cell_windows": 6,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 55.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": {
+    "lat": 54.4,
+    "lon": 20.8,
+    "radius_km": 190.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T20:00:00+00:00",
+   "end": "2026-10-27T21:00:00+00:00",
+   "cell_windows": 5,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 55.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": {
+    "lat": 53.9,
+    "lon": 19.5,
+    "radius_km": 50.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T05:30:00+00:00",
+   "end": "2026-10-27T07:00:00+00:00",
+   "cell_windows": 34,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 59.0,
+    "lon_min": 18.0,
+    "lon_max": 25.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T08:00:00+00:00",
+   "end": "2026-10-27T08:45:00+00:00",
+   "cell_windows": 12,
+   "area": {
+    "lat_min": 53.0,
+    "lat_max": 56.0,
+    "lon_min": 21.0,
+    "lon_max": 24.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T03:45:00+00:00",
+   "end": "2026-10-27T04:15:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 54.0,
+    "lat_max": 57.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": {
+    "lat": 54.7,
+    "lon": 20.9,
+    "radius_km": 710.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T09:30:00+00:00",
+   "end": "2026-10-27T10:00:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 58.0,
+    "lon_min": 18.0,
+    "lon_max": 21.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T10:30:00+00:00",
+   "end": "2026-10-27T10:45:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 58.0,
+    "lon_min": 18.0,
+    "lon_max": 21.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T11:15:00+00:00",
+   "end": "2026-10-27T13:00:00+00:00",
+   "cell_windows": 13,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 58.0,
+    "lon_min": 18.0,
+    "lon_max": 22.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T14:15:00+00:00",
+   "end": "2026-10-27T14:45:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 57.0,
+    "lon_min": 18.0,
+    "lon_max": 21.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T15:15:00+00:00",
+   "end": "2026-10-27T15:45:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 58.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T13:30:00+00:00",
+   "end": "2026-10-27T14:00:00+00:00",
+   "cell_windows": 6,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 58.0,
+    "lon_min": 19.0,
+    "lon_max": 21.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T16:45:00+00:00",
+   "end": "2026-10-27T17:15:00+00:00",
+   "cell_windows": 5,
+   "area": {
+    "lat_min": 56.0,
+    "lat_max": 59.0,
+    "lon_min": 19.0,
+    "lon_max": 21.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T04:30:00+00:00",
+   "end": "2026-10-27T05:00:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 58.0,
+    "lat_max": 59.0,
+    "lon_min": 18.0,
+    "lon_max": 20.0
+   },
+   "source": {
+    "lat": 55.3,
+    "lon": 20.1,
+    "radius_km": 170.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T17:15:00+00:00",
+   "end": "2026-10-27T20:30:00+00:00",
+   "cell_windows": 54,
+   "area": {
+    "lat_min": 58.0,
+    "lat_max": 61.0,
+    "lon_min": 20.0,
+    "lon_max": 26.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T06:30:00+00:00",
+   "end": "2026-10-27T08:00:00+00:00",
+   "cell_windows": 11,
+   "area": {
+    "lat_min": 58.0,
+    "lat_max": 60.0,
+    "lon_min": 23.0,
+    "lon_max": 26.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T08:15:00+00:00",
+   "end": "2026-10-27T10:15:00+00:00",
+   "cell_windows": 14,
+   "area": {
+    "lat_min": 58.0,
+    "lat_max": 60.0,
+    "lon_min": 23.0,
+    "lon_max": 27.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T05:45:00+00:00",
+   "end": "2026-10-27T06:00:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 58.0,
+    "lat_max": 60.0,
+    "lon_min": 24.0,
+    "lon_max": 26.0
+   },
+   "source": {
+    "lat": 56.7,
+    "lon": 27.5,
+    "radius_km": 150.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "baltic",
+   "start": "2026-10-27T03:45:00+00:00",
+   "end": "2026-10-27T05:15:00+00:00",
+   "cell_windows": 9,
+   "area": {
+    "lat_min": 59.0,
+    "lat_max": 61.0,
+    "lon_min": 22.0,
+    "lon_max": 25.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "east_med",
+   "start": "2026-10-27T16:45:00+00:00",
+   "end": "2026-10-27T17:15:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 32.0,
+    "lat_max": 35.0,
+    "lon_min": 35.0,
+    "lon_max": 37.0
+   },
+   "source": {
+    "lat": 33.3,
+    "lon": 35.5,
+    "radius_km": 50.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "east_med",
+   "start": "2026-10-27T17:15:00+00:00",
+   "end": "2026-10-27T18:45:00+00:00",
+   "cell_windows": 15,
+   "area": {
+    "lat_min": 32.0,
+    "lat_max": 36.0,
+    "lon_min": 34.0,
+    "lon_max": 37.0
+   },
+   "source": {
+    "lat": 34.8,
+    "lon": 36.5,
+    "radius_km": 90.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "east_med",
+   "start": "2026-10-27T15:30:00+00:00",
+   "end": "2026-10-27T15:45:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 33.0,
+    "lat_max": 35.0,
+    "lon_min": 35.0,
+    "lon_max": 38.0
+   },
+   "source": {
+    "lat": 33.7,
+    "lon": 36.5,
+    "radius_km": 120.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "east_med",
+   "start": "2026-10-27T00:15:00+00:00",
+   "end": "2026-10-27T02:15:00+00:00",
+   "cell_windows": 14,
+   "area": {
+    "lat_min": 33.0,
+    "lat_max": 35.0,
+    "lon_min": 35.0,
+    "lon_max": 38.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T01:30:00+00:00",
+   "end": "2026-10-27T04:15:00+00:00",
+   "cell_windows": 42,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 45.0,
+    "lon_min": 28.0,
+    "lon_max": 33.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T10:00:00+00:00",
+   "end": "2026-10-27T10:45:00+00:00",
+   "cell_windows": 6,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 44.0,
+    "lon_min": 28.0,
+    "lon_max": 32.0
+   },
+   "source": {
+    "lat": 44.2,
+    "lon": 33.1,
+    "radius_km": 50.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T12:00:00+00:00",
+   "end": "2026-10-27T16:30:00+00:00",
+   "cell_windows": 40,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 45.0,
+    "lon_min": 28.0,
+    "lon_max": 32.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T14:15:00+00:00",
+   "end": "2026-10-27T15:15:00+00:00",
+   "cell_windows": 11,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 42.0,
+    "lon_min": 38.0,
+    "lon_max": 42.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T01:00:00+00:00",
+   "end": "2026-10-27T02:15:00+00:00",
+   "cell_windows": 11,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 42.0,
+    "lon_min": 39.0,
+    "lon_max": 42.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T02:30:00+00:00",
+   "end": "2026-10-27T03:15:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 42.0,
+    "lon_min": 39.0,
+    "lon_max": 40.0
+   },
+   "source": {
+    "lat": 44.5,
+    "lon": 38.6,
+    "radius_km": 120.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T15:30:00+00:00",
+   "end": "2026-10-27T16:15:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 42.0,
+    "lon_min": 39.0,
+    "lon_max": 41.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T16:45:00+00:00",
+   "end": "2026-10-27T17:15:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 42.0,
+    "lon_min": 39.0,
+    "lon_max": 41.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T23:15:00+00:00",
+   "end": "2026-10-27T23:30:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 41.0,
+    "lat_max": 42.0,
+    "lon_min": 39.0,
+    "lon_max": 42.0
+   },
+   "source": {
+    "lat": 44.4,
+    "lon": 40.0,
+    "radius_km": 530.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T08:45:00+00:00",
+   "end": "2026-10-27T09:30:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 42.0,
+    "lat_max": 44.0,
+    "lon_min": 28.0,
+    "lon_max": 30.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "black_sea",
+   "start": "2026-10-27T19:30:00+00:00",
+   "end": "2026-10-27T20:15:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 42.0,
+    "lat_max": 45.0,
+    "lon_min": 28.0,
+    "lon_max": 31.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "punjab",
+   "start": "2026-10-27T21:45:00+00:00",
+   "end": "2026-10-27T22:30:00+00:00",
+   "cell_windows": 3,
+   "area": {
+    "lat_min": 30.0,
+    "lat_max": 32.0,
+    "lon_min": 72.0,
+    "lon_max": 75.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "punjab",
+   "start": "2026-10-27T18:45:00+00:00",
+   "end": "2026-10-27T19:45:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 30.0,
+    "lat_max": 32.0,
+    "lon_min": 73.0,
+    "lon_max": 75.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "punjab",
+   "start": "2026-10-27T11:30:00+00:00",
+   "end": "2026-10-27T12:30:00+00:00",
+   "cell_windows": 5,
+   "area": {
+    "lat_min": 31.0,
+    "lat_max": 32.0,
+    "lon_min": 73.0,
+    "lon_max": 75.0
+   },
+   "source": {
+    "lat": 31.6,
+    "lon": 73.0,
+    "radius_km": 310.0,
+    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
+   },
+   "confidence": "confident"
+  },
+  {
+   "region": "central_europe",
+   "start": "2026-10-27T04:30:00+00:00",
+   "end": "2026-10-27T05:15:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 48.0,
+    "lat_max": 49.0,
+    "lon_min": 8.0,
+    "lon_max": 10.0
+   },
+   "source": null,
+   "confidence": "low"
+  },
+  {
+   "region": "central_europe",
+   "start": "2026-10-27T04:00:00+00:00",
+   "end": "2026-10-27T04:30:00+00:00",
+   "cell_windows": 4,
+   "area": {
+    "lat_min": 50.0,
+    "lat_max": 52.0,
+    "lon_min": 9.0,
+    "lon_max": 11.0
+   },
+   "source": null,
+   "confidence": "low"
+  }
+ ],
+ "notice": "Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party."
+}

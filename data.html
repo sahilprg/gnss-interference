@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNSS map data files</title>
+<meta name="description" content="Daily open data files of the GNSS interference map, and how to use them.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <b>GNSS interference over air traffic</b>
+    <span>Where aircraft lost or were fed false GPS, day by day, from open flight data</span>
+  </div>
+  <nav><a href="index.html">Map</a><a href="about.html">How it works</a><a href="data.html" aria-current="page">Data</a></nav>
+</header>
+<main class="page">
+<h1>Data files</h1>
+<p>Everything on the map is a plain file you can download or read from code. There is no
+key and no rate limit: the files are static. Their format is versioned as
+<code>gnssguard-public/1</code>; a change that breaks it will get a new version number.</p>
+
+<h2>Where the files are</h2>
+<table>
+  <thead><tr><th>File</th><th>What it holds</th></tr></thead>
+  <tbody>
+    <tr><td><code>data/index.json</code></td><td>Every processed day, newest first, with each region's status, and the latest published day.</td></tr>
+    <tr><td><code>data/&lt;day&gt;/summary.json</code></td><td>Per region: status, quality-check reasons, aircraft seen, cells judged, affected shares. Model versions.</td></tr>
+    <tr><td><code>data/&lt;day&gt;/&lt;region&gt;.csv.gz</code></td><td>One row per cell and 15-minute window with any aircraft (gzip-compressed CSV).</td></tr>
+    <tr><td><code>data/&lt;day&gt;/&lt;region&gt;.json</code></td><td>The same for the map: per cell, one value per window.</td></tr>
+    <tr><td><code>data/&lt;day&gt;/incidents.json</code></td><td>Groups of jammed cells, with an affected area and, for good fits, a likely jammer circle.</td></tr>
+  </tbody>
+</table>
+<p>Days are UTC dates (<code>2026-10-26</code>). Regions: <code>baltic</code>,
+<code>black_sea</code>, <code>east_med</code>, <code>punjab</code>,
+<code>central_europe</code> (calm control).</p>
+
+<h2>Columns of the cell table</h2>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>cell_lat</code>, <code>cell_lon</code></td><td>South-west corner of the 1° cell.</td></tr>
+    <tr><td><code>window_start</code></td><td>Start of the 15-minute window, UTC.</td></tr>
+    <tr><td><code>usable_aircraft</code></td><td>Aircraft whose GPS quality could be checked. Empty when it was 1 or 2.</td></tr>
+    <tr><td><code>p_jamming</code>, <code>p_spoofing</code></td><td>Calibrated probabilities: of cells given 0.8, about 8 in 10 were affected in testing.</td></tr>
+    <tr><td><code>label</code></td><td><code>normal</code>, <code>jamming</code>, <code>spoofing</code>, <code>both</code>, or <code>low_coverage</code> when fewer than 3 aircraft were checked. Cells without aircraft are not listed: no row means no data, not normal.</td></tr>
+  </tbody>
+</table>
+
+<h2>Reading it from code</h2>
+<pre>import json, urllib.request
+import pandas as pd
+
+base = "https://sahilprg.github.io/gnss-interference/data"
+day = json.load(urllib.request.urlopen(f"{base}/index.json"))["latest"]
+cells = pd.read_csv(f"{base}/{day}/baltic.csv.gz")
+jammed = cells[cells["label"].isin(["jamming", "both"])]</pre>
+
+<h2>Rules for use</h2>
+<ul>
+  <li>Not for navigation, flight planning or any operational decision.</li>
+  <li>A jammer circle is a statistical estimate of where one ground transmitter would
+    best explain the affected aircraft. It is not evidence of who operated it.</li>
+  <li>The files are derived from <a href="https://www.adsb.lol">adsb.lol</a> data and are
+    shared under the <a href="https://opendatacommons.org/licenses/odbl/1-0/">Open
+    Database License 1.0</a>: credit "adsb.lol and the gnssguard project" and share
+    derived databases under the same licence.</li>
+  <li>Limits and test results: <a href="about.html#limits">How it works</a> and the
+    <a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md">model card</a>.</li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the GNSS map works</title>
+<meta name="description" content="Method, results and limits of the GNSS interference map.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <b>GNSS interference over air traffic</b>
+    <span>Where aircraft lost or were fed false GPS, day by day, from open flight data</span>
+  </div>
+  <nav><a href="index.html">Map</a><a href="about.html" aria-current="page">How it works</a><a href="data.html">Data</a></nav>
+</header>
+<main class="page">
+<h1>How it works</h1>
+<p>Aircraft broadcast their GPS position several times a second, together with numbers
+that say how much their own navigation system trusts that position. Volunteers with
+receivers collect these broadcasts, and <a href="https://www.adsb.lol">adsb.lol</a>
+publishes them openly. When a jammer drowns out the satellite signal, many aircraft in
+one area report low trust at the same time. When a spoofer sends a false signal, their
+reported positions start to move in ways their own speed does not allow.</p>
+<p>Every night this site processes the previous day: about 4 GB of flight data, streamed
+and never stored. It cuts five study regions into 1° cells and 15-minute windows and
+asks two questions about each one: were aircraft here jammed, and were they spoofed?</p>
+
+<h2>What decides a cell</h2>
+<p>A machine-learning model (two gradient-boosted classifiers) reads the evidence in each
+cell, in its neighbouring cells and in the windows before and after: how many aircraft
+reported degraded GPS, how many fell back to ground-based positioning, how many showed
+impossible jumps or a mismatch between position change and reported ground speed, and
+how GPS altitude compares with barometric altitude. It never sees the location or the
+time of day, so it cannot simply learn that some places are usually jammed.</p>
+<p>No labelled dataset of GPS interference exists. The model was trained on labels from
+seven hand-written rules, combined statistically, and on simulated attacks injected into
+real traffic, where the truth is known exactly. A cell needs at least three aircraft to
+be judged; with one or two it is shown as low coverage.</p>
+<p>For a group of jammed cells, the site estimates where a ground jammer would have to be
+to explain which aircraft were affected and which were not: a jammer reaches higher
+aircraft from farther away, because of the curvature of the Earth. The estimate is shown
+as a circle that should contain the source 9 times in 10, and only when the fit is good.</p>
+
+<h2>How well it works</h2>
+<table>
+  <thead><tr><th>Test</th><th>Rules</th><th>Model</th></tr></thead>
+  <tbody>
+    <tr><td>Agreement with 300 hand-labelled cells (interference or not)</td><td class="n">96.8%</td><td class="n">96.8%</td></tr>
+    <tr><td>Hand-labelled normal cells wrongly flagged</td><td class="n">0 of 112</td><td class="n">0 of 112</td></tr>
+    <tr><td>Simulated weak jamming caught (edges of the affected area)</td><td class="n">14%</td><td class="n">92%</td></tr>
+    <tr><td>Simulated slow spoofing caught, calm airspace</td><td class="n">74%</td><td class="n">96%</td></tr>
+    <tr><td>Simulated slow spoofing caught, over the Black Sea</td><td class="n">33%</td><td class="n">47%</td></tr>
+    <tr><td>Calm Central Europe flagged on real days (false-alarm estimate)</td><td class="n">0.4-1.2%</td><td class="n">0.5-1.3%</td></tr>
+    <tr><td>Simulated jammer located, median error</td><td></td><td class="n">13 km</td></tr>
+  </tbody>
+</table>
+<p class="small">Test day 26 October 2026 and seven separate test days (20-26 October),
+each with a model trained only on earlier days. Full results:
+<a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/model.md">model report</a>,
+<a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/evaluation_protocol.md">evaluation protocol</a>.</p>
+
+<h2 id="limits">Known limits</h2>
+<ul>
+  <li>On real data the model agrees with the rules almost everywhere. Its advantage at
+    the weak edges of jammed areas is shown on simulated attacks only.</li>
+  <li>Spoofing is never independently confirmed, and over busy hotspots such as the
+    Black Sea slow spoofing is often missed.</li>
+  <li>Cells with one or two aircraft are not validated and are not given a label.</li>
+  <li>Coverage changes when volunteers add or remove receivers. A region can look
+    busier or quieter without any change in interference.</li>
+  <li>Several jammers close together are fitted as one. Jammer circles are statistical
+    estimates, not attributions to any party.</li>
+  <li>The hand labels come from one person on one day.</li>
+</ul>
+
+<h2>What the site does not publish</h2>
+<p>No aircraft identifiers, callsigns or tracks: only counts per cell, and not even
+exact counts for cells with fewer than three aircraft. Days or regions that fail the
+quality checks (incomplete download, too little traffic, an alarm in the calm control
+region) are withheld, with the reason.</p>
+<p class="notice">Research output, not for navigation, flight planning or any
+operational decision. Code: MIT. Data: derived from adsb.lol under ODbL 1.0.
+Read the <a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md">model card</a>
+and the <a href="https://github.com/sahilprg/gnss-interference">source code</a>.</p>
+</main>
+</body>
+</html>

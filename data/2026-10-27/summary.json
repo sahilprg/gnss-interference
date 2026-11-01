@@ -1,0 +1,98 @@
+{
+ "schema": "gnssguard-public/1",
+ "date": "2026-10-27",
+ "generated_at": "2026-11-01T09:03:23+00:00",
+ "published": true,
+ "day_reasons": [],
+ "model": {
+  "train_dates": [
+   "2026-09-29",
+   "2026-10-24"
+  ],
+  "versions": {
+   "python": "3.12.2",
+   "os": "Windows",
+   "gnssguard": "0.1.0",
+   "lightgbm": "4.7.0",
+   "numpy": "2.5.4",
+   "pandas": "3.1.0",
+   "pyarrow": "26.0.0",
+   "scipy": "1.18.1"
+  },
+  "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+ },
+ "regions": {
+  "baltic": {
+   "aircraft": 755,
+   "judged_cells": 1456,
+   "low_coverage_cells": 2435,
+   "flagged_share": 0.4169,
+   "jamming_share": 0.4169,
+   "spoofing_share": 0.0021,
+   "status": "published",
+   "reasons": [],
+   "notes": [
+    "aircraft: fewer than 3 earlier days to compare with",
+    "judged cells: fewer than 3 earlier days to compare with"
+   ]
+  },
+  "east_med": {
+   "aircraft": 846,
+   "judged_cells": 1445,
+   "low_coverage_cells": 1565,
+   "flagged_share": 0.0325,
+   "jamming_share": 0.0304,
+   "spoofing_share": 0.0028,
+   "status": "published",
+   "reasons": [],
+   "notes": [
+    "aircraft: fewer than 3 earlier days to compare with",
+    "judged cells: fewer than 3 earlier days to compare with"
+   ]
+  },
+  "black_sea": {
+   "aircraft": 1618,
+   "judged_cells": 833,
+   "low_coverage_cells": 579,
+   "flagged_share": 0.2329,
+   "jamming_share": 0.2137,
+   "spoofing_share": 0.0228,
+   "status": "published",
+   "reasons": [],
+   "notes": [
+    "aircraft: fewer than 3 earlier days to compare with",
+    "judged cells: fewer than 3 earlier days to compare with"
+   ]
+  },
+  "punjab": {
+   "aircraft": 304,
+   "judged_cells": 354,
+   "low_coverage_cells": 571,
+   "flagged_share": 0.226,
+   "jamming_share": 0.0565,
+   "spoofing_share": 0.1836,
+   "status": "published",
+   "reasons": [],
+   "notes": [
+    "aircraft: fewer than 3 earlier days to compare with",
+    "judged cells: fewer than 3 earlier days to compare with"
+   ]
+  },
+  "central_europe": {
+   "aircraft": 4680,
+   "judged_cells": 2619,
+   "low_coverage_cells": 204,
+   "flagged_share": 0.0034,
+   "jamming_share": 0.0034,
+   "spoofing_share": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": [
+    "aircraft: fewer than 3 earlier days to compare with",
+    "judged cells: fewer than 3 earlier days to compare with"
+   ]
+  }
+ },
+ "incidents": 44,
+ "notice": "Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party."
+}
