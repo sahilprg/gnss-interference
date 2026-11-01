@@ -76,6 +76,8 @@ def test_incidents_coarse_and_only_confident_sources():
     src = out[0]["source"]
     assert (src["lat"], src["lon"]) == (55.4, 20.6)
     assert src["radius_km"] == 50.0  # never smaller than 50 km
+    wide = public_incidents("baltic", est.assign(uncertainty_cal_km=250.0), inc, SPEC)[0]
+    assert wide["source"] is None and wide["confidence"] == "too_uncertain"
     low = public_incidents("baltic", est.assign(confident=False), inc, SPEC)[0]
     assert low["source"] is None and low["confidence"] == "low"
     assert low["area"] == {"lat_min": 55.0, "lat_max": 57.0, "lon_min": 20.0, "lon_max": 22.0}

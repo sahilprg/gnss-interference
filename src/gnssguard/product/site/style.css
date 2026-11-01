@@ -24,6 +24,7 @@
     --rule: #33424d;
     --focus: #7fb0ff;
   }
+  :root:not([data-theme="light"]) .sw.both { border-color: #a98aa2; }
 }
 :root[data-theme="dark"] {
   --paper: #17212a; --panel: #1d2933; --ink: #e4ebef; --ink-soft: #a9b6be;

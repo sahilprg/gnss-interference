@@ -16,7 +16,8 @@ What is published, and what is not (docs/model_card.md):
   given but no label, and the exact aircraft count is not. With none it is "no data",
   never "normal".
 * A jammer estimate is a circle (centre rounded to 0.1°, radius = stated 90%
-  uncertainty, at least 50 km) and only for confident fits; otherwise the incident
+  uncertainty, 50-200 km) and only for confident fits whose circle is at most 200 km
+  wide in radius; otherwise the incident
   is described by the area of its flagged cells.
 * A region-day that fails a quality gate (product/quality.py) is withheld: only its
   status and reasons are published.
@@ -42,6 +43,9 @@ from gnssguard.product import quality
 SCHEMA = "gnssguard-public/1"
 MIN_AIRCRAFT = 3
 MIN_RADIUS_KM = 50.0
+# A wider 90% circle says little about where the jammer is (the regions are 400-900 km
+# across): such incidents are shown by their affected area only.
+MAX_RADIUS_KM = 200.0
 MIN_INCIDENT_CELLS = 3  # single flagged cells are listed in the cell files, not as incidents
 CENTRE_ROUND_DEG = 0.1
 LABEL_CODES = {"no_data": 0, "low_coverage": 1, "normal": 2, "jamming": 3, "spoofing": 4,
@@ -136,9 +140,13 @@ def public_incidents(region: str, est: pd.DataFrame, inc: pd.DataFrame,
         }
         if not e.empty:
             r = e.iloc[0]
-            item["confidence"] = "confident" if bool(r["confident"]) else "low"
-            if bool(r["confident"]):
-                radius = 10 * math.ceil(float(r["uncertainty_cal_km"]) / 10)
+            radius = 10 * math.ceil(float(r["uncertainty_cal_km"]) / 10)
+            if not bool(r["confident"]):
+                item["confidence"] = "low"
+            elif radius > MAX_RADIUS_KM:
+                item["confidence"] = "too_uncertain"
+            else:
+                item["confidence"] = "confident"
                 item["source"] = {
                     "lat": _coarse(r["lat"]), "lon": _coarse(r["lon"]),
                     "radius_km": float(max(MIN_RADIUS_KM, radius)),

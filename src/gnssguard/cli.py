@@ -296,7 +296,9 @@ def cmd_publish(args) -> int:
         print(f"{day}: " + ", ".join(f"{r} {v['status']}" for r, v in s["regions"].items())
               + f"; {s['incidents']} incidents")
     build_site(args.out, args.config, regions)
-    print(f"site written to {args.out}/  (preview: python -m http.server -d {args.out} 8000)")
+    print(f"site written to {args.out}/")
+    print(f"preview: python -m http.server -d {args.out} 8000 --bind 127.0.0.1, "
+          "then open http://127.0.0.1:8000")
     return 0
 
 

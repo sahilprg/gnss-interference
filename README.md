@@ -123,7 +123,7 @@ coarse circles, and days that fail the quality checks are withheld.
 
 ```bash
 gnssguard publish --dates 2026-10-26   # public files + website for a stored day -> public/
-python -m http.server -d public 8000   # preview at http://localhost:8000
+python -m http.server -d public 8000 --bind 127.0.0.1   # preview at http://127.0.0.1:8000
 ```
 
 ## Running on a laptop

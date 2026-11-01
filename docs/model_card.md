@@ -59,8 +59,8 @@ truth. No hand labels are used for training.
   callsigns, registrations) and no individual tracks.
 * Cells need at least 3 usable aircraft to be shown as flagged or normal; fewer is
   shown as "low coverage", none as "no data", never as "normal".
-* Jammer estimates are shown as areas with their uncertainty radius, never as points,
-  and low-confidence estimates as the incident area only.
+* Jammer estimates are shown as areas with their uncertainty radius (at most 200 km),
+  never as points; low-confidence or wider estimates as the incident area only.
 * Output is published with a delay of at least one day, with this card and the
   not-for-navigation notice.
 * Each day is published only if its data-quality checks pass.

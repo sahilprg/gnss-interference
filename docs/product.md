@@ -31,7 +31,7 @@ The same steps run locally:
 
 ```bash
 gnssguard publish --dates 2026-10-24,2026-10-25,2026-10-26   # days already ingested
-python -m http.server -d public 8000                          # open http://localhost:8000
+python -m http.server -d public 8000 --bind 127.0.0.1         # open http://127.0.0.1:8000
 gnssguard daily --out public                                  # what the nightly job runs
 ```
 
@@ -55,7 +55,9 @@ Format version `gnssguard-public/1`; column meanings are on the site's Data page
   aircraft: the cell-window is left out, which the map shows as no data, never normal.
 * Jammer estimates: only for confident fits, as a circle (centre rounded to 0.1°, radius
   the stated 90% uncertainty, at least 50 km), described as a statistical estimate and
-  not an attribution. Other incidents show only their affected area.
+  not an attribution. A circle wider than 200 km in radius says little and is not drawn
+  (about 4 in 10 confident fits on the study days); those incidents, like all others,
+  show only their affected area.
 * Results appear the day after, at the earliest.
 
 ## Quality gates
