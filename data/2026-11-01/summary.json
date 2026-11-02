@@ -1,0 +1,83 @@
+{
+ "schema": "gnssguard-public/1",
+ "date": "2026-11-01",
+ "generated_at": "2026-11-02T13:39:11+00:00",
+ "published": true,
+ "day_reasons": [],
+ "model": {
+  "train_dates": [
+   "2026-09-29",
+   "2026-10-24"
+  ],
+  "versions": {
+   "python": "3.12.2",
+   "os": "Windows",
+   "gnssguard": "0.1.0",
+   "lightgbm": "4.7.0",
+   "numpy": "2.5.4",
+   "pandas": "3.1.0",
+   "pyarrow": "26.0.0",
+   "scipy": "1.18.1"
+  },
+  "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+ },
+ "regions": {
+  "baltic": {
+   "aircraft": 754,
+   "judged_cells": 1280,
+   "low_coverage_cells": 2174,
+   "flagged_share": 0.3148,
+   "jamming_share": 0.3148,
+   "spoofing_share": 0.0023,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "east_med": {
+   "aircraft": 952,
+   "judged_cells": 1605,
+   "low_coverage_cells": 1451,
+   "flagged_share": 0.0436,
+   "jamming_share": 0.0361,
+   "spoofing_share": 0.0112,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "black_sea": {
+   "aircraft": 1767,
+   "judged_cells": 822,
+   "low_coverage_cells": 529,
+   "flagged_share": 0.1764,
+   "jamming_share": 0.1727,
+   "spoofing_share": 0.0134,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "punjab": {
+   "aircraft": 276,
+   "judged_cells": 291,
+   "low_coverage_cells": 574,
+   "flagged_share": 0.1787,
+   "jamming_share": 0.0928,
+   "spoofing_share": 0.1271,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "central_europe": {
+   "aircraft": 4202,
+   "judged_cells": 2609,
+   "low_coverage_cells": 221,
+   "flagged_share": 0.0027,
+   "jamming_share": 0.0023,
+   "spoofing_share": 0.0004,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  }
+ },
+ "incidents": 43,
+ "notice": "Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party."
+}
