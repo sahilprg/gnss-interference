@@ -55,6 +55,30 @@ some trace points, about one in four in our checks. They are carried forward fro
 report, and `q_age_s` says how old they are. Feature code should ignore values older than
 a chosen limit (30 s is the default in the coverage report).
 
+**Are the details fresh measurements or a cached snapshot?** Checked on 4 Nov 2026 on
+the first 20,000 raw traces of 2 Nov (32.2 million points, 8.1 million details objects):
+
+* A details object is a **snapshot of the whole aircraft state**, not a single message:
+  `nic` and `rc` are in 100% of them, `nac_p` and `sil` in 98%, along with callsign,
+  squawk, track and, for about 37%, airspeed, heading, roll and wind. So a NACp-only
+  update that refreshes an old NIC (finding 1 of the improvement plan) cannot happen:
+  every snapshot carries both, as readsb holds them at that moment.
+* readsb drops fields one by one when they expire: in 0.7% of ADS-B snapshots `nac_p`
+  is missing while `nic` is present. A value in a snapshot is therefore one readsb still
+  considers current.
+* For MLAT, TIS-B trackfile and most ADS-R snapshots readsb reports `nic` = 0 (MLAT:
+  20,349 of 20,349) and usually no `nac_p`: it is not the last ADS-B value carried over.
+  The features count an aircraft's MLAT points as degraded only for aircraft also seen
+  on ADS-B that day (`mlat_fallback`), which is intended.
+* Snapshots come every 17 s (median; 5-95%: 2-79 s), and the NIC changes between
+  consecutive snapshots 1.5% of the time.
+
+So `q_age_s` means "seconds since readsb's last state snapshot", and the 30 s limit
+keeps values readsb itself still held; a per-field age is not needed. What `q_age_s`
+does not cover is a stale *position*: see the `stale` flag (bit 1 of the trace flags),
+set on 2-6% of ADS-B points (Black Sea 6.1%, where stale points are twice as often
+degraded). Excluding them is Phase 0 step 3.
+
 ### Why `src` matters
 
 `mlat` positions are computed from signal arrival times at ground receivers, not from the
