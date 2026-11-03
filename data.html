@@ -19,7 +19,12 @@
 <h1>Data files</h1>
 <p>Everything on the map is a plain file you can download or read from code. There is no
 key and no rate limit: the files are static. Their format is versioned as
-<code>gnssguard-public/1</code>; a change that breaks it will get a new version number.</p>
+<code>gnssguard-public/1</code>; a change that breaks it will get a new version number.
+Additions keep the version: since 4 November 2026 the <code>label</code> column and the map
+files can also hold the three <code>_sparse</code> labels below (map codes 6-8, listed in
+each file's <code>label_codes</code>), and the summary gives <code>sparse_flagged_cells</code>.
+Days published earlier show those cells as <code>low_coverage</code> unless they were
+redone.</p>
 
 <h2>Where the files are</h2>
 <table>
@@ -44,7 +49,10 @@ key and no rate limit: the files are static. Their format is versioned as
     <tr><td><code>window_start</code></td><td>Start of the 15-minute window, UTC.</td></tr>
     <tr><td><code>usable_aircraft</code></td><td>Aircraft whose GPS quality could be checked. Empty when it was 1 or 2.</td></tr>
     <tr><td><code>p_jamming</code>, <code>p_spoofing</code></td><td>Calibrated probabilities: of cells given 0.8, about 8 in 10 were affected in testing.</td></tr>
-    <tr><td><code>label</code></td><td><code>normal</code>, <code>jamming</code>, <code>spoofing</code>, <code>both</code>, or <code>low_coverage</code> when fewer than 3 aircraft were checked. Cells without aircraft are not listed: no row means no data, not normal.</td></tr>
+    <tr><td><code>label</code></td><td><code>normal</code>, <code>jamming</code>, <code>spoofing</code>, <code>both</code> with 3 or more aircraft checked. With 1 or 2: <code>jamming_sparse</code>,
+<code>spoofing_sparse</code> or <code>both_sparse</code> when the model flags the cell (right 47
+of 47 times on a hand-labelled day; not counted in the shares), otherwise
+<code>low_coverage</code>. Cells without aircraft are not listed: no row means no data, not normal.</td></tr>
   </tbody>
 </table>
 

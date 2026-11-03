@@ -1,7 +1,7 @@
 {
  "schema": "gnssguard-public/1",
  "date": "2026-10-26",
- "generated_at": "2026-11-01T09:47:56+00:00",
+ "generated_at": "2026-11-03T17:34:29+00:00",
  "published": true,
  "day_reasons": [],
  "model": {
@@ -26,9 +26,11 @@
    "aircraft": 866,
    "judged_cells": 1622,
    "low_coverage_cells": 2559,
+   "sparse_flagged_cells": 297,
    "flagged_share": 0.3582,
    "jamming_share": 0.3582,
    "spoofing_share": 0.0018,
+   "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
    "notes": [
@@ -40,9 +42,11 @@
    "aircraft": 917,
    "judged_cells": 1595,
    "low_coverage_cells": 1438,
+   "sparse_flagged_cells": 3,
    "flagged_share": 0.0188,
    "jamming_share": 0.0176,
    "spoofing_share": 0.0013,
+   "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
    "notes": [
@@ -54,9 +58,11 @@
    "aircraft": 1631,
    "judged_cells": 800,
    "low_coverage_cells": 573,
+   "sparse_flagged_cells": 17,
    "flagged_share": 0.195,
    "jamming_share": 0.18,
    "spoofing_share": 0.0213,
+   "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
    "notes": [
@@ -68,9 +74,11 @@
    "aircraft": 288,
    "judged_cells": 345,
    "low_coverage_cells": 600,
+   "sparse_flagged_cells": 2,
    "flagged_share": 0.1159,
    "jamming_share": 0.058,
    "spoofing_share": 0.0841,
+   "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
    "notes": [
@@ -82,9 +90,11 @@
    "aircraft": 4221,
    "judged_cells": 2613,
    "low_coverage_cells": 209,
+   "sparse_flagged_cells": 0,
    "flagged_share": 0.0065,
    "jamming_share": 0.0061,
    "spoofing_share": 0.0008,
+   "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
    "notes": [
@@ -94,5 +104,9 @@
   }
  },
  "incidents": 40,
+ "outside_reports": {
+  "checked": 6,
+  "seen": 4
+ },
  "notice": "Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party."
 }
