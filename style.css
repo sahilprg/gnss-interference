@@ -84,6 +84,11 @@ button { cursor: pointer; }
 .sw.src { background: transparent; border: 2px dashed var(--jam); border-radius: 50%; width: 14px; height: 14px; }
 .sw.area { background: transparent; border: 1px dotted var(--ink); }
 .downloads a { display: block; font-size: 14px; margin: 3px 0; }
+.reports { font-size: 14px; }
+.reports div { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 4px 0;
+  border-bottom: 1px solid var(--rule); }
+.reports span { color: var(--ink-soft); font-size: 13px; grid-column: 1 / -1; }
+.reports b { font-weight: 600; }
 .small { font-size: 13px; color: var(--ink-soft); }
 .notice { font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--rule); margin-top: 20px; padding-top: 10px; }
 

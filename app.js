@@ -93,6 +93,7 @@
       const i = [...$('bars').children].indexOf(e.target.closest('div'));
       if (i >= 0) { state.w = i; render(); }
     };
+    healthLine();
     await loadDay();
   }
 
@@ -102,6 +103,8 @@
     catch (e) { state.summary = null; }
     try { state.incidents = (await getJSON(`data/${state.date}/incidents.json`)).incidents || []; }
     catch (e) { state.incidents = []; }
+    try { state.reports = (await getJSON(`data/${state.date}/outside_reports.json`)).checks || []; }
+    catch (e) { state.reports = []; }
     await loadRegion();
   }
 
@@ -121,6 +124,7 @@
       try { state.day = await getJSON(`data/${state.date}/${state.region}.json`); } catch (e) { state.day = null; }
     }
     panel(rs);
+    reportsPanel();
     buildCells();
     render();
   }
@@ -258,6 +262,25 @@
         [`${base}summary.json`, 'Day summary and quality checks (JSON)']]
         .map(([h, t]) => `<a href="${h}" download>${t}</a>`).join('');
     }
+  }
+
+  function reportsPanel() {
+    const el = $('reports');
+    const rows = (state.reports || []).filter(r => r.region === state.region);
+    if (!rows.length) { el.innerHTML = '<span class="small">None for this region and day.</span>'; return; }
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+    el.innerHTML = rows.map(r => `<div><b>${esc(r.reference)} (${esc(r.report)})</b><b>${esc(r.verdict)}</b>` +
+      `<span>${esc(r.issuer)}: affected ${pct(r.share_inside)} inside the box, ${pct(r.share_outside)} outside` +
+      ` (${r.judged_inside} cells inside). <a href="${esc(r.source)}" rel="noopener">Source</a></span></div>`).join('');
+  }
+
+  async function healthLine() {
+    try {
+      const h = await getJSON('data/health.json');
+      $('health').textContent = h.status === 'ok'
+        ? `Model check after ${h.checked_through}: no sign of drift.`
+        : `Model check after ${h.checked_through}: retraining recommended (${h.reasons.length} signal${h.reasons.length > 1 ? 's' : ''}).`;
+    } catch (e) { $('health').textContent = ''; }
   }
 
   function strip() {

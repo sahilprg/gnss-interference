@@ -1,0 +1,15 @@
+{
+ "status": "ok",
+ "checked_through": "2026-11-02",
+ "reasons": [],
+ "notes": [],
+ "signals": {
+  "model_age_days": 9,
+  "control_flagged_share_7d": 0.0064,
+  "baltic_rule_disagreement_7d": 0.0,
+  "black_sea_rule_disagreement_7d": 0.0014,
+  "central_europe_rule_disagreement_7d": 0.0,
+  "east_med_rule_disagreement_7d": 0.0,
+  "punjab_rule_disagreement_7d": 0.0
+ }
+}

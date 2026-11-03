@@ -1,0 +1,92 @@
+{
+ "schema": "gnssguard-public/1",
+ "date": "2026-11-02",
+ "generated_at": "2026-11-03T12:56:13+00:00",
+ "published": true,
+ "day_reasons": [],
+ "model": {
+  "train_dates": [
+   "2026-09-29",
+   "2026-10-24"
+  ],
+  "versions": {
+   "python": "3.12.2",
+   "os": "Windows",
+   "gnssguard": "0.1.0",
+   "lightgbm": "4.7.0",
+   "numpy": "2.5.4",
+   "pandas": "3.1.0",
+   "pyarrow": "26.0.0",
+   "scipy": "1.18.1"
+  },
+  "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+ },
+ "regions": {
+  "baltic": {
+   "aircraft": 724,
+   "judged_cells": 1504,
+   "low_coverage_cells": 2139,
+   "flagged_share": 0.4023,
+   "jamming_share": 0.4023,
+   "spoofing_share": 0.0013,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "east_med": {
+   "aircraft": 894,
+   "judged_cells": 1518,
+   "low_coverage_cells": 1445,
+   "flagged_share": 0.0244,
+   "jamming_share": 0.0244,
+   "spoofing_share": 0.0,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "black_sea": {
+   "aircraft": 1526,
+   "judged_cells": 731,
+   "low_coverage_cells": 557,
+   "flagged_share": 0.1683,
+   "jamming_share": 0.1628,
+   "spoofing_share": 0.0082,
+   "rule_disagreement": 0.0014,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "punjab": {
+   "aircraft": 296,
+   "judged_cells": 349,
+   "low_coverage_cells": 541,
+   "flagged_share": 0.1375,
+   "jamming_share": 0.086,
+   "spoofing_share": 0.0888,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  },
+  "central_europe": {
+   "aircraft": 3781,
+   "judged_cells": 2549,
+   "low_coverage_cells": 263,
+   "flagged_share": 0.0141,
+   "jamming_share": 0.0141,
+   "spoofing_share": 0.0,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": []
+  }
+ },
+ "incidents": 39,
+ "outside_reports": {
+  "checked": 6,
+  "seen": 4
+ },
+ "notice": "Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party."
+}
