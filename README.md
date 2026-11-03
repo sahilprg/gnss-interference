@@ -109,6 +109,18 @@ gnssguard rolling    # retrain and test separately on each of the last 7 days
 | Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
 | Stated location uncertainty that contains the truth (confident estimates) | | **90-100%** |
 
+**Holdout day (1 Nov)**, 150 hand labels drawn and committed with the frozen predictions
+before labeling, never used for any decision:
+
+| Test | Rules | Model |
+| --- | --- | --- |
+| Cells with 3+ aircraft, weighted to the whole day | 92.0% | 92.0% |
+| Model flags on cells with only 1-2 aircraft (47 decided) | | **47 of 47** (95% interval 92-100%) |
+| Borderline cells both call normal that were interference (18 decided) | 7 | 7 |
+
+So the map now also shows flags from cells with 1-2 aircraft, and the published shares
+are lower bounds: both predictors miss weak interference at hotspot edges.
+
 On real data the model agrees with the rules wherever both judge; its advantage at
 footprint edges is shown on synthetic attacks, not yet on real data, and spoofing over
 busy hotspots remains weak. Every change in the last round was accepted or rejected by
@@ -122,7 +134,8 @@ Ablations, limits and the full tables: [docs/model.md](docs/model.md).
 A nightly GitHub Actions job processes the previous day and publishes a map and data
 files on GitHub Pages: https://sahilprg.github.io/gnss-interference/ (how it runs, the
 file formats and the setup: [docs/product.md](docs/product.md)). Only cell-level aggregates are
-published, cells with fewer than 3 aircraft are shown as low coverage, jammer areas are
+published, cells with fewer than 3 aircraft get no count and show only a model flag
+(dashed) or low coverage, jammer areas are
 coarse circles, and days that fail the quality checks are withheld.
 
 ```bash
@@ -165,6 +178,7 @@ configs/regions.yaml        study regions (hotspots and calm controls)
 configs/events.csv          officially reported interference events (filled by hand)
 configs/advisories.csv      official area-wide warnings: NOTAMs, EASA bulletins
 labels/gold.csv             300 hand-labeled gold cells (26 Oct 2026)
+labels/gold_2026-11-01.csv  150 hand-labeled holdout cells (1 Nov 2026), strata in holdout_2026-11-01_strata.csv
 src/gnssguard/ingest/       release lookup, multi-part stream, trace decoder, Parquet writer
 src/gnssguard/analysis/     coverage report
 src/gnssguard/features/     grid-cell x time-window features

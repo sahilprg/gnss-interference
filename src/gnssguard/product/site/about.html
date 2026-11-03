@@ -37,7 +37,9 @@ time of day, so it cannot simply learn that some places are usually jammed.</p>
 <p>No labelled dataset of GPS interference exists. The model was trained on labels from
 seven hand-written rules, combined statistically, and on simulated attacks injected into
 real traffic, where the truth is known exactly. A cell needs at least three aircraft to
-be judged; with one or two it is shown as low coverage.</p>
+be judged normal or counted in the shares. With one or two, a jamming or spoofing flag is
+still shown, dashed, because such flags were right 47 of 47 times on a hand-labelled
+test day; anything else is shown as low coverage.</p>
 <p>For a group of jammed cells, the site estimates where a ground jammer would have to be
 to explain which aircraft were affected and which were not: a jammer reaches higher
 aircraft from farther away, because of the curvature of the Earth. The estimate is shown
@@ -49,6 +51,8 @@ as a circle that should contain the source 9 times in 10, and only when the fit 
   <tbody>
     <tr><td>Agreement with 300 hand-labelled cells (interference or not)</td><td class="n">96.8%</td><td class="n">96.8%</td></tr>
     <tr><td>Hand-labelled normal cells wrongly flagged</td><td class="n">0 of 112</td><td class="n">0 of 112</td></tr>
+    <tr><td>Second hand-labelled day (1 Nov, never used to build anything), whole-day estimate</td><td class="n">92%</td><td class="n">92%</td></tr>
+    <tr><td>Flags on cells with only 1-2 aircraft, 1 Nov</td><td></td><td class="n">47 of 47</td></tr>
     <tr><td>Simulated weak jamming caught (edges of the affected area)</td><td class="n">14%</td><td class="n">92%</td></tr>
     <tr><td>Simulated slow spoofing caught, calm airspace</td><td class="n">74%</td><td class="n">96%</td></tr>
     <tr><td>Simulated slow spoofing caught, over the Black Sea</td><td class="n">33%</td><td class="n">47%</td></tr>
@@ -56,7 +60,9 @@ as a circle that should contain the source 9 times in 10, and only when the fit 
     <tr><td>Simulated jammer located, median error</td><td></td><td class="n">13 km</td></tr>
   </tbody>
 </table>
-<p class="small">Test day 26 October 2026 and seven separate test days (20-26 October),
+<p class="small">Test day 26 October 2026, a second hand-labelled test day (1 November,
+labelled after its sample and the predictions were committed), and seven separate test
+days (20-26 October),
 each with a model trained only on earlier days. Full results:
 <a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/model.md">model report</a>,
 <a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/evaluation_protocol.md">evaluation protocol</a>.</p>
@@ -67,12 +73,17 @@ each with a model trained only on earlier days. Full results:
     the weak edges of jammed areas is shown on simulated attacks only.</li>
   <li>Spoofing is never independently confirmed, and over busy hotspots such as the
     Black Sea slow spoofing is often missed.</li>
-  <li>Cells with one or two aircraft are not validated and are not given a label.</li>
+  <li>Flags on cells with one or two aircraft were checked on one day, almost all in
+    the Baltic. When such a cell is not flagged, that says little, so it is shown as low
+    coverage.</li>
+  <li>Both the model and the rules miss weak interference at the edges of hotspots: on
+    1 November an estimated 4-13% of judged cells, mostly over the Black Sea, were
+    affected but shown as normal. The shares are therefore lower bounds.</li>
   <li>Coverage changes when volunteers add or remove receivers. A region can look
     busier or quieter without any change in interference.</li>
   <li>Several jammers close together are fitted as one. Jammer circles are statistical
     estimates, not attributions to any party.</li>
-  <li>The hand labels come from one person on one day.</li>
+  <li>The hand labels come from one person on two days.</li>
 </ul>
 
 <h2>What the site does not publish</h2>

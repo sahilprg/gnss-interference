@@ -77,3 +77,17 @@ def test_sparse_precision_verdict():
     bad = holdout_eval(pd.DataFrame({"gold_id": ids, "label": ["jamming"] * 8 + ["normal"] * 32}),
                        strata)
     assert bad["primary_2_sparse_precision"]["verdict"] == "not supported"
+
+
+def test_day_weighting_keeps_each_group_at_its_size():
+    # S3: 2 cells drawn from 1,000, one unsure; S4: 2 cells drawn from 1,000, both decided.
+    strata = pd.DataFrame({
+        "gold_id": ["A", "B", "C", "D"],
+        "stratum": ["S3_borderline", "S3_borderline", "S4_random", "S4_random"],
+        "weight": 500.0, "pool": 1000, "rule_label": "normal", "model_label": "normal"})
+    gold = pd.DataFrame({"gold_id": ["A", "B", "C", "D"], "region": "baltic",
+                         "label": ["jamming", "unsure", "normal", "normal"]})
+    res = holdout_eval(gold, strata)
+    # S3 agreement 0 (its one decided cell was missed), S4 agreement 1, equal sizes -> 0.5
+    assert res["model_agreement"]["weighted_to_day"] == pytest.approx(0.5)
+    assert res["rules_agreement"]["sample"] == pytest.approx(2 / 3, abs=1e-3)

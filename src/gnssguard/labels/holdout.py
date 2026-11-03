@@ -101,7 +101,8 @@ def wilson(k: float, n: float, z: float = 1.96) -> tuple[float, float]:
 
 def holdout_eval(gold: pd.DataFrame, strata: pd.DataFrame) -> dict:
     """The pre-declared analysis. `strata` carries the frozen predictors' labels."""
-    m = gold[["gold_id", "label"]].merge(strata, on="gold_id", how="inner")
+    gold = gold if "region" in gold else gold.assign(region="")
+    m = gold[["gold_id", "region", "label"]].merge(strata, on="gold_id", how="inner")
     m = m[m["label"] != ""]
     sure = m[m["label"] != "unsure"].copy()
     sure["h"] = sure["label"].isin(FLAGGED)
@@ -136,15 +137,23 @@ def holdout_eval(gold: pd.DataFrame, strata: pd.DataFrame) -> dict:
         "verdict": ("inconclusive" if not len(s2) or ci[0] != ci[0] else
                     "supported" if ci[0] > 0.5 else
                     "not supported" if ci[1] < 0.5 else "inconclusive")}
-    dense = sure[sure["stratum"] != "S2_sparse"]
+    dense = sure[sure["stratum"] != "S2_sparse"].copy()
+    # Day estimate: agreement within each sampling group (S4 is drawn per region), times
+    # the group's size on the day. Unsure cells drop out within their own group, so a
+    # group with many unsure cells keeps its full weight (fixed 3 Nov 2026: the first
+    # run weighted single cells, which under-weighted groups with many unsure cells).
+    dense["group"] = dense["stratum"] + "|" + dense["region"].where(
+        dense["stratum"] == "S4_random", "")
     for name, col in (("rules", "r"), ("model", "m")):
         ok = (dense[col] == dense["h"]).astype(float)
-        w = dense["weight"]
         k_raw, n_raw = int(ok.sum()), len(ok)
+        by_group = ok.groupby(dense["group"]).mean()
+        size = dense.groupby("group")["pool"].first()
         out[f"{name}_agreement"] = {
             "sample": round(k_raw / n_raw, 3) if n_raw else None,
             "sample_ci95": wilson(k_raw, n_raw),
-            "weighted_to_day": round(float((ok * w).sum() / w.sum()), 4) if w.sum() else None,
+            "weighted_to_day": round(float((by_group * size).sum() / size.sum()), 4)
+            if size.sum() else None,
         }
     exact = {}
     for name, col in (("rules", "rule_label"), ("model", "model_label")):

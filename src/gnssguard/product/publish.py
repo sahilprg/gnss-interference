@@ -12,9 +12,10 @@ What is published, and what is not (docs/model_card.md):
 
 * Cell-level aggregates only. No aircraft identifiers, callsigns or tracks.
 * A cell-window with 3+ usable aircraft gets a label (normal, jamming, spoofing, both)
-  and calibrated probabilities. With 1-2 it is "low coverage": the probabilities are
-  given but no label, and the exact aircraft count is not. With none it is "no data",
-  never "normal".
+  and calibrated probabilities. With 1-2, a model flag is published as jamming_sparse,
+  spoofing_sparse or both_sparse (validated on the 1 Nov holdout: 47 of 47 right), and
+  anything else as "low coverage"; the exact aircraft count is not given. Only 3+
+  aircraft cells count in the shares. With none it is "no data", never "normal".
 * A jammer estimate is a circle (centre rounded to 0.1°, radius = stated 90%
   uncertainty, 50-200 km) and only for confident fits whose circle is at most 200 km
   wide in radius; otherwise the incident
@@ -49,8 +50,10 @@ MAX_RADIUS_KM = 200.0
 MIN_INCIDENT_CELLS = 3  # single flagged cells are listed in the cell files, not as incidents
 CENTRE_ROUND_DEG = 0.1
 LABEL_CODES = {"no_data": 0, "low_coverage": 1, "normal": 2, "jamming": 3, "spoofing": 4,
-               "both": 5}
+               "both": 5, "jamming_sparse": 6, "spoofing_sparse": 7, "both_sparse": 8}
 FLAGGED = ("jamming", "spoofing", "both")
+# model flags on cells with 1-2 usable aircraft (docs/evaluation_protocol.md, holdout 2)
+SPARSE_FLAGGED = tuple(f"{k}_sparse" for k in FLAGGED)
 MODEL_CARD = "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
 NOTICE = ("Research output. Not for navigation, flight planning or any operational "
           "decision. Not an attribution of interference to any party.")
@@ -60,7 +63,10 @@ def cell_table(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
     """Public per-cell-window table: calibrated probabilities and the public label."""
     p = det.predict(cells, calibrated=True)
     usable = cells["n_ac_usable"].fillna(0).astype(int)
-    label = p["label"].astype(str).where(usable >= MIN_AIRCRAFT, "low_coverage")
+    model = p["label"].astype(str)
+    label = model.where(usable >= MIN_AIRCRAFT, "low_coverage")
+    label = label.mask((usable >= 1) & (usable < MIN_AIRCRAFT) & model.isin(FLAGGED),
+                       model + "_sparse")
     label = label.where(usable >= 1, "no_data")
     return pd.DataFrame({
         "region": cells["region"].to_numpy(), "date": cells["date"].to_numpy(),
@@ -77,11 +83,13 @@ def cell_table(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
 
 def region_stats(table: pd.DataFrame, aircraft: int) -> dict:
     dense = table["label"].isin(["normal", *FLAGGED])
-    low = table["label"] == "low_coverage"
+    sparse_flag = table["label"].isin(SPARSE_FLAGGED)
+    low = (table["label"] == "low_coverage") | sparse_flag  # all cells with 1-2 aircraft
     flagged = table["label"].isin(FLAGGED)
     return {
         "aircraft": int(aircraft), "judged_cells": int(dense.sum()),
         "low_coverage_cells": int(low.sum()),
+        "sparse_flagged_cells": int(sparse_flag.sum()),
         "flagged_share": round(float(flagged[dense].mean()), 4) if dense.any() else 0.0,
         "jamming_share": round(float(table.loc[dense, "label"].isin(["jamming", "both"])
                                      .mean()), 4) if dense.any() else 0.0,

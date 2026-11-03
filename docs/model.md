@@ -136,10 +136,11 @@ the gold set covers it. With 1-2, only the model judges, and no hand label exist
   day (section 7).
 - **The earlier "Black Sea gap"** (model flagging more than the rules) was entirely in
   cells with 1-2 aircraft.
-- **Sparse cells are the open question.** The model's sparse-cell flag rate moved a lot
-  between versions (Baltic 52% in the first model, 11-18% now) and no gold label covers
-  it. The public map will show these cells as "low coverage", with the probability but
-  not as a confident flag.
+- **Sparse cells were the open question.** The model's sparse-cell flag rate moved a lot
+  between versions (Baltic 52% in the first model, 11-18% now). The second hand-labeled
+  day (1 Nov, docs/evaluation_protocol.md) tested them: 47 of 47 decided flags were
+  right (95% interval 92-100%), mostly in the Baltic. The map now shows these flags,
+  marked as based on 1-2 aircraft; sparse cells called normal stay "low coverage".
 
 ### 4. Ablations
 
@@ -312,7 +313,11 @@ Full record in docs/evaluation_protocol.md. Decided on 20-25 Oct only:
   aircraft it agrees with the rules and misses the same eight weak cells the labeler
   flagged. Doing better on real data probably needs real labels used for training,
   not only testing.
-- **Sparse cells (1-2 aircraft) are not validated.** No gold label covers them.
+- **Sparse cells (1-2 aircraft):** the model's flags there are validated on one day,
+  mostly Baltic (47 of 47 right); its "normal" calls there are not validated.
+- **Both predictors miss weak interference** at the edges of hotspots: on 1 Nov about
+  4-13% of judged cells (mostly Black Sea) that both called normal were interference
+  to the labeler. Published shares are lower bounds.
 - **The gold set is one day and one labeler**, and its use to find the background bug
   means later gold numbers are not fully independent.
 - **Spoofing labels are not independently confirmed** (docs/labels.md): the labeler sees

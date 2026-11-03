@@ -156,7 +156,8 @@ decided S1 cells the answer is "inconclusive".
   over all judged cells, with Wilson 95% intervals; exact-label agreement.
 
 **Amendment, 3 Nov 2026, after drawing the sample and before any label.** The draw found
-that on 1 Nov the model and the rules disagree on only 1 of 1,761 judged cells (S1 = 1),
+that on 1 Nov the model and the rules disagree on only 1 of 6,542 judged cells (S1 = 1;
+the first version of this text said 1,761, a miscount corrected on 3 Nov),
 so the primary question above cannot be answered on this day; it is reported as
 "inconclusive" as declared. The one place the two really differ is cells with 1-2
 aircraft, which the model judges and the rules skip (246 such cells flagged by the
@@ -168,3 +169,51 @@ model). The sample is therefore redrawn with the same seed and S2 raised from 25
   "supported" if the lower bound is above 50%, "not supported" if the upper bound is
   below 50%, otherwise "inconclusive". If supported, sparse cells may be shown on the
   map with their label instead of "low coverage"; if not, they stay as they are.
+
+### Result (labeled 3 Nov 2026, scored once)
+
+The 150 labels (`labels/gold_2026-11-01.csv`, one labeler, 36 unsure) were committed
+after the strata file (commit 9311d0d, before labeling) and scored once with
+`gnssguard holdout-eval`. Nothing was changed because of them; the one later code
+change, below, is a correction to the scoring and both numbers are given.
+
+| Question | Result | Verdict |
+| --- | --- | --- |
+| Primary: model or rules on real disagreements | 1 decided S1 cell, the human sided with the model | inconclusive, as declared |
+| **Primary 2: model flags on 1-2 aircraft cells** | **47 of 47 decided right** (95% interval 92-100%) | **supported** |
+| S3: borderline cells both called normal | 7 of 18 decided were interference (20-61%) | reported |
+| Day agreement with the human, 3+ aircraft | rules 92.0%, model 92.0% (roughly 87-96%) | the same |
+| Exact-label agreement on the sample | model 92.1%, rules 82.5% | (sample, not day) |
+| S4 random cells | rules and model 48 of 48 decided | |
+
+What it means:
+
+* **Sparse cells can be shown.** The model's flags on cells with 1-2 aircraft were right
+  every time the labeler could decide (47 of 50; 3 unsure). As declared, the map now
+  shows those flags, marked as based on 1-2 aircraft (docs/product.md). The evidence
+  is mostly Baltic (46 of the 50; 4 Black Sea), because that is where the model makes
+  these flags (229 of 246 on 1 Nov); elsewhere they are rare and less tested.
+  Sparse cells the model calls normal stay "low coverage": nothing tested them.
+* **Both miss weak interference.** Among cells with 3+ aircraft that both called normal
+  but that showed some evidence (1,347 of 6,542 judged cells), the labeler called 7 of
+  18 decided cells interference, 6 of them in the Black Sea. Estimated for the whole day,
+  both predictors miss about 4-13% of judged cells, mostly at the edges of Black Sea
+  interference. The flagged shares on the map are therefore lower bounds. Fixing this
+  needs real labels used for training, not only testing.
+* **The model does not beat the rules on dense real cells**, confirming the first gold
+  set: the two agree on all but 1 of 6,542 judged cells, so they score the same.
+* The day agreement (92%) is within the uncertainty of the first gold set's 94.7%.
+
+**Corrections found while reporting, 3 Nov 2026** (not changes to predictors):
+
+* *Day weighting.* The first run gave 94.6% (rules) and 94.6% (model) because it
+  weighted single cells, so groups with many unsure cells (S3: 17 of 35 unsure) lost
+  weight. The declared method weights each sampling group by its size on the day; the
+  fixed code (`holdout_eval`, with a test) gives 92.0% for both. The comparison between
+  rules and model is unchanged.
+* *The rules on sparse cells.* The S2 description above says the rules cannot judge
+  cells with 1-2 aircraft. In fact the rules' label model gives a label to most of them
+  (it flagged 214 of the 246); the map simply never showed them. Of the sampled S2 cells
+  the rules flagged 38 (37 decided, all right); the other 12, which only the model flags,
+  were 10 decided, all jamming. So both predictors are right on these cells; what is
+  new is publishing them.

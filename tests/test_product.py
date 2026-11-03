@@ -13,6 +13,7 @@ from gnssguard.product.daily import days_to_run
 from gnssguard.product.publish import (
     LABEL_CODES,
     _write_csv,
+    cell_table,
     map_payload,
     public_incidents,
     read_index,
@@ -63,6 +64,29 @@ def test_region_stats_use_judged_cells_only():
     s = region_stats(t, aircraft=12)
     assert s["judged_cells"] == 2 and s["low_coverage_cells"] == 1
     assert s["flagged_share"] == 0.5 and s["jamming_share"] == 0.5
+    t2 = table([(55.0, 20.0, 0, 5, "jamming"), (55.0, 20.0, 1, 4, "normal"),
+                (55.0, 20.0, 2, 1, "jamming_sparse"), (55.0, 20.0, 3, 2, "low_coverage")])
+    s2 = region_stats(t2, aircraft=12)
+    # sparse flags are listed, but the shares stay on cells with 3+ aircraft
+    assert s2["low_coverage_cells"] == 2 and s2["sparse_flagged_cells"] == 1
+    assert s2["judged_cells"] == 2 and s2["flagged_share"] == 0.5
+
+
+def test_cell_table_marks_sparse_flags_and_hides_counts():
+    class Det:
+        def predict(self, cells, calibrated=True):
+            return pd.DataFrame({"p_jamming": 0.9, "p_spoofing": 0.0,
+                                 "label": ["jamming", "jamming", "normal", "jamming"]},
+                                index=cells.index)
+
+    cells = pd.DataFrame({"region": "baltic", "date": DAY, "cell_lat": 55.0,
+                          "cell_lon": [20.0, 21.0, 22.0, 23.0],
+                          "window": pd.Timestamp(DAY, tz="UTC"),
+                          "n_ac_usable": [5, 2, 1, 0]})
+    t = cell_table(cells, Det())
+    assert t["label"].tolist() == ["jamming", "jamming_sparse", "low_coverage", "no_data"]
+    assert t["usable_aircraft"].isna().tolist() == [False, True, True, True]
+    assert set(t["label"]) <= set(LABEL_CODES)
 
 
 def test_incidents_coarse_and_only_confident_sources():

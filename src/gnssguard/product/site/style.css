@@ -81,6 +81,7 @@ button { cursor: pointer; }
 .sw.jam { background: var(--jam); } .sw.spoof { background: var(--spoof); }
 .sw.both { background: var(--both); } .sw.normal { background: #fff; border-color: var(--low); }
 .sw.low { background: transparent; border: 1px dashed var(--low); }
+.sw.sparse { background: color-mix(in srgb, var(--jam) 30%, transparent); border: 1px dashed var(--jam); }
 .sw.src { background: transparent; border: 2px dashed var(--jam); border-radius: 50%; width: 14px; height: 14px; }
 .sw.area { background: transparent; border: 1px dotted var(--ink); }
 .downloads a { display: block; font-size: 14px; margin: 3px 0; }

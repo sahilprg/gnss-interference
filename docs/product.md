@@ -41,7 +41,7 @@ gnssguard daily --out public                                  # what the nightly
 | File | Content |
 | --- | --- |
 | `data/index.json` | every processed day, newest first, per-region status, latest published day |
-| `data/<day>/summary.json` | per region: status, quality-gate reasons, aircraft, judged cells, affected shares; model versions |
+| `data/<day>/summary.json` | per region: status, quality-gate reasons, aircraft, judged cells, cells with 1-2 aircraft and how many of them are flagged, affected shares; model versions |
 | `data/<day>/<region>.json` | map file: per cell, one label, probability pair and aircraft count per 15-minute window |
 | `data/<day>/<region>.csv.gz` | the same as a table, one row per cell-window with any aircraft |
 | `data/<day>/incidents.json` | groups of jammed cells: time span, affected area, and a source circle for confident fits |
@@ -52,8 +52,12 @@ Format version `gnssguard-public/1`; column meanings are on the site's Data page
 `product/publish.py` and covered by tests:
 
 * Cell aggregates only: no aircraft identifiers, callsigns, registrations or tracks.
-* Fewer than 3 usable aircraft: "low coverage", no label, and no exact count. No
-  aircraft: the cell-window is left out, which the map shows as no data, never normal.
+* Fewer than 3 usable aircraft: no exact count. A model flag there is published as
+  `jamming_sparse`, `spoofing_sparse` or `both_sparse` (dashed on the map) and is not
+  counted in the shares; anything else is "low coverage". The flags were right 47 of 47
+  times on the 1 Nov hand-labeled day, mostly Baltic (docs/evaluation_protocol.md,
+  holdout test 2); shown since 4 Nov 2026. No aircraft: the cell-window is left out,
+  which the map shows as no data, never normal.
 * Jammer estimates: only for confident fits, as a circle (centre rounded to 0.1°, radius
   the stated 90% uncertainty, at least 50 km), described as a statistical estimate and
   not an attribution. A circle wider than 200 km in radius says little and is not drawn

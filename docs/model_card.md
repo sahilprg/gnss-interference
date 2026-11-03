@@ -34,6 +34,8 @@ truth. No hand labels are used for training.
 | --- | --- |
 | Agreement with 300 hand labels (253 decided), interference vs normal | 96.8% [93.9-98.4]; 94.7% weighted to the whole day; same as the rules |
 | Hand-labeled normal cells flagged | 0 of 112 |
+| Holdout day 1 Nov (150 hand labels, never used for any decision), 3+ aircraft | 92.0% weighted to the whole day (roughly 87-96%); same as the rules |
+| Holdout 1 Nov, flags on cells with 1-2 aircraft | 47 of 47 right [92-100%] |
 | Synthetic jamming caught, calm background (standard / hard / stress) | 1.00 / 0.95 / 0.96 (rules 0.82 / 0.51 / 0.74) |
 | Synthetic spoofing caught, calm background | 0.94 / 0.96 / 0.96 (rules 0.82 / 0.74 / 0.84) |
 | Synthetic spoofing caught, Black Sea background, 7 days | 0.84 / 0.47 / 0.64 (rules 0.70 / 0.33 / 0.51) |
@@ -47,18 +49,24 @@ truth. No hand labels are used for training.
   misses the same weak cells; the edge advantage is not proven on real data.
 * Spoofing detection is much weaker over a busy hotspot (Black Sea) than over calm
   airspace.
-* Cells with only 1-2 aircraft are not validated: treat them as low coverage.
+* Cells with only 1-2 aircraft: flags there were right 47 of 47 times on the 1 Nov
+  hand-labeled day (mostly Baltic) and are shown, marked as such; "normal" there is not
+  validated and is shown as low coverage.
+* Both the model and the rules miss weak interference at hotspot edges (an estimated
+  4-13% of judged cells on 1 Nov, mostly Black Sea): affected shares are lower bounds.
 * Spoofing is never independently confirmed (no usable MLAT cross-check in this data).
 * Several jammers close together are fitted as one source.
-* One labeler, one labeled day. Coverage changes over time (new receivers) shift flag
+* One labeler, two labeled days (26 Oct, 1 Nov). Coverage changes over time (new receivers) shift flag
   rates without any change in interference (docs/data.md).
 
 ## Responsible publication rules (applied by the Phase 5 product)
 
 * Only cell-level aggregates are published. No aircraft identifiers (ICAO addresses,
   callsigns, registrations) and no individual tracks.
-* Cells need at least 3 usable aircraft to be shown as flagged or normal; fewer is
-  shown as "low coverage", none as "no data", never as "normal".
+* Cells need at least 3 usable aircraft to be shown as normal or counted in the
+  affected shares. With 1-2, a jamming or spoofing flag is shown, marked "1-2 aircraft"
+  (validated on the 1 Nov holdout), and anything else is "low coverage"; no exact
+  aircraft count is given. No aircraft is "no data", never "normal".
 * Jammer estimates are shown as areas with their uncertainty radius (at most 200 km),
   never as points; low-confidence or wider estimates as the incident area only.
 * Output is published with a delay of at least one day, with this card and the

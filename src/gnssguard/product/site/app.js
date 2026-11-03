@@ -5,7 +5,10 @@
                land: '#f7f6f1', landLine: '#b8bfb9', border: '#a7adb0', src: '#a3195b', area: '#1c2a35'};
   const NAMES = {baltic: 'Baltic', black_sea: 'Black Sea', east_med: 'Eastern Mediterranean',
                  punjab: 'Punjab', central_europe: 'Central Europe'};
-  const LABELS = ['no data', 'low coverage (1-2 aircraft)', 'normal', 'jamming', 'spoofing', 'jamming and spoofing'];
+  const LABELS = ['no data', 'low coverage (1-2 aircraft)', 'normal', 'jamming', 'spoofing', 'jamming and spoofing',
+                  'jamming, from 1-2 aircraft', 'spoofing, from 1-2 aircraft', 'jamming and spoofing, from 1-2 aircraft'];
+  // codes 6-8: model flags on cells with 1-2 aircraft (checked on the 1 Nov hand-labeled day)
+  const JUDGED = v => v >= 2 && v <= 5, FLAG = v => v >= 3 && v <= 5, SPARSE = v => v >= 6;
   const $ = id => document.getElementById(id);
   const pct = (x, d = 1) => (x == null ? '–' : (100 * x).toFixed(d) + '%');
   const fmt = n => (n == null ? '–' : n.toLocaleString('en-GB'));
@@ -150,16 +153,17 @@
   }
 
   function dayStats(c) {
-    let judged = 0, jam = 0, spoof = 0, low = 0, pmax = null;
+    let judged = 0, jam = 0, spoof = 0, low = 0, sp = 0, spJam = 0, spSpoof = 0, pmax = null;
     c.label.forEach((v, i) => {
-      if (v >= 2) judged++;
+      if (JUDGED(v)) judged++;
       if (v === 3 || v === 5) jam++;
       if (v === 4 || v === 5) spoof++;
       if (v === 1) low++;
+      if (SPARSE(v)) { sp++; if (v !== 7) spJam++; if (v !== 6) spSpoof++; }
       if (v >= 1 && c.p_jamming[i] != null) pmax = Math.max(pmax ?? 0, c.p_jamming[i]);
     });
-    const flagged = c.label.filter(v => v >= 3).length;
-    return {judged, jam, spoof, low, flagged, share: judged ? flagged / judged : 0, pmax};
+    const flagged = c.label.filter(FLAG).length;
+    return {judged, jam, spoof, low, sp, spJam, spSpoof, flagged, share: judged ? flagged / judged : 0, pmax};
   }
 
   function buildCells() {
@@ -181,8 +185,12 @@
     const lowStyle = {color: COL.low, weight: 1, opacity: 0.9, dashArray: '3 3', fillColor: COL.low, fillOpacity: 0.06};
     const normal = {color: '#c7cdd0', weight: 0.6, opacity: 1, fillColor: COL.normal, fillOpacity: 0.55};
     const fill = (col, a) => ({color: '#ffffff', weight: 0.6, opacity: 0.9, fillColor: col, fillOpacity: a});
+    const sparse = col => ({color: col, weight: 1.2, opacity: 0.95, dashArray: '3 3', fillColor: col, fillOpacity: 0.3});
+    const sparseCol = s => (s.spJam && s.spSpoof && Math.min(s.spJam, s.spSpoof) / Math.max(s.spJam, s.spSpoof) > 0.5
+      ? COL.both : (s.spJam >= s.spSpoof ? COL.jam : COL.spoof));
     if (state.w < 0) {
       const s = c.stats;
+      if (!s.flagged && s.sp) return sparse(sparseCol(s));
       if (!s.judged) return s.low ? lowStyle : off;
       if (!s.flagged) return normal;
       const col = s.jam && s.spoof && Math.min(s.jam, s.spoof) / Math.max(s.jam, s.spoof) > 0.5
@@ -190,21 +198,25 @@
       return fill(col, 0.18 + 0.72 * s.share);
     }
     const v = c.label[state.w];
-    return [off, lowStyle, normal, fill(COL.jam, 0.82), fill(COL.spoof, 0.82), fill(COL.both, 0.85)][v] || off;
+    return [off, lowStyle, normal, fill(COL.jam, 0.82), fill(COL.spoof, 0.82), fill(COL.both, 0.85),
+      sparse(COL.jam), sparse(COL.spoof), sparse(COL.both)][v] || off;
   }
 
   function tip(c) {
     const where = `${c.lat.toFixed(0)}–${(c.lat + state.day.cell_deg).toFixed(0)}°N, ${c.lon.toFixed(0)}–${(c.lon + state.day.cell_deg).toFixed(0)}°E`;
     if (state.w < 0) {
       const s = c.stats;
-      if (!s.judged) return `<b>${where}</b><br>${s.low ? 'Low coverage all day: 1-2 aircraft at a time' : 'No data'}`;
+      const sp = s.sp ? `<br>Flagged in ${s.sp} window${s.sp > 1 ? 's' : ''} with only 1-2 aircraft` : '';
+      if (!s.judged) return `<b>${where}</b><br>` + (s.sp ? sp.slice(4) + ' (not in the shares)'
+        : (s.low ? 'Low coverage all day: 1-2 aircraft at a time' : 'No data'));
       return `<b>${where}</b><br>Affected in ${s.flagged} of ${s.judged} judged windows (${pct(s.share, 0)})` +
-        (s.jam ? `<br>Jamming in ${s.jam}` : '') + (s.spoof ? `<br>Spoofing in ${s.spoof}` : '') +
+        (s.jam ? `<br>Jamming in ${s.jam}` : '') + (s.spoof ? `<br>Spoofing in ${s.spoof}` : '') + sp +
         (s.low ? `<br>${s.low} low-coverage windows not judged` : '');
     }
     const v = c.label[state.w], i = state.w;
     if (!v) return `<b>${where}</b><br>No data in this window`;
-    const ac = c.aircraft[i] != null ? `${c.aircraft[i]} aircraft checked` : '1-2 aircraft (not judged)';
+    const ac = c.aircraft[i] != null ? `${c.aircraft[i]} aircraft checked`
+      : (SPARSE(v) ? 'Only 1-2 aircraft: a model flag, right 47 of 47 times on a hand-labeled day' : '1-2 aircraft (not judged)');
     return `<b>${where}</b><br>${LABELS[v][0].toUpperCase() + LABELS[v].slice(1)}<br>${ac}` +
       `<br>Probability of jamming ${pct(c.p_jamming[i], 0)}, of spoofing ${pct(c.p_spoofing[i], 0)}`;
   }
@@ -250,7 +262,9 @@
       message('');
     }
     const rows = [['Aircraft seen', fmt(rs.aircraft)], ['Cell-windows judged', fmt(rs.judged_cells)],
-      ['Low coverage, not judged', fmt(rs.low_coverage_cells)], ['Judged and affected', pct(rs.flagged_share)],
+      ['With 1-2 aircraft', fmt(rs.low_coverage_cells)],
+      ...(rs.sparse_flagged_cells != null ? [['… of them flagged', fmt(rs.sparse_flagged_cells)]] : []),
+      ['Judged and affected', pct(rs.flagged_share)],
       ['… by jamming', pct(rs.jamming_share)], ['… by spoofing', pct(rs.spoofing_share)]];
     $('figures').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
     if (rs.status === 'published') {
@@ -287,10 +301,11 @@
     const bars = $('bars');
     bars.innerHTML = '';
     const n = state.day ? state.day.windows : 96;
-    const jam = new Array(n).fill(0), spoof = new Array(n).fill(0);
+    const jam = new Array(n).fill(0), spoof = new Array(n).fill(0), sparse = new Array(n).fill(0);
     if (state.day) state.day.cells.forEach(c => c.label.forEach((v, i) => {
       if (v === 3 || v === 5) jam[i]++;
       if (v === 4) spoof[i]++;
+      if (SPARSE(v)) sparse[i]++;
     }));
     const top = Math.max(1, ...jam.map((j, i) => j + spoof[i]));
     for (let i = 0; i < n; i++) {
@@ -302,7 +317,7 @@
       d.append(j, s);
       bars.appendChild(d);
     }
-    return {jam, spoof};
+    return {jam, spoof, sparse};
   }
 
   function clock(i) {
@@ -316,12 +331,13 @@
     const s = strip();
     if (state.w < 0) {
       $('when').textContent = 'Whole day';
-      const flaggedCells = state.day ? state.day.cells.filter(c => c.stats.flagged).length : 0;
+      const flaggedCells = state.day ? state.day.cells.filter(c => c.stats.flagged || c.stats.sp).length : 0;
       $('when-detail').textContent = state.day ? `${state.date}, ${flaggedCells} cells affected at some point` : state.date || '';
       $('whole-day').hidden = true;
     } else {
       $('when').textContent = `${clock(state.w)}–${clock(state.w + 1)} UTC`;
-      $('when-detail').textContent = `${s.jam[state.w]} cells jammed, ${s.spoof[state.w]} spoofed`;
+      $('when-detail').textContent = `${s.jam[state.w]} cells jammed, ${s.spoof[state.w]} spoofed` +
+        (s.sparse[state.w] ? `, ${s.sparse[state.w]} more flagged from 1-2 aircraft` : '');
       $('whole-day').hidden = false;
     }
     drawIncidents();
