@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: write   # push to the gh-pages branch
+  issues: write     # open a "Retrain recommended" issue when the health check says so
 
 concurrency:
   group: daily
@@ -63,6 +64,20 @@ jobs:
             args+=(--dates "$DATES")
           fi
           gnssguard daily "${args[@]}"
+
+      - name: Retrain alarm
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gnssguard health --out public
+          status=$(python -c "import json; print(json.load(open('public/data/health.json'))['status'])")
+          if [ "$status" = "retrain_recommended" ]; then
+            open=$(gh issue list --state open --label retrain --json number --jq 'length' 2>/dev/null || echo 0)
+            if [ "$open" = "0" ]; then
+              gh label create retrain --color B60205 --description "Model retraining recommended" 2>/dev/null || true
+              gh issue create --title "Retrain recommended" --label retrain --body-file public/data/health.md
+            fi
+          fi
 
       - name: Commit to gh-pages
         run: |

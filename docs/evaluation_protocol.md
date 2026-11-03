@@ -118,3 +118,53 @@ Final model = baseline + B. Gold set, scored once at the end (253 decided cells)
 The round did not change agreement with the hand labels; its gains are on the new
 hotspot test background (spoofing), and in trust: a declared protocol, pinned versions,
 a weighted gold estimate, and a record of what failed.
+
+## Holdout test 2: 1 Nov 2026 (declared 3 Nov 2026, before sampling and labeling)
+
+The 26 Oct gold set is spent (it found a bug and was scored once). This second test is
+the first clean real-data comparison of model and rules. Nothing below may change after
+the labels exist; if the model, the rules or any threshold is changed because of these
+labels, the holdout is spent too, and that is reported.
+
+**Frozen predictors.** The published model `models/detector` at commit 05709be (trained
+29 Sep-24 Oct, validated 25 Oct), and the Phase 2 rules with the label model stored in
+that model. 1 Nov was never used for training, validation or any decision.
+
+**Sample.** 150 cell-windows from 1 Nov, five regions, drawn with a fixed seed by
+`gnssguard holdout-sample` before any label exists, in four strata:
+
+| Stratum | Cells | What it tests |
+| --- | --- | --- |
+| S1 disagree | all, up to 40 | 3+ usable aircraft; model and rules disagree on interference vs normal |
+| S2 sparse | 25 | 1-2 usable aircraft; the model flags interference (the rules cannot judge) |
+| S3 borderline | 35 | 3+ aircraft; both say normal, but 1+ degraded aircraft or a hot neighbour |
+| S4 random | the rest | 3+ aircraft; random, stratified by region |
+
+The strata are stored apart from the labeling file, and the labeler sees neither the
+strata nor any model or rule output, only the data panels, as for the first gold set.
+
+**Primary question.** On decided S1 cells (unsure excluded), does the human side with
+the model or with the rules more often? Exact two-sided binomial test against 50%:
+p < 0.05 means one predictor is better on real disagreements. With fewer than 10
+decided S1 cells the answer is "inconclusive".
+
+**Secondary results**, reported whatever they show:
+
+* S3: share of borderline cells the human calls interference (misses by both).
+* S2: precision of the model's flags on sparse cells.
+* S4, weighted by stratum size on the day: agreement of rules and model with the human
+  over all judged cells, with Wilson 95% intervals; exact-label agreement.
+
+**Amendment, 3 Nov 2026, after drawing the sample and before any label.** The draw found
+that on 1 Nov the model and the rules disagree on only 1 of 1,761 judged cells (S1 = 1),
+so the primary question above cannot be answered on this day; it is reported as
+"inconclusive" as declared. The one place the two really differ is cells with 1-2
+aircraft, which the model judges and the rules skip (246 such cells flagged by the
+model). The sample is therefore redrawn with the same seed and S2 raised from 25 to 50
+(S4 falls to 64), and a second primary question is added:
+
+* **Primary 2: are the model's flags on sparse cells right?** Precision of S2 (human
+  calls the cell jamming, spoofing or both; unsure excluded), Wilson 95% interval:
+  "supported" if the lower bound is above 50%, "not supported" if the upper bound is
+  below 50%, otherwise "inconclusive". If supported, sparse cells may be shown on the
+  map with their label instead of "low coverage"; if not, they stay as they are.

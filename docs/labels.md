@@ -290,6 +290,24 @@ The map viewer (`gnssguard map --region <r> --date <d> --gold labels/gold.csv`) 
 outlines gold cells. Its coastlines and borders are built in and work offline; "Street
 map (online)" adds a CARTO background when you have internet.
 
+## 7b. Holdout day: 1 Nov 2026
+
+A second, smaller gold set on a day never used for anything, for the clean test declared
+in docs/evaluation_protocol.md ("Holdout test 2"). Drawn with the frozen published model
+by `gnssguard holdout-sample` before any label existed:
+
+* `labels/gold_2026-11-01.csv`: the labeling file (150 cell-windows, same format as the
+  first gold set);
+* `labels/holdout_2026-11-01_strata.csv`: strata, weights and the frozen model's and
+  rules' answers. Committed before labeling so anyone can check the predictions were not
+  changed afterwards. **Do not open it until labeling is finished.**
+
+Label with `reports/gold_tool_2026-11-01.html` exactly as before (section 7), then:
+
+```bash
+gnssguard holdout-eval --gold labels/gold_2026-11-01.csv --strata labels/holdout_2026-11-01_strata.csv
+```
+
 ## 8. Not done yet
 
 - A satellite-geometry (DOP) rule from the GPS almanac, to rule out poor accuracy

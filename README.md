@@ -18,7 +18,7 @@ every night).
 | 2. Labels: weak rules, label model, synthetic attacks, map viewer, 300 hand-labeled gold cells | done |
 | 3. Models: jamming and spoofing detectors, source localization | done |
 | 4. Evaluation: gold labels, rolling 7-day test, stress attacks, ablations, calibration, pre-declared protocol | done |
-| 5. Product: nightly pipeline, live map website, open data files | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
+| 5. Product: nightly pipeline, live map website, open data files, outside-report checks, retrain alarm | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
 
 ## Quickstart
 

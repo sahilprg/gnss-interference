@@ -77,6 +77,65 @@ The traffic and coverage gates need 3 earlier published days; until then they pa
 say so in the summary. A day withheld for an incomplete download is retried
 automatically; other failures would repeat and are not retried.
 
+## Daily check against outside reports
+
+Every published day is compared with the outside reports in force that day
+(`configs/advisories.csv`): NOTAMs, aviation-safety bulletins and pilot reports, each
+with an approximate box and its start and end dates. For each report and region the job
+writes `data/<day>/outside_reports.json`: the affected share of judged cells inside the
+box and in the rest of the region, and a verdict ("seen" when inside is higher, "not
+seen", or "too few cells"). The map page lists them per region.
+
+This is a consistency check, not a confirmation: warnings cover large areas for months,
+and the boxes are rough. On 1 Nov the Lebanon, Lahore and Kaliningrad reports were
+"seen"; the Turkey and Cyprus NOTAM boxes showed less interference inside than outside,
+because the jamming that day sat on the Russian Black Sea coast and outside the Cyprus
+box.
+
+**Adding a report** (for example a pilot report or a news story about jamming on a given
+day): add one row to `configs/advisories.csv` with a new id, a source link, a rough box
+and its dates (leave `end_utc` empty if it is still in force), commit and push. From the
+next night it is checked every day it is in force. Never add a report without a source.
+
+No independent outside source is published in machine-readable form for free: GPSJam
+(gpsjam.org) states no data licence or download, and NOTAM services need accounts. If
+GPSJam's author agrees to its data being used, a daily comparison with it can be added.
+
+## Retrain alarm
+
+After each publish, `gnssguard health` (`product/health.py`) checks the published days and
+writes `data/health.json`; the map page shows the result. If it recommends retraining,
+the nightly job opens a GitHub issue titled "Retrain recommended" (GitHub emails you),
+once, until you close it. It fires when:
+
+* the model's newest training day is more than 45 days older than the newest published
+  day (retrain regularly anyway);
+* calm Central Europe is flagged above 1.5% on average over 7 days (0.4-1.3% on all
+  study days);
+* in a region, the model and the rules disagree on more than 3% of judged cells over
+  7 days (about 0-1% so far);
+* in a region, the number of judged cells moves below half or above double its earlier
+  level (receivers joined or left).
+
+## Retraining
+
+When the issue opens (or every month or so), on the laptop:
+
+```bash
+gnssguard ingest --start <first new day> --end <yesterday> --regions baltic,east_med,black_sea,punjab,central_europe
+gnssguard cells
+gnssguard label
+gnssguard train --test-dates 2026-10-26,2026-11-01   # both hand-labeled days stay out
+gnssguard evaluate --test-dates 2026-10-26
+gnssguard rolling
+```
+
+Check the results against docs/model.md before publishing the new model: gold agreement
+not lower, calm Central Europe not higher, synthetic recall not lower. Then copy
+`data/models/detector` to `models/detector`, record the new training dates in
+docs/model_card.md, commit, push, and close the issue. Disk: about 70 MB per new day for
+the five regions; old days can be deleted once a newer model is published.
+
 ## The website
 
 Static pages (`src/gnssguard/product/site/`), no build step and no tracking. The only

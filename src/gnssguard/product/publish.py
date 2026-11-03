@@ -171,7 +171,8 @@ def _aircraft(processed: Path, region: str, date: str) -> tuple[int, pd.DataFram
 
 def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir: str | Path,
                 model_dir: str | Path, out: str | Path, *, spec: GridSpec = GridSpec(),
-                locate: bool = True) -> dict:
+                locate: bool = True,
+                advisories_csv: str | Path | None = "configs/advisories.csv") -> dict:
     """Publish one day. Returns the day summary (also written to summary.json)."""
     processed, out = Path(processed), Path(out)
     det = Detectors.load(model_dir)
@@ -189,10 +190,12 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
     for region in regions:
         n_air, pts = _aircraft(processed, region, date)
         c = cells[cells["region"] == region] if not cells.empty else cells
-        t = cell_table(c.reset_index(drop=True), det) if not c.empty else pd.DataFrame(
+        c = c.reset_index(drop=True) if not c.empty else c
+        t = cell_table(c, det) if not c.empty else pd.DataFrame(
             columns=["region", "date", "cell_lat", "cell_lon", "window", "usable_aircraft",
                      "p_jamming", "p_spoofing", "label"])
         tables[region], stats[region], points[region] = t, region_stats(t, n_air), pts
+        stats[region]["rule_disagreement"] = rule_disagreement(c, t, det)
 
     status, day_reasons = quality.check_day(stats, history,
                                             bool(manifest.get("complete_day", False)))
@@ -220,6 +223,11 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
     (day_dir / "incidents.json").write_text(json.dumps(
         {"schema": SCHEMA, "date": date, "incidents": all_incidents, "notice": NOTICE},
         indent=1), encoding="utf-8")
+    published = [r for r in regions if status[r]["status"] == "published"]
+    reports = outside_reports(date, {r: tables[r] for r in published}, advisories_csv, spec)
+    (day_dir / "outside_reports.json").write_text(json.dumps(
+        {"schema": SCHEMA, "date": date, "checks": reports, "notice": REPORTS_NOTICE},
+        indent=1), encoding="utf-8")
 
     summary = {
         "schema": SCHEMA, "date": date,
@@ -232,11 +240,79 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
                   "card": MODEL_CARD},
         "regions": {r: {**stats[r], **status[r]} for r in regions},
         "incidents": len(all_incidents),
+        "outside_reports": {"checked": len(reports),
+                            "seen": sum(1 for x in reports if x["verdict"] == "seen")},
         "notice": NOTICE,
     }
     (day_dir / "summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
     update_index(out, summary)
     return summary
+
+
+def rule_disagreement(cells: pd.DataFrame, table: pd.DataFrame, det: Detectors) -> float | None:
+    """Share of judged cells (3+ aircraft) where model and rules disagree on interference.
+
+    About 1% on the study days. A sustained rise means the model has drifted away from
+    the evidence the rules read, one of the retraining signals (product/health.py).
+    """
+    if cells.empty or det.label_model is None:
+        return None
+    from gnssguard.model.evaluate import rule_frame
+
+    rules = rule_frame(cells, det)["label"].astype(str).to_numpy()
+    dense = table["label"].isin(["normal", *FLAGGED]).to_numpy()
+    if not dense.any():
+        return None
+    model_flag = table["label"].isin(FLAGGED).to_numpy()
+    rule_flag = pd.Series(rules).isin(FLAGGED).to_numpy()
+    return round(float((model_flag != rule_flag)[dense].mean()), 4)
+
+
+REPORTS_NOTICE = ("Outside reports are coarse: NOTAMs and bulletins cover large areas for "
+                  "months, and boxes are approximate. 'seen' means the map flags a larger "
+                  "share of judged cells inside the box than in the rest of the region that "
+                  "day; it is a consistency check, not a confirmation.")
+
+
+def outside_reports(date: str, tables: dict[str, pd.DataFrame],
+                    advisories_csv: str | Path | None, spec: GridSpec) -> list[dict]:
+    """Daily check of the day's map against outside reports in force that day.
+
+    Uses the reports in configs/advisories.csv (NOTAMs, bulletins, and any dated report,
+    such as a pilot report or news item, added with its start and end date).
+    """
+    from gnssguard.labels.advisories import advisory_check, load_advisories
+
+    if not advisories_csv or not tables:
+        return []
+    adv = load_advisories(advisories_csv)
+    if adv.empty:
+        return []
+    frames = []
+    for t in tables.values():
+        if t.empty:
+            continue
+        lab = t[["region", "date", "cell_lat", "cell_lon", "label"]].copy()
+        lab["label"] = lab["label"].where(lab["label"].isin(["normal", *FLAGGED]), "unknown")
+        lab["cell_deg"] = spec.cell_deg
+        frames.append(lab)
+    if not frames:
+        return []
+    res = advisory_check(pd.concat(frames, ignore_index=True), adv)
+    meta = adv.set_index("advisory_id")
+    out = []
+    for r in res.itertuples(index=False):
+        a = meta.loc[r.advisory_id]
+        inside, outside = float(r.share_inside), float(r.share_outside)
+        verdict = ("too few cells" if r.judged_inside < 10 else
+                   "seen" if inside > outside and r.flagged_inside > 0 else "not seen")
+        out.append({"report": r.advisory_id, "reference": a["reference"], "issuer": a["issuer"],
+                    "source": a["source_url"], "region": r.region,
+                    "box": [float(a["lat_min"]), float(a["lat_max"]), float(a["lon_min"]),
+                            float(a["lon_max"])],
+                    "judged_inside": int(r.judged_inside), "share_inside": round(inside, 4),
+                    "share_outside": round(outside, 4), "verdict": verdict})
+    return out
 
 
 def _write_csv(path: Path, t: pd.DataFrame) -> None:

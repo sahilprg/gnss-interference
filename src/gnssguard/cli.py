@@ -181,7 +181,8 @@ def cmd_gold_tool(args) -> int:
 
 def _split_days(args) -> tuple[list[str], list[str], list[str]]:
     """Train / validation / test days. Default: test = the gold-set days, validation =
-    the last stored day before them, train = every earlier stored day."""
+    the last stored day that is not a test day, train = every other stored day (also days
+    after the test day, so retraining uses new data; the test days never enter)."""
     import pandas as pd
 
     from gnssguard.analysis.coverage import partitions
@@ -193,7 +194,7 @@ def _split_days(args) -> tuple[list[str], list[str], list[str]]:
         test = sorted(pd.read_csv(args.gold, dtype=str)["date"].unique())
     else:
         raise SystemExit("give --test-dates, or a gold set (--gold) to take them from")
-    before = [d for d in stored if d < min(test)]
+    before = [d for d in stored if d not in test]
     val = _split(args.val_dates) or before[-1:]
     train = _split(args.train_dates) or [d for d in before if d not in val]
     if not train or not val:
@@ -276,6 +277,54 @@ def cmd_rolling(args) -> int:
     return 0
 
 
+def cmd_holdout_sample(args) -> int:
+    import json
+
+    from gnssguard.features.cells import load_cells
+    from gnssguard.labels.holdout import holdout_sample
+    from gnssguard.model.dataset import with_context
+    from gnssguard.model.evaluate import rule_frame
+    from gnssguard.model.train import Detectors
+
+    out, strata_out = Path(args.out), Path(args.strata)
+    for f in (out, strata_out):
+        if f.exists() and not args.force:
+            print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
+            return 1
+    det = Detectors.load(args.model or _default_model())
+    cells = with_context(load_cells(args.cells, [args.date], _split(args.regions)))
+    rules = rule_frame(cells, det)["label"].astype(str)
+    model = det.predict(cells)["label"].astype(str)
+    gold, strata = holdout_sample(cells, rules, model, n=args.n, seed=args.seed)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    gold.to_csv(out, index=False)
+    strata.to_csv(strata_out, index=False)
+    counts = strata.groupby("stratum")["pool"].agg(["size", "first"]).rename(
+        columns={"size": "sampled", "first": "pool"})
+    print(f"{len(gold)} cell-windows -> {out}  (labeling file)")
+    print(f"strata and frozen predictions -> {strata_out}  (do not open before labeling)")
+    print(json.dumps({"model": str(args.model or _default_model()),
+                      "sampled": {k: int(v) for k, v in counts["sampled"].items()}}))
+    return 0
+
+
+def cmd_holdout_eval(args) -> int:
+    import json
+
+    import pandas as pd
+
+    from gnssguard.labels.holdout import holdout_eval
+
+    gold = pd.read_csv(args.gold, dtype=str, keep_default_na=False)
+    strata = pd.read_csv(args.strata, keep_default_na=False)
+    strata["weight"] = strata["weight"].astype(float)
+    res = holdout_eval(gold, strata)
+    Path(args.report).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.report).write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
+    print(json.dumps(res, indent=1, default=str))
+    return 0
+
+
 PRODUCT_REGIONS = "baltic,east_med,black_sea,punjab,central_europe"
 
 
@@ -316,6 +365,18 @@ def cmd_daily(args) -> int:
         print(f"{s['date']}: " + ", ".join(f"{r} {v['status']}" for r, v in s["regions"].items()))
     if not done:
         print("nothing new to publish")
+    return 0
+
+
+def cmd_health(args) -> int:
+    from gnssguard.product.health import write_health
+
+    res = write_health(args.out)
+    print(f"status: {res['status']}")
+    for r in res["reasons"]:
+        print(f"  - {r}")
+    for n in res["notes"]:
+        print(f"  (note) {n}")
     return 0
 
 
@@ -458,11 +519,33 @@ def main(argv: list[str] | None = None) -> int:
     _grid_args(pw)
     pw.set_defaults(func=cmd_rolling)
 
+    ph = sub.add_parser("holdout-sample", help="blind stratified sample of a fresh day")
+    ph.add_argument("--date", required=True)
+    ph.add_argument("--cells", default="data/cells")
+    ph.add_argument("--model", help="frozen model (default: models/detector if present)")
+    ph.add_argument("--regions", default=PRODUCT_REGIONS)
+    ph.add_argument("--n", type=int, default=150)
+    ph.add_argument("--seed", type=int, default=20261101)
+    ph.add_argument("--out", required=True, help="labeling file, e.g. labels/gold_2026-11-01.csv")
+    ph.add_argument("--strata", required=True, help="strata file kept apart from the labeler")
+    ph.add_argument("--force", action="store_true")
+    ph.set_defaults(func=cmd_holdout_sample)
+
+    pv = sub.add_parser("holdout-eval", help="the pre-declared analysis of a labeled holdout")
+    pv.add_argument("--gold", required=True)
+    pv.add_argument("--strata", required=True)
+    pv.add_argument("--report", default="reports/holdout/result.json")
+    pv.set_defaults(func=cmd_holdout_eval)
+
     pp = sub.add_parser("publish", help="write the public files and website for stored days")
     _product_args(pp)
     pp.add_argument("--dates", help="comma-separated days that are already ingested")
     _grid_args(pp)
     pp.set_defaults(func=cmd_publish)
+
+    pk = sub.add_parser("health", help="retrain alarm: check the published days for drift")
+    pk.add_argument("--out", default="public", help="website folder")
+    pk.set_defaults(func=cmd_health)
 
     pd_ = sub.add_parser("daily", help="ingest, process and publish the days not yet published")
     _product_args(pd_)

@@ -91,7 +91,8 @@ def build_payload(gold_csv: str | Path, cells_dir: str | Path) -> dict:
     return {"file_id": fid, "deg": deg, "context": CONTEXT, "metrics": METRICS,
             "labels": list(GOLD_LABELS), "columns": list(raw.columns),
             "rows": raw.to_dict(orient="records"), "items": items, "basemaps": basemaps,
-            "window_min": int(win.total_seconds() // 60), "source": str(gold_csv)}
+            "window_min": int(win.total_seconds() // 60), "source": str(gold_csv),
+            "download_name": Path(gold_csv).name}
 
 
 def write_tool(gold_csv: str | Path, cells_dir: str | Path, out: str | Path) -> Path:
@@ -213,7 +214,7 @@ _TEMPLATE = r"""<!doctype html>
         <p>Judge from the context the rules cannot see: neighbours and the windows before and after.</p>
       </div>
       <p class="notice">Saved in this browser as you go. When done (or to stop for the day), press
-        <b>Download gold.csv</b> and replace <code>__SOURCE__</code> with it.
+        the <b>Download</b> button and replace <code>__SOURCE__</code> with it.
         <a href="#" id="reset">Discard browser copy</a></p>
     </aside>
   </div>
@@ -227,6 +228,7 @@ _TEMPLATE = r"""<!doctype html>
   const seq = v => RAMP[Math.max(0, Math.min(12, Math.round(v * 12)))];
   const M = Object.fromEntries(D.metrics.map((m, i) => [m, i + 3]));
   const KEY = 'gnssguard-gold:' + D.file_id;
+  document.getElementById('download').textContent = 'Download ' + (D.download_name || 'gold.csv');
   const N = D.items.length;
   document.getElementById('ramp').innerHTML = RAMP.filter((_, i) => i % 2 === 0).map(c => '<i style="background:' + c + '"></i>').join('');
 
@@ -361,7 +363,7 @@ _TEMPLATE = r"""<!doctype html>
                                              : c === 'notes' ? s.notes : r[c])).join(','));
     });
     const url = URL.createObjectURL(new Blob([lines.join('\n') + '\n'], {type: 'text/csv'}));
-    const a = Object.assign(document.createElement('a'), {href: url, download: 'gold.csv'});
+    const a = Object.assign(document.createElement('a'), {href: url, download: D.download_name || 'gold.csv'});
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     notice.textContent = 'Downloaded. Replace ' + D.source + ' with it, then commit.';

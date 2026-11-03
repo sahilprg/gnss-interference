@@ -141,3 +141,57 @@ def test_payload_handles_missing_probabilities(v):
     t["p_jamming"] = v
     p = map_payload(t, DAY, "baltic", SPEC)
     assert p["cells"][0]["p_jamming"][0] is None
+
+
+def _summary(date, ce_share, disagree=0.005, judged=1000, train_end="2026-10-24"):
+    reg = lambda share: {"status": "published", "flagged_share": share,  # noqa: E731
+                         "rule_disagreement": disagree, "judged_cells": judged, "aircraft": 900}
+    return {"date": date, "published": True, "day_reasons": [],
+            "model": {"train_dates": ["2026-09-29", train_end]},
+            "regions": {"central_europe": reg(ce_share), "baltic": reg(0.4)}}
+
+
+def _write_days(out, summaries):
+    for s in summaries:
+        d = out / "data" / s["date"]
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "summary.json").write_text(json.dumps(s), encoding="utf-8")
+        update_index(out, s)
+
+
+def test_health_ok_then_alarms(tmp_path):
+    from gnssguard.product.health import assess
+
+    days = [f"2026-11-{i:02d}" for i in range(1, 15)]
+    _write_days(tmp_path, [_summary(d, 0.006) for d in days])
+    res = assess(tmp_path)
+    assert res["status"] == "ok" and res["signals"]["model_age_days"] == 21
+    drift = tmp_path / "drift"
+    _write_days(drift, [_summary(d, 0.006 if i < 7 else 0.03, disagree=0.005 if i < 7 else 0.05,
+                                 judged=1000 if i < 7 else 300)
+                        for i, d in enumerate(days)])
+    reasons = " ".join(assess(drift)["reasons"])
+    assert "calm central_europe" in reasons and "disagree" in reasons and "judged cells" in reasons
+    old = tmp_path / "old"
+    _write_days(old, [_summary("2026-12-20", 0.006)])
+    assert "days older" in assess(old)["reasons"][0]
+
+
+def test_outside_reports_daily_check(tmp_path):
+    from gnssguard.product.publish import outside_reports
+
+    adv = tmp_path / "adv.csv"
+    adv.write_text(
+        "advisory_id,reference,issuer,lat_min,lat_max,lon_min,lon_max,start_utc,end_utc,"
+        "source_url,notes\n"
+        "A1,NOTAM X,Test,54,57,19,22,2026-10-01T00:00:00Z,,https://example.org,box\n"
+        "A2,Old,Test,54,57,19,22,2026-01-01T00:00:00Z,2026-02-01T00:00:00Z,https://example.org,x\n",
+        encoding="utf-8")
+    rows = [(54.0 + i % 3, 19.0 + i % 3, 0, 5, "jamming") for i in range(12)]
+    rows += [(58.0, 25.0 + i % 3, 0, 5, "normal") for i in range(12)]
+    rows += [(55.0, 20.0, 1, 2, "low_coverage")]
+    t = table(rows)
+    out = outside_reports(DAY, {"baltic": t}, adv, SPEC)
+    assert [r["report"] for r in out] == ["A1"]  # A2 was not in force that day
+    assert out[0]["judged_inside"] == 12 and out[0]["verdict"] == "seen"
+    assert out[0]["share_inside"] == 1.0 and out[0]["share_outside"] == 0.0
