@@ -46,6 +46,8 @@ truth. No hand labels are used for training.
 | Synthetic spoofing caught, calm background | 0.94 / 0.96 / 0.96 (rules 0.82 / 0.74 / 0.84) |
 | Synthetic spoofing caught, Black Sea background, 7 days | 0.84 / 0.47 / 0.64 (rules 0.70 / 0.33 / 0.51) |
 | Real flagged share, calm Central Europe, 7 days | 0.45-1.27% (rules 0.41-1.24%) |
+| Calm-region flags a hand reviewer called normal (review set 1, 46 decided) | 13% [6-26%]: real false-alarm rate about 0.11% [0.05-0.21%] of judged cells |
+| Hotspot flags a hand reviewer confirmed (review set 1, 26 decided) | 26 of 26 [87-100%] |
 | Jammer location error, synthetic, median | 13 km (standard), 29 km (hard), 44 km (stress) |
 | Stated location uncertainty contains the truth (confident estimates) | 90-100% |
 

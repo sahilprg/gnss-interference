@@ -108,7 +108,8 @@ gnssguard rolling    # retrain and test separately on each of the last 7 days
 | Hard synthetic attacks: spoofing caught | 74% | **96%** |
 | Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **96%** |
 | Hard spoofing over the Black Sea (7 test days) | 33% | 47% |
-| False alarms, calm Central Europe (real data) | 0.65% | 0.65% |
+| Flagged share, calm Central Europe (real data) | 0.65% | 0.65% |
+| ... of which false alarms on hand review (46 cells, 27 Oct-3 Nov) | | 13% (6-26%), about 0.1% of cells |
 | Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
 | Stated location uncertainty that contains the truth (confident estimates) | | **90-100%** |
 

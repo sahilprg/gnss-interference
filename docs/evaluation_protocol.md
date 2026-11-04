@@ -410,3 +410,32 @@ measures agreement with a careful human reading, not physical truth.
 calm flagged share on these 7 days is 0.83% (model), the value used in the primary
 estimate. Labeling file `labels/review_1.csv`; groups and predictions
 `labels/review_1_groups.csv`, committed before labeling.
+
+### Result of review set 1 (labeled 4 Nov 2026, scored once)
+
+Labels committed at 16:10 (commit da0e383), after the sample and predictions at 15:35
+(298ede4); 100 labeled, 8 unsure. Scored with `gnssguard review-eval`.
+
+| Question | Result |
+| --- | --- |
+| **Primary: calm-region flags the labeler calls normal** | **6 of 46 decided: 13% (95% interval 6-26%)**; 4 unsure |
+| Estimated real false-alarm rate, calm Central Europe | 0.83% flagged x 13% = **0.11% of judged cells (0.05-0.21%)** |
+| Hotspot flags the labeler confirms (R2) | 26 of 26 (87-100%); 4 unsure |
+| Calm cells the model calls normal, also normal to the labeler (R3) | 20 of 20 (84-100%) |
+| Same interference type, on confirmed flags | 63 of 66 |
+| Rules agree with the model (interference or not), all 100 | 98% |
+
+What it means:
+
+* **Most flags in the "calm" control region are not false alarms to a careful human
+  reading.** 40 of the 48 jamming flags there were called jamming: on average 2.7 of
+  9 usable aircraft degraded, against 1.2 of 21 in the flags called normal. They are
+  spread over many cells and all 7 days, not one place. Both spoofing flags in the
+  calm region were called normal: spoofing is where the calm false alarms are.
+* So the calm flagged share (0.4-1.3%) is not a false-alarm rate, as earlier
+  documents treated it: by this review the false-alarm rate is about 0.1%, and Central
+  Europe has some low-level GNSS degradation of its own. Whether that is real
+  interference (local sources, tests) or an aircraft-side effect that a human also reads
+  as interference cannot be told from ADS-B alone (the known limit stated above).
+  Ground stations in Germany (EUREF) could tell (Phase 3).
+* Hotspot flags were right every time the labeler could decide.

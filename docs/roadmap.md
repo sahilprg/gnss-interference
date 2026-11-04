@@ -46,7 +46,11 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
 * **Event check 1** (evaluation protocol): model and rules both found 9 of 10 checkable
   events, 4 of 4 with ground measurements; they missed the first Kaliningrad spoofing
   (9 Nov 2024); Delhi spoofing on 4 Nov 2025 was flagged in an afternoon window.
-* Next: more events, especially India and the Black Sea, and reviewed days with no
-  reports (negatives), so the catalog can also show false alarms.
+* **Review set 1** (false alarms, 100 hand-labeled cells from 27 Oct-3 Nov): 13% of
+  calm-region flags were false alarms to the reviewer, so the real calm false-alarm rate
+  is about 0.1% of judged cells; hotspot flags 26 of 26 right; calm spoofing flags were
+  the false ones.
+* Next: more events, especially India and the Black Sea; a second annotator for the
+  review sets; ground-station data (EUREF) for calm Central Europe.
 * Not possible from this archive: Punjab before 2026 (no adsb.lol data there on the
   checked days).
