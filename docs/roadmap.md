@@ -54,3 +54,8 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   review sets; ground-station data (EUREF) for calm Central Europe.
 * Not possible from this archive: Punjab before 2026 (no adsb.lol data there on the
   checked days).
+* **Trust report** (evaluation protocol): intervals over test days; the published scores
+  are almost always below 0.1 or above 0.9, and a low score over the Black Sea is wrong
+  about a third of the time on hand-labeled cells. A separate calibration day would not
+  fix this (the training labels are as confident as the model); calibrating against a
+  labeled set would. 95% of test-day aircraft were also seen in training.

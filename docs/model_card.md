@@ -16,6 +16,10 @@ For each 1° × 15-minute grid cell, from open ADS-B flight data (adsb.lol), it 
   jammers that follow the same physics as the fit; accuracy on real jammers is unknown.
   The affected areas are the main result.
 
+In practice 99.9% of judged cells score below 0.1 or at least 0.9, so the score adds
+little to the label. Against hand labels, scores of 0.9 or more were interference 97% of
+the time, scores below 0.1 7% of the time (Black Sea 35%, on stratified samples).
+
 The label is decided on the uncalibrated score at 0.5. Every published summary and map
 file states the threshold, what the scores mean, the model's hash and the run settings.
 

@@ -359,6 +359,41 @@ def cmd_review_sample(args) -> int:
     return 0
 
 
+def cmd_trust_report(args) -> int:
+    from gnssguard.features.cells import load_cells
+    from gnssguard.model import trust
+    from gnssguard.model.dataset import with_context
+    from gnssguard.model.train import Detectors
+
+    rep = Path(args.report)
+    rep.mkdir(parents=True, exist_ok=True)
+    det = Detectors.load(args.model or _default_model())
+    with pd_options():
+        if Path(args.rolling, "rolling_synthetic.csv").exists():
+            ri = trust.rolling_intervals(args.rolling)
+            ri.to_csv(rep / "rolling_intervals.csv", index=False)
+            print("== rolling results, 95% intervals over test days\n"
+                  + ri[ri["predictor"] == "model"].to_string(index=False))
+        else:
+            print(f"no rolling results in {args.rolling}; run `gnssguard rolling` first")
+        golds = _split(args.gold)
+        import pandas as pd
+        days = sorted({str(d) for f in golds for d in pd.read_csv(f)["date"].unique()})
+        cells = with_context(load_cells(args.cells, days, None)).reset_index(drop=True)
+        m = trust.human_scored(golds, cells, det)
+        for by, name in ((None, "overall"), ("region", "region"), ("aircraft", "aircraft")):
+            t = trust.reliability_by(m, by)
+            t.to_csv(rep / f"calibration_human_{name}.csv", index=False)
+            print(f"\n== score vs hand labels, {name} ({len(m)} decided cells)\n"
+                  + t.to_string(index=False))
+        train = det.meta.get("train_dates", [])
+        ov = trust.aircraft_overlap(args.data, train, days, _split(args.regions))
+        ov.to_csv(rep / "aircraft_overlap.csv", index=False)
+        print("\n== aircraft also seen on training days\n" + ov.to_string(index=False))
+    print(f"\nreports: {rep}/")
+    return 0
+
+
 def cmd_review_eval(args) -> int:
     import json
 
@@ -619,6 +654,18 @@ def main(argv: list[str] | None = None) -> int:
     pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
     pq.add_argument("--force", action="store_true")
     pq.set_defaults(func=cmd_review_sample)
+
+    pz = sub.add_parser("trust-report", help="day intervals, calibration vs hand labels, "
+                        "aircraft overlap")
+    pz.add_argument("--rolling", default="reports/model", help="folder with rolling_*.csv")
+    pz.add_argument("--gold", default="labels/gold.csv,labels/gold_2026-11-01.csv,"
+                    "labels/review_1.csv")
+    pz.add_argument("--cells", default="data/cells")
+    pz.add_argument("--data", default="data/processed")
+    pz.add_argument("--model", help="model folder (default: models/detector if present)")
+    pz.add_argument("--regions", default=PRODUCT_REGIONS)
+    pz.add_argument("--report", default="reports/trust")
+    pz.set_defaults(func=cmd_trust_report)
 
     pu = sub.add_parser("review-eval", help="the pre-declared analysis of the review set")
     pu.add_argument("--gold", required=True)

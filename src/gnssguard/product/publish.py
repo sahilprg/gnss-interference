@@ -60,8 +60,11 @@ SCORE_MEANING = (
     "p_jamming and p_spoofing are model scores, calibrated (isotonic) against the "
     "system's own training labels (weak rules and simulated attacks) on its validation "
     "day: of cells scored 0.8, about 8 in 10 carried those labels in testing. They are "
-    "not validated probabilities of real interference. The label uses the uncalibrated "
-    "score at the threshold given.")
+    "not validated probabilities of real interference. In practice almost every cell "
+    "scores below 0.1 or above 0.9; on hand-labeled cells, scores of 0.9 or more were "
+    "interference 97% of the time and scores below 0.1 were 7% of the time (a third of "
+    "the time over the Black Sea). The label uses the uncalibrated score at the "
+    "threshold given.")
 LABEL_THRESHOLD = 0.5  # Detectors.predict default; the label is decided on the raw score
 NOTICE = ("Research output. Not for navigation, flight planning or any operational "
           "decision. Not an attribution of interference to any party.")

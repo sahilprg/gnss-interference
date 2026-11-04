@@ -439,3 +439,54 @@ What it means:
   as interference cannot be told from ADS-B alone (the known limit stated above).
   Ground stations in Germany (EUREF) could tell (Phase 3).
 * Hotspot flags were right every time the labeler could decide.
+
+## Trust report (declared 4 Nov 2026; reporting only, no decision)
+
+`gnssguard trust-report` adds the uncertainty and calibration checks the improvement plan
+asks for (Phase 1, step 4). It changes no model, rule or threshold, and none of its
+numbers decides anything.
+
+1. **Intervals grouped by test day.** Neighbouring cell-windows are not independent,
+   so rolling results get 95% intervals from a bootstrap over the six selection days
+   (cluster = day), not over cells.
+2. **Calibration against hand labels.** For the three hand-labeled sets (26 Oct gold,
+   1 Nov holdout, review set 1; decided cells with 3+ aircraft), the share the labeler
+   called interference in each band of the published score (max of `p_jamming`,
+   `p_spoofing`), overall, by region and by usable aircraft (3-5, 6-10, 11+). The sets
+   were sampled by strata, so this is a diagnostic: it shows whether high scores are
+   right more often than low ones, not a population calibration curve.
+3. **Aircraft overlap.** For each test day, the share of its aircraft (ICAO addresses)
+   also seen on the training days. The model never sees aircraft identities; a high
+   overlap only means "the same fleet", and is reported so a reader can judge it.
+
+### Result of the trust report (4 Nov 2026)
+
+Run on the round-3 baseline rolling results (identical to the published configuration),
+the three hand-labeled sets and the published model (`reports/trust/`).
+
+**1. Intervals over days.** Most results stay as reported; the wide ones are spoofing
+over the Black Sea: hard 0.45 (95% interval 0.35-0.56), stress 0.65 (0.56-0.74),
+standard 0.84 (0.77-0.90). Calm Central Europe flagged share 0.70% (0.50-0.95%).
+
+**2. The published scores are effectively a second copy of the label.** On all judged
+cells of 2-3 Nov, 99.9% score below 0.1 or at least 0.9 (raw and calibrated alike), so
+there is almost nothing to calibrate in between. Against 412 decided hand labels:
+
+| Score | Cells | Labeler called interference |
+| --- | --- | --- |
+| below 0.1 | 194 | 7% (4-12%); Black Sea 35% (17-59%), Baltic 20% (9-39%) |
+| 0.1-0.9 | 3 | 3 of 3 |
+| 0.9 or more | 215 | 97% (94-99%); calm Central Europe 90% (81-96%) |
+
+(The sets over-sample uncertain cells, so the shares are diagnostic, not day-wide.) A
+score of 0.001 over the Black Sea is wrong about a third of the time in these samples:
+the misses at hotspot edges found on 1 Nov. The scores are confident because the
+training labels are near-deterministic functions of the same features, and calibrating
+against them, on any split, cannot make them more honest. A separate calibration day
+(planned as round 4) would therefore not help and is not run; what would is
+calibration against human labels, which needs a labeled calibration set of its own
+(Phase 1, sealed set).
+
+**3. Aircraft overlap.** 94.5-96.2% of the aircraft on each test day were also seen on
+the training days: the same fleet. The model does not see identities, but test days
+are not "new aircraft".
