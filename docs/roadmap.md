@@ -36,3 +36,17 @@ Code findings from the review of commit 05709be, checked against the code and da
 Also done: model hash and run settings (with a hash) in every summary; the jammer
 circles are labelled experimental; "0 of 112 normal cells flagged" is shown with its
 95% upper bound (2.7%).
+
+## Phase 1 status (4 Nov 2026)
+
+* **Event catalog started** (`configs/events.csv`, docs/labels.md section 6): 13 public
+  events from 2024-2025 with sources and evidence levels, 5 of them backed by ground
+  measurements independent of ADS-B (Estonian and Lithuanian spectrum monitoring,
+  a ground receiver in Gdynia).
+* **Event check 1** (evaluation protocol): model and rules both found 9 of 10 checkable
+  events, 4 of 4 with ground measurements; they missed the first Kaliningrad spoofing
+  (9 Nov 2024); Delhi spoofing on 4 Nov 2025 was flagged in an afternoon window.
+* Next: more events, especially India and the Black Sea, and reviewed days with no
+  reports (negatives), so the catalog can also show false alarms.
+* Not possible from this archive: Punjab before 2026 (no adsb.lol data there on the
+  checked days).

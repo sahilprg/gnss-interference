@@ -18,6 +18,10 @@ regions:
     bbox: [29.0, 33.5, 72.0, 76.5]
     role: hotspot
     note: India-Pakistan border area around Amritsar and Lahore
+  delhi:
+    bbox: [27.5, 29.6, 75.9, 78.3]
+    role: candidate
+    note: About 60 NM around Delhi IGI airport (spoofing reported Nov 2025). Event checks only; not on the daily map until coverage is checked
   central_europe:
     bbox: [47.5, 51.5, 7.0, 13.0]
     role: control

@@ -213,20 +213,37 @@ assumptions the rules were written with. MLAT fallback is not simulated by defau
 (`--p-mlat` turns it on), so `mlat_fallback` cannot help on synthetic data. Real
 jammers are often directional, intermittent or mobile; these are not.
 
-## 6. Official events
+## 6. Event catalog
 
 `configs/events.csv` holds reported events, one row each:
 
 ```
-event_id,type,lat_min,lat_max,lon_min,lon_max,start_utc,end_utc,source_url,notes
+event_id,type,lat_min,lat_max,lon_min,lon_max,start_utc,end_utc,source_url,notes,evidence_level,region
 ```
 
 `type` is `jamming`, `spoofing` or `unknown`; times are UTC ISO 8601; every row needs a
-`source_url` (aviation authority bulletins, NOTAMs, regulator or airline statements).
-Only add events that fall inside days you have ingested. `gnssguard label` marks
-matching cell-windows and writes `reports/labels/event_recall.csv`. Events check the
-rules; they are never used to tune thresholds. The file ships empty: no event has
-been entered yet.
+`source_url`. Boxes and times are only as precise as the source; the notes say what was
+inferred. Events check the system; they are never used to train it or tune thresholds.
+
+**Evidence levels** (how far the report is independent of this project's input):
+
+| Level | Meaning | Examples in the catalog |
+| --- | --- | --- |
+| `observed_anomaly` | seen in ADS-B data by an outside analyst; not independent of our input | Stanford GPS Lab findings near Kaliningrad |
+| `suspected_mechanism` | an authority, airline or crew says it happened, without a measurement | UK and Spanish ministers' jets, Finnair at Tartu, Delhi diversions |
+| `independently_corroborated` | a measurement not from ADS-B: ground spectrum monitoring, direction finding, a ground GNSS receiver | Estonian and Lithuanian monitoring (ITU letter), Gdynia ground receiver |
+| `unresolved` | reported, cause or occurrence unclear | |
+
+`region` names the study region the box lies in; empty means outside all regions
+(listed, not checked). The first 13 events (4 Nov 2026) cover 2024-2025; their days are
+downloaded on purpose (`gnssguard ingest --date ...`), then scored with
+`gnssguard event-check`, under the rule fixed in docs/evaluation_protocol.md ("Event
+check 1"). `gnssguard label` also marks matching cell-windows
+(`reports/labels/event_recall.csv`).
+
+Adding an event: one row with a new id, the source link, a box and the UTC period as
+the source states them, the evidence level, and in the notes what was inferred. If its
+day is not stored yet, ingest it before the next event check.
 
 ### Official advisories
 

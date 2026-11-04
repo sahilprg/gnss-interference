@@ -282,3 +282,88 @@ spoofing looks (its dropped points leave gaps). In calm traffic the same pairs p
 most false jumps, but the model already discounts them: calm false alarms did not move.
 Whether real spoofing looks the same cannot be decided without independent evidence
 (Phase 1). No variant of S is tried on the same selection days.
+
+## Event check 1: public reports, 2024-2025 (declared 4 Nov 2026, before any event day was scored)
+
+The first events in `configs/events.csv` (13 rows, 12 in study regions) come from
+public sources, each with an evidence level (docs/labels.md). Their days were
+downloaded after the catalog was written; nothing below was chosen by looking at them.
+
+**Predictors:** the published model (`models/detector`, trained 29 Sep-24 Oct 2026) and
+the Phase 2 rules with its label model, unchanged. The events are 1-2.5 years older
+than the training data, with different receiver coverage: this is a test of how well
+the system carries over in time, and not used for any change.
+
+**Rule, per event and predictor:** take the cell-windows of the event's region that
+overlap its box and period and have 3 or more usable aircraft. A cell-window matches if
+its label fits the event type (jamming: jamming or both; spoofing: spoofing or both;
+unknown: any interference).
+
+* **found:** 3 or more matching cell-windows;
+* **not found:** 10 or more judged cell-windows and fewer than 3 matching;
+* **too few cells** otherwise (also when the region has no data that day).
+
+**Reported:** the verdict and matching share for every event; found / (found + not
+found) per predictor and per evidence level, with Wilson 95% intervals; for spoofing
+events separately, because spoofing is the weaker detector.
+
+**Placebo (calm control):** on each event day, the flagged share of judged cells in
+calm Central Europe for both predictors, which should stay in its usual 0.4-1.3%. A
+high share there would mean the old days are read wrongly altogether.
+
+**Known limit, stated now:** around Kaliningrad interference is close to constant, so a
+"found" there shows that the system sees what was reported, not that it can tell
+reported days from others. Telling them apart needs reviewed negative days (Phase 1,
+sealed set).
+
+### Result of event check 1 (4 Nov 2026, scored once)
+
+`gnssguard event-check` on the 14 event days (all downloads complete, 0 decode errors).
+Model and rules gave the same verdict on every event.
+
+| Event | Type | Evidence | Judged | Matching (model) | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| EV01 UK minister's jet, Kaliningrad, 13 Mar 2024 | jamming | suspected mechanism | 48 | 6 (12%) | found |
+| EV02 Finnair at Tartu, 25 Apr 2024 | jamming | suspected mechanism | 0 | 0 | too few cells |
+| EV03 Lithuanian monitoring, 16 Oct 2024 | unknown | corroborated | 711 | 101 (14%) | found |
+| EV04 Lithuanian monitoring, 4 Nov 2024 | unknown | corroborated | 683 | 47 (7%) | found |
+| EV05 first Kaliningrad spoofing, 9 Nov 2024 | spoofing | observed anomaly | 69 | 1 (1%) | **not found** |
+| EV06 wideband emission, 27 Jan 2025 | jamming | corroborated | 371 | 196 (53%) | found |
+| EV07 Narva monitoring, 7-9 Feb 2025 | unknown | corroborated | 12 | 12 (100%) | found |
+| EV08 Kaliningrad 250 km jamming, 5 Mar 2025 | jamming | observed anomaly | 274 | 39 (14%) | found |
+| EV09 Kaliningrad spoofing, 9 Mar 2025 | spoofing | observed anomaly | 13 | 5 (38%) | found |
+| EV10 Gdynia ground receiver, 18 May 2025 | jamming | corroborated | 2 | 2 | too few cells |
+| EV11 Spanish minister's jet, 24 Sep 2025 | jamming | suspected mechanism | 271 | 31 (11%) | found |
+| EV12 Plovdiv, Bulgaria, 31 Aug 2025 | jamming | suspected mechanism | - | - | not checked (no region) |
+| EV13 Delhi spoofing, 4 Nov 2025 | spoofing | suspected mechanism | 251 | 16 (6%; rules 15) | found |
+
+| Group | Found / decided (model = rules) | 95% interval |
+| --- | --- | --- |
+| All events | 9 / 10 | 60-98% |
+| Independently corroborated | 4 / 4 | 51-100% |
+| Spoofing events | 2 / 3 | 21-94% |
+
+Calm Central Europe on the event days: 0.04-0.83% flagged on 12 days, 1.27% on 18 May
+2025 and **1.82% on 9 Nov 2024** (model; rules 1.78%), above the 0.4-1.3% of the study
+days but below the 3% alarm.
+
+What it means:
+
+* The system flags what independent ground monitoring measured on every checkable
+  corroborated day (4 of 4), on data 1-2 years older than its training data. With 4
+  events the interval is wide (51-100%), and around Kaliningrad interference is near
+  constant, so this shows the system sees reported interference, not that it tells
+  reported days from others (stated in advance).
+* **Delhi, 4 Nov 2025:** never trained on, outside every study region: 16 of 251 judged
+  cell-windows flagged as spoofing, all between 10:00 and 14:00 UTC (15:30-19:30 IST);
+  none the rest of the day. The reported diversions were that night (local time): the
+  timing is close but not shown to match. This is the first India check, and worth a
+  Delhi region once its coverage is checked (Phase 2).
+* **The first Kaliningrad spoofing (9 Nov 2024) was missed**: 1 of 69 judged cells. The
+  spoofing detector is the weak part, as on the synthetic Black Sea tests.
+* Coverage limits what can be checked: Tartu (Apr 2024) had no judged cells, and adsb.lol
+  had no Punjab data on any of these days, so India-Pakistan border events before 2026
+  cannot be checked from this archive.
+* Model and rules agree on every event, as on both hand-labeled days: the model adds
+  nothing over the rules on real data yet. Showing a difference needs independent labels
+  (Phase 1, sealed set).

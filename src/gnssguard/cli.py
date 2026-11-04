@@ -328,6 +328,31 @@ def cmd_holdout_eval(args) -> int:
 PRODUCT_REGIONS = "baltic,east_med,black_sea,punjab,central_europe"
 
 
+def cmd_event_check(args) -> int:
+    from gnssguard.model.eventcheck import run
+
+    res = run(args.cells, args.model or _default_model(), args.events)
+    rep = Path(args.report)
+    rep.mkdir(parents=True, exist_ok=True)
+    for name, df in res.items():
+        df.to_csv(rep / f"{name}.csv", index=False)
+    with pd_options():
+        print(res["events"].pivot_table(index=["event_id", "type", "evidence_level"],
+                                        columns="predictor", values="verdict",
+                                        aggfunc="first").to_string())
+        print("\n" + res["summary"].to_string(index=False))
+        print("\ncalm control on the event days\n" + res["placebo"].pivot_table(
+            index="date", columns="predictor", values="flagged_share").to_string())
+    print(f"\nreports: {rep}/")
+    return 0
+
+
+def pd_options():
+    import pandas as pd
+
+    return pd.option_context("display.width", 160, "display.max_rows", 200)
+
+
 def _default_model() -> str:
     # the model committed with the repository (models/) is what the nightly job uses
     committed = Path("models/detector")
@@ -518,6 +543,13 @@ def main(argv: list[str] | None = None) -> int:
                     help="as in train; must match the table")
     _grid_args(pw)
     pw.set_defaults(func=cmd_rolling)
+
+    pe = sub.add_parser("event-check", help="score the detectors on the public event catalog")
+    pe.add_argument("--cells", default="data/cells")
+    pe.add_argument("--model", help="model folder (default: models/detector if present)")
+    pe.add_argument("--events", default="configs/events.csv")
+    pe.add_argument("--report", default="reports/events")
+    pe.set_defaults(func=cmd_event_check)
 
     ph = sub.add_parser("holdout-sample", help="blind stratified sample of a fresh day")
     ph.add_argument("--date", required=True)
