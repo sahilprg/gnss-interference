@@ -1,0 +1,122 @@
+{
+ "schema": "gnssguard-public/1",
+ "date": "2026-11-03",
+ "generated_at": "2026-11-04T13:09:15+00:00",
+ "published": true,
+ "day_reasons": [],
+ "needs_review": [],
+ "model": {
+  "train_dates": [
+   "2026-09-29",
+   "2026-10-24"
+  ],
+  "versions": {
+   "python": "3.12.2",
+   "os": "Windows",
+   "gnssguard": "0.1.0",
+   "lightgbm": "4.7.0",
+   "numpy": "2.5.4",
+   "pandas": "3.1.0",
+   "pyarrow": "26.0.0",
+   "scipy": "1.18.1"
+  },
+  "hash": "81062b5eb365",
+  "label_threshold": 0.5,
+  "score_meaning": "p_jamming and p_spoofing are model scores, calibrated (isotonic) against the system's own training labels (weak rules and simulated attacks) on its validation day: of cells scored 0.8, about 8 in 10 carried those labels in testing. They are not validated probabilities of real interference. The label uses the uncalibrated score at the threshold given.",
+  "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+ },
+ "config": {
+  "code_version": "0.1.0",
+  "schema": "gnssguard-public/1",
+  "regions": [
+   "baltic",
+   "black_sea",
+   "central_europe",
+   "east_med",
+   "punjab"
+  ],
+  "cell_deg": 1.0,
+  "window_min": 15,
+  "min_aircraft": 3,
+  "label_threshold": 0.5,
+  "hash": "73f3787ca772"
+ },
+ "regions": {
+  "baltic": {
+   "aircraft": 669,
+   "judged_cells": 1311,
+   "low_coverage_cells": 2252,
+   "sparse_flagged_cells": 262,
+   "flagged_share": 0.415,
+   "jamming_share": 0.4142,
+   "spoofing_share": 0.0046,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": [],
+   "review": []
+  },
+  "east_med": {
+   "aircraft": 827,
+   "judged_cells": 1389,
+   "low_coverage_cells": 1577,
+   "sparse_flagged_cells": 1,
+   "flagged_share": 0.0209,
+   "jamming_share": 0.0202,
+   "spoofing_share": 0.0014,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": [],
+   "review": []
+  },
+  "black_sea": {
+   "aircraft": 1543,
+   "judged_cells": 768,
+   "low_coverage_cells": 582,
+   "sparse_flagged_cells": 16,
+   "flagged_share": 0.1745,
+   "jamming_share": 0.168,
+   "spoofing_share": 0.013,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": [],
+   "review": []
+  },
+  "punjab": {
+   "aircraft": 294,
+   "judged_cells": 328,
+   "low_coverage_cells": 561,
+   "sparse_flagged_cells": 2,
+   "flagged_share": 0.1463,
+   "jamming_share": 0.0701,
+   "spoofing_share": 0.0884,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": [],
+   "review": []
+  },
+  "central_europe": {
+   "aircraft": 3430,
+   "judged_cells": 2492,
+   "low_coverage_cells": 289,
+   "sparse_flagged_cells": 0,
+   "flagged_share": 0.0165,
+   "jamming_share": 0.0165,
+   "spoofing_share": 0.0,
+   "rule_disagreement": 0.0,
+   "status": "published",
+   "reasons": [],
+   "notes": [],
+   "review": []
+  }
+ },
+ "incidents": 35,
+ "outside_reports": {
+  "checked": 6,
+  "seen": 4
+ },
+ "notice": "Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party."
+}
