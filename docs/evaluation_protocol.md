@@ -367,3 +367,46 @@ What it means:
 * Model and rules agree on every event, as on both hand-labeled days: the model adds
   nothing over the rules on real data yet. Showing a difference needs independent labels
   (Phase 1, sealed set).
+
+## Review set 1: false alarms (declared 4 Nov 2026, before sampling and labeling)
+
+The event check counts what the system finds; it cannot count false alarms. This set
+does: hand review of the cells the system flags where little or no interference is
+expected, plus control cells.
+
+**Days:** 27-31 Oct and 2-3 Nov 2026 (7 days). None was used for training (29 Sep-24
+Oct), validation (25 Oct), selection (20-25 Oct) or hand labels (26 Oct, 1 Nov).
+
+**Frozen predictors:** the published model `models/detector` and the rules with its
+label model, as in the event check.
+
+**Sample:** 100 cell-windows with 3+ usable aircraft, drawn with a fixed seed by
+`gnssguard review-sample` before any label exists, in three groups:
+
+| Group | Cells | What it answers |
+| --- | --- | --- |
+| R1 calm flags | 50 | model flags in calm Central Europe, spread over the 7 days: are they real? |
+| R2 hotspot flags | 30 | model flags in the four hotspot regions, spread by region: how often is a flag right where interference is common? |
+| R3 calm normal | 20 | random cells the model calls normal in Central Europe: does the labeler also see nothing there? |
+
+If a group has fewer cells than its size, all are taken and the rest goes to R3. The
+groups, weights and predictions are stored apart from the labeling file; the labeler
+sees only the data panels, as before.
+
+**Primary question: what share of calm-region flags are false alarms?** Share of
+decided R1 cells the labeler calls normal, with a Wilson 95% interval. The real calm
+false-alarm rate is then estimated as the calm flagged share on these days times that
+share (with its interval). Reported whatever it shows.
+
+**Secondary:** R2 precision (share the labeler calls interference), weighted by region
+size; R3 share called normal; for R1 and R2, type agreement (jamming vs spoofing).
+Unsure cells are counted and shown.
+
+**Known limit:** the labeler reads the same ADS-B evidence as the predictors, so this
+measures agreement with a careful human reading, not physical truth.
+
+**Sample drawn 4 Nov 2026, before any label** (seed 20261104, published model): R1 50 of
+151 calm flags, R2 30 of 5,281 hotspot flags, R3 20 of 18,011 calm normal cells. The
+calm flagged share on these 7 days is 0.83% (model), the value used in the primary
+estimate. Labeling file `labels/review_1.csv`; groups and predictions
+`labels/review_1_groups.csv`, committed before labeling.

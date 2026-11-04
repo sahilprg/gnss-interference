@@ -325,6 +325,21 @@ Label with `reports/gold_tool_2026-11-01.html` exactly as before (section 7), th
 gnssguard holdout-eval --gold labels/gold_2026-11-01.csv --strata labels/holdout_2026-11-01_strata.csv
 ```
 
+## 7c. Review set 1: false alarms (27 Oct-3 Nov 2026)
+
+100 cell-windows from 7 days no decision has used: 50 model flags in calm Central
+Europe, 30 model flags in the hotspot regions, 20 calm cells the model calls normal
+(docs/evaluation_protocol.md, "Review set 1"). Label them exactly like the gold sets,
+with the same tool; the groups are in `labels/review_1_groups.csv`, which the labeler
+does not open before labeling is finished.
+
+```bash
+gnssguard review-sample --dates 2026-10-27,2026-10-28,2026-10-29,2026-10-30,2026-10-31,2026-11-02,2026-11-03 \
+    --out labels/review_1.csv --groups labels/review_1_groups.csv
+gnssguard gold-tool --gold labels/review_1.csv --out reports/review_tool.html
+gnssguard review-eval --gold labels/review_1.csv --groups labels/review_1_groups.csv --calm-share <share printed by review-sample>
+```
+
 ## 8. Not done yet
 
 - A satellite-geometry (DOP) rule from the GPS almanac, to rule out poor accuracy

@@ -175,7 +175,7 @@ def cmd_gold_tool(args) -> int:
     out = write_tool(args.gold, args.cells, args.out)
     print(f"labeling tool written to {out}")
     print("Open it in your browser. Press 1-5 to label, arrows to move.")
-    print(f"When done, press 'Download gold.csv' and replace {args.gold} with it.")
+    print(f"When done, press 'Download {Path(args.gold).name}' and replace {args.gold} with it.")
     return 0
 
 
@@ -326,6 +326,52 @@ def cmd_holdout_eval(args) -> int:
 
 
 PRODUCT_REGIONS = "baltic,east_med,black_sea,punjab,central_europe"
+
+
+def cmd_review_sample(args) -> int:
+    from gnssguard.features.cells import load_cells
+    from gnssguard.labels.review import review_sample
+    from gnssguard.model.dataset import with_context
+    from gnssguard.model.evaluate import rule_frame
+    from gnssguard.model.train import Detectors
+
+    out, groups_out = Path(args.out), Path(args.groups)
+    for f in (out, groups_out):
+        if f.exists() and not args.force:
+            print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
+            return 1
+    det = Detectors.load(args.model or _default_model())
+    cells = with_context(load_cells(args.cells, _split(args.dates), _split(args.regions)))
+    cells = cells.reset_index(drop=True)
+    rules = rule_frame(cells, det)["label"].astype(str)
+    model = det.predict(cells)["label"].astype(str)
+    gold, groups = review_sample(cells, rules, model, seed=args.seed)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    gold.to_csv(out, index=False)
+    groups.to_csv(groups_out, index=False)
+    calm = (cells["region"] == "central_europe") & (cells["n_ac_usable"].fillna(0) >= 3)
+    share = float(model[calm].isin(["jamming", "spoofing", "both"]).mean())
+    print(groups.groupby("group").agg(cells=("gold_id", "size"), pool=("pool", "first"))
+          .to_string())
+    print(f"calm flagged share on these days (model): {share:.4f}")
+    print(f"{len(gold)} cell-windows -> {out}  (labeling file)")
+    print(f"groups and frozen predictions -> {groups_out}  (do not open before labeling)")
+    return 0
+
+
+def cmd_review_eval(args) -> int:
+    import json
+
+    import pandas as pd
+
+    from gnssguard.labels.review import review_eval
+
+    gold = pd.read_csv(args.gold, dtype=str, keep_default_na=False)
+    groups = pd.read_csv(args.groups, keep_default_na=False)
+    groups["weight"] = groups["weight"].astype(float)
+    res = review_eval(gold, groups, args.calm_share)
+    print(json.dumps(res, indent=1, default=str))
+    return 0
 
 
 def cmd_event_check(args) -> int:
@@ -562,6 +608,23 @@ def main(argv: list[str] | None = None) -> int:
     ph.add_argument("--strata", required=True, help="strata file kept apart from the labeler")
     ph.add_argument("--force", action="store_true")
     ph.set_defaults(func=cmd_holdout_sample)
+
+    pq = sub.add_parser("review-sample", help="blind sample for the false-alarm review set")
+    pq.add_argument("--dates", required=True)
+    pq.add_argument("--cells", default="data/cells")
+    pq.add_argument("--model", help="frozen model (default: models/detector if present)")
+    pq.add_argument("--regions", default=PRODUCT_REGIONS)
+    pq.add_argument("--seed", type=int, default=20261104)
+    pq.add_argument("--out", required=True)
+    pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
+    pq.add_argument("--force", action="store_true")
+    pq.set_defaults(func=cmd_review_sample)
+
+    pu = sub.add_parser("review-eval", help="the pre-declared analysis of the review set")
+    pu.add_argument("--gold", required=True)
+    pu.add_argument("--groups", required=True)
+    pu.add_argument("--calm-share", type=float, help="calm flagged share on the review days")
+    pu.set_defaults(func=cmd_review_eval)
 
     pv = sub.add_parser("holdout-eval", help="the pre-declared analysis of a labeled holdout")
     pv.add_argument("--gold", required=True)
