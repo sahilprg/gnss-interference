@@ -35,6 +35,9 @@ DEGRADED_NIC = 7  # NIC >= 7 is normal (containment radius < 0.2 NM)
 LOW_NACP = 8  # NACp >= 8 is normal (95% accuracy < 93 m)
 JUMP_KT = 1_000  # implied speed no airliner can fly
 JUMP_MAX_GAP_S = 120  # only compare consecutive points close in time
+# readsb flags a point "stale" when no position came for 20 s before it (docs/data.md).
+# Kept as the `after_gap` point flag for analysis; not used by any feature.
+GAP_S = 20.0
 SPEED_PAIR_S = (5, 30)  # point pairs used to compare position change with ground speed
 SPEED_MISMATCH_KT = 150  # implied speed vs reported ground speed
 ALT_BAND_FT = 5_000  # altitude bands for the GPS-vs-baro baseline
@@ -44,7 +47,7 @@ CHRONIC_MIN_ROWS = 3  # windows where others were healthy, needed to judge an ai
 CHRONIC_SHARE = 0.8  # degraded in this share of those windows => equipment fault
 
 POINT_COLS = ["icao", "ts", "lat", "lon", "alt_baro", "alt_geom", "on_ground", "gs", "src",
-              "nic", "nac_p", "q_age_s"]
+              "nic", "nac_p", "q_age_s", "stale", "new_leg"]
 
 
 @dataclass(frozen=True)
@@ -63,6 +66,19 @@ def _haversine_km(lat1, lon1, lat2, lon2):
     h = (np.sin((lat2 - lat1) / 2) ** 2
          + np.cos(lat1) * np.cos(lat2) * np.sin((lon2 - lon1) / 2) ** 2)
     return 2 * 6371.0 * np.arcsin(np.sqrt(h.clip(0, 1)))
+
+
+def read_points(folder) -> pd.DataFrame:
+    """The point columns the features use; the gap flags are optional (older test data)."""
+    names = set(pq.read_schema(next(Path(folder).glob("*.parquet"))).names) \
+        if Path(folder).is_dir() else set(pq.read_schema(folder).names)
+    return pq.read_table(folder, columns=[c for c in POINT_COLS if c in names]).to_pandas()
+
+
+def _flag(df: pd.DataFrame, col: str) -> pd.Series:
+    if col not in df:
+        return pd.Series(False, index=df.index)
+    return df[col].astype("boolean").fillna(False).astype(bool)
 
 
 def prepare_points(df: pd.DataFrame, spec: GridSpec = GridSpec()) -> pd.DataFrame:
@@ -102,6 +118,9 @@ def prepare_points(df: pd.DataFrame, spec: GridSpec = GridSpec()) -> pd.DataFram
     dist = pd.Series(dist, index=df.index).where(same_ac)
     speed_kt = dist / (dt / 3600.0) / 1.852
     pair_ok = (dt > 0) & (dt <= JUMP_MAX_GAP_S) & (dist > 1.0)
+    # Points after a reception gap (readsb "stale", see GAP_S) are kept in the motion
+    # checks: leaving them out was tested and rejected (evaluation protocol, round 3).
+    df["after_gap"] = _flag(df, "stale") | dt.ge(GAP_S)
     prev_src = df["src"].shift().where(same_ac)
     fast = pair_ok & (speed_kt > JUMP_KT)
     df["jump"] = fast & is_adsb & prev_src.isin(ADSB_SOURCES)
@@ -241,7 +260,7 @@ def build_all(processed: str | Path, out: str | Path, spec: GridSpec = GridSpec(
         target = out / f"region={region}" / f"date={date}" / "part-0.parquet"
         if target.exists() and not force:
             continue
-        df = pq.read_table(folder, columns=POINT_COLS).to_pandas()
+        df = read_points(folder)
         cw, chronic = build_from_points(df, spec)
         del df
         # region and date live in the folder names (Hive partitions), not in the file,

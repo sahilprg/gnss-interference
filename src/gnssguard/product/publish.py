@@ -33,9 +33,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
-import pyarrow.parquet as pq
 
-from gnssguard.features.cells import POINT_COLS, GridSpec, load_cells
+from gnssguard.features.cells import GridSpec, load_cells, read_points
 from gnssguard.model.dataset import with_context
 from gnssguard.model.localize import aircraft_points, incidents, localize_incidents
 from gnssguard.model.train import Detectors
@@ -172,7 +171,7 @@ def _aircraft(processed: Path, region: str, date: str) -> tuple[int, pd.DataFram
     folder = processed / f"region={region}" / f"date={date}"
     if not folder.exists():
         return 0, None
-    pts = pq.read_table(folder, columns=POINT_COLS).to_pandas()
+    pts = read_points(folder)
     air = pts[~pts["on_ground"].astype(bool)]
     return int(air["icao"].nunique()), pts
 

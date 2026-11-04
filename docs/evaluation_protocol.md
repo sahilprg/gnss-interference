@@ -217,3 +217,68 @@ What it means:
   the rules flagged 38 (37 decided, all right); the other 12, which only the model flags,
   were 10 decided, all jamming. So both predictors are right on these cells; what is
   new is publishing them.
+
+## Round 3: Phase 0 data-handling fixes (declared 4 Nov 2026, before any result)
+
+The improvement plan of 3 Nov lists data-handling findings. The check of 4 Nov
+(docs/data.md) showed that readsb's `stale` flag does not mark an old position: it marks
+the first position after a gap of 20 s or more without one (median gap 30 s on 1 Nov;
+non-flagged points follow a gap of 20 s or more only 0.4-0.7% of the time). The
+position and its NIC are fresh, so these points stay usable. What a gap does break is
+comparing that point with the one before it: on 1 Nov in calm Central Europe, points
+after a gap show impossible jumps 200 times and speed mismatches 25 times more often than
+other points, and they carry about half of that region's jumps and 10% of its speed
+mismatches. Over the Black Sea and the Baltic they carry 36-45% of all speed
+mismatches, the main spoofing evidence; how much of that is real cannot be told
+without independent evidence.
+
+**Change S (one change, tested alone):**
+
+* A point counts as "after a gap" if readsb flags it stale or if it follows the same
+  aircraft's previous point by 20 s or more in our data (the second part makes the
+  synthetic attacks, whose dropped points leave gaps without a flag, behave like real
+  data).
+* Impossible jumps and speed mismatches are not computed on a pair ending at a point
+  after a gap or at the start of a new leg (`new_leg`). Source-switch jumps are not
+  computed across a new leg.
+* Nothing else changes: the same points are usable, and NIC, NACp and altitude
+  evidence are unchanged.
+
+**Baseline:** the published model's configuration (round 2, change B), rebuilt and
+rolled with the current code, so that only change S differs.
+
+**Decision:** the acceptance rules above, on 20-25 Oct, with rule 4 met by the stated
+purpose (correct data handling) if rules 1-3 hold. Also reported, whatever they show:
+the real flag-rate change per region and predictor on the selection days, and the change
+in Black Sea spoofing flags. The hand labels of 26 Oct and 1 Nov are not looked at for
+this decision; if S is accepted, both holdout days are rescored once, with the new and
+the old model side by side, and reported.
+
+### Result of round 3 (4 Nov 2026): change S rejected
+
+Run with `gnssguard rolling` on 20-25 Oct, the baseline on the unchanged code (it
+reproduced round 2's change B exactly), and decided by `scripts/protocol_decide.py`
+(`reports/protocol3/`).
+
+| Rule | Result | |
+| --- | --- | --- |
+| 1. No lost recall (at most -0.01) | Black Sea hard spoofing -0.028, stress -0.013 | **fails** |
+| 2. No new synthetic false alarms | at most -0.001 | holds |
+| 3. No new real false alarms | calm Central Europe -0.01 points | holds |
+| 4. Gain or stated purpose | purpose given, but needs rules 1-3 | not met |
+
+Real flagged shares changed by at most 0.16 points in any region (Black Sea 18.6% to
+18.5% of judged cells). Impossible-jump and speed-mismatch counts fell by 10-50% per
+region-day, while usable aircraft did not change.
+
+S is reverted: features are again identical to the baseline (checked on a stored day),
+and the published model is unchanged. Kept, because they change no result: the
+`stale` and `new_leg` columns are now loaded (`read_points`) and recorded as the point
+flag `after_gap`, and the decoder and docs/data.md describe the flag correctly.
+
+What it means: on synthetic attacks over a busy background, pairs across a reception
+gap carry part of the spoofing evidence the model uses, which is also how injected
+spoofing looks (its dropped points leave gaps). In calm traffic the same pairs produce
+most false jumps, but the model already discounts them: calm false alarms did not move.
+Whether real spoofing looks the same cannot be decided without independent evidence
+(Phase 1). No variant of S is tried on the same selection days.

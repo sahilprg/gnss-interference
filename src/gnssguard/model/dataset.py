@@ -24,9 +24,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pyarrow.parquet as pq
 
-from gnssguard.features.cells import CELL_KEYS, POINT_COLS, GridSpec, build_from_points
+from gnssguard.features.cells import CELL_KEYS, GridSpec, build_from_points, read_points
 from gnssguard.labels import synthetic as S
 from gnssguard.labels.labelmodel import DawidSkene
 from gnssguard.labels.pipeline import score
@@ -173,7 +172,7 @@ def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: 
         if not folder.exists():
             log.warning("no %s data for %s; skipping synthetic", region, date)
             continue
-        pts = pq.read_table(folder, columns=POINT_COLS).to_pandas()
+        pts = read_points(folder)
         for seed in seeds:
             events = S.random_events(pts, n_jamming, n_spoofing, seed=seed, profile=profile)
             for e in events:

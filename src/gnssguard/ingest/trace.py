@@ -11,7 +11,8 @@ Trace format (readsb README-json.md, "trace jsons"): the file holds aircraft met
     5 track deg or None                12 indicated airspeed or None
     6 flags bitfield                   13 roll or None
 
-Flags: 1 = stale position, 2 = start of new leg, 4 = vrate geometric, 8 = altitude geometric.
+Flags: 1 = "stale" (first position after 20 s or more without one; the position itself is
+fresh, see docs/data.md), 2 = start of new leg, 4 = vrate geometric, 8 = altitude geometric.
 
 The details dict appears only on some points, so quality fields (NIC, NACp, ...) are carried
 forward from the last report and `q_age_s` records how old they are.

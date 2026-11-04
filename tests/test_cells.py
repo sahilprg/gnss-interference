@@ -73,3 +73,14 @@ def test_no_altitude_baseline_from_too_few_aircraft():
     odd = flight("odd", 50.9, 10.1, alt_geom_offset=3000)
     c = one_window(build_from_points(points(*few, odd), SPEC)[0])
     assert c.n_ac_altpair == 0
+
+
+
+def test_gap_flag_is_recorded_but_does_not_change_features():
+    # rejected change S (evaluation protocol, round 3): motion checks still use every pair
+    a = flight("a1", 50.1, 10.1)
+    a.loc[15:, "lon"] += 0.6
+    a["stale"] = False
+    a.loc[15, "stale"] = True
+    c = one_window(build_from_points(points(a, flight("a2", 50.2, 10.1)), SPEC)[0])
+    assert c.n_ac_jump == 1 and c.n_ac_usable == 2

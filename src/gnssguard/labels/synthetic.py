@@ -393,9 +393,8 @@ def run_experiment(processed: str | Path, region: str, date: str, *, n_jamming: 
     The label model is fitted on the synthetic cells together with the real cell tables
     in `real_cells` (other region-days), as it would be in practice.
     """
-    import pyarrow.parquet as pq
 
-    from gnssguard.features.cells import POINT_COLS, build_from_points, load_cells
+    from gnssguard.features.cells import build_from_points, load_cells, read_points
     from gnssguard.labels.labelmodel import DawidSkene
     from gnssguard.labels.pipeline import score
     from gnssguard.labels.rules import INTEGRITY_RULES, apply_rules
@@ -403,7 +402,7 @@ def run_experiment(processed: str | Path, region: str, date: str, *, n_jamming: 
     folder = Path(processed) / f"region={region}" / f"date={date}"
     if not folder.exists():
         raise FileNotFoundError(f"{folder} not found; ingest that day first")
-    pts = pq.read_table(folder, columns=POINT_COLS).to_pandas()
+    pts = read_points(folder)
     real = load_cells(real_cells) if real_cells else pd.DataFrame()
     if not real.empty:
         real = real[~((real["region"] == region) & (real["date"] == date))]

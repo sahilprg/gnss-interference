@@ -74,10 +74,16 @@ the first 20,000 raw traces of 2 Nov (32.2 million points, 8.1 million details o
   consecutive snapshots 1.5% of the time.
 
 So `q_age_s` means "seconds since readsb's last state snapshot", and the 30 s limit
-keeps values readsb itself still held; a per-field age is not needed. What `q_age_s`
-does not cover is a stale *position*: see the `stale` flag (bit 1 of the trace flags),
-set on 2-6% of ADS-B points (Black Sea 6.1%, where stale points are twice as often
-degraded). Excluding them is Phase 0 step 3.
+keeps values readsb itself still held; a per-field age is not needed.
+
+**The `stale` flag** (bit 1 of the trace flags) does not mark an old position. It marks
+the first position after 20 s or more without one: on 1 Nov the gap before a flagged
+point is 30 s (median; 5%: 16 s, the rest after points we drop outside the region
+boxes), against 4 s before other points. It is set on 2-6% of ADS-B points (Black Sea
+6.1%, where flagged points are twice as often degraded: jamming causes the gaps). The
+position and its NIC are fresh, so these points stay usable. Leaving them out of the
+jump and speed checks was tested and rejected (docs/evaluation_protocol.md, round 3);
+the features record them as `after_gap` only.
 
 ### Why `src` matters
 
