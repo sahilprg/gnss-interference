@@ -59,3 +59,9 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   about a third of the time on hand-labeled cells. A separate calibration day would not
   fix this (the training labels are as confident as the model); calibrating against a
   labeled set would. 95% of test-day aircraft were also seen in training.
+* **Event check 2:** six more events (Vilnius 2025, Delhi Jan-Feb 2026, Constanta Jun
+  2026, western Black Sea and Kaliningrad on 3 Nov 2026, Lahore listed only): 5 of 5
+  checkable found, 14 of 15 overall. In Delhi the model flags more spoofing than the
+  rules (135 vs 92 cell-windows): the first real-data difference between them.
+* **Sealed set declared:** calibration set (15-21 Sep 2026, 150 cells, drawn) and sealed
+  test set (5-18 Nov 2026, 250 cells, drawn on 19 Nov or later).

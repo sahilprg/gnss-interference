@@ -490,3 +490,74 @@ calibration against human labels, which needs a labeled calibration set of its o
 **3. Aircraft overlap.** 94.5-96.2% of the aircraft on each test day were also seen on
 the training days: the same fleet. The model does not see identities, but test days
 are not "new aircraft".
+
+## Event check 2: six more events (declared 4 Nov 2026, before their days were scored)
+
+Rows EV14-EV19 of `configs/events.csv`, added from public sources on 4 Nov 2026: a
+diversion at Vilnius (Jan 2025), the Pakistan CAA's February 2025 peak (listed only:
+adsb.lol has no Punjab data in 2025), Delhi spoofing in Jan-Feb 2026 (checked on three
+days fixed now: 15 Jan, 1 Feb, 15 Feb 2026), Constanta (4-5 Jun 2026), and the
+western Black Sea and Kaliningrad on 3 Nov 2026. Same predictors, rule and placebo as
+event check 1; the summary is reported for the new events alone and for all events.
+The 3 Nov 2026 day was published on the map before; no decision used it.
+
+## Sealed set (declared 4 Nov 2026, before any of its days was looked at)
+
+Two hand-labeled sets for the Phase 1 gate, from blocks of days that no decision has
+used, drawn with the published model frozen at commit 0509328 (`models/detector`).
+
+**Calibration set: 15-21 Sep 2026** (before the training period), 150 cell-windows with
+3+ usable aircraft. Its only use: fitting the published scores to human labels
+(isotonic, per type), so that a score means "share of such cells a careful reviewer calls
+interference". Drawn by score band so every band is filled: 40 from scores below 0.1, 40
+from 0.9 or more, all cells (up to 70) between 0.1 and 0.9 (if fewer, the rest is split evenly between
+the other two bands), each band spread over regions and days; weights stored.
+
+**Sealed test set: 5-18 Nov 2026**, 250 cell-windows with 3+ usable aircraft, drawn on 19
+Nov 2026 or later, with the same frozen model. Groups (each spread over regions and
+days): 100 random judged cells (the day-weighted estimate), 60 model flags, 50
+borderline cells both predictors call normal (some evidence, as in holdout S3), 40
+cells the model flags with 1-2 aircraft. Labeled once, scored once at the Phase 1
+gate, with these questions fixed now:
+
+1. day-weighted agreement of model and rules with the labeler, with day-clustered
+   intervals;
+2. false-alarm share of model flags, and the share of borderline normal cells that are
+   interference (misses);
+3. precision of the flags from 1-2 aircraft;
+4. calibration of the published score against the labels, before and after the
+   human-label calibration fitted on the calibration set.
+
+Nothing may be tuned on the sealed set. Its files stay unopened (`labels/sealed_*`)
+until the gate; the groups file is committed with the sample, before labeling.
+
+### Result of event check 2 (4 Nov 2026, scored once)
+
+All 13 downloaded days were complete with 0 decode errors.
+
+| Event | Judged | Matching, model (rules) | Verdict |
+| --- | --- | --- | --- |
+| EV14 Vilnius diversion, 16 Jan 2025 | 17 | 3 (3) | found, at the threshold |
+| EV15 Lahore FIR, Feb 2025 | 0 | - | too few cells (no Punjab data in 2025) |
+| EV16 Delhi spoofing, Jan-Feb 2026 (3 days) | 1,311 | **135 (rules 92)** | found |
+| EV17 Constanta, 4-5 Jun 2026 | 187 | 59 (59) | found |
+| EV18 western Black Sea, 3 Nov 2026 | 249 | 81 (81) | found |
+| EV19 Kaliningrad and Lithuania, 3 Nov 2026 | 364 | 252 (252) | found |
+
+New events: 5 of 5 decided found. All events so far: **14 of 15** for model and rules
+alike (95% interval 70-99%); spoofing 3 of 4 (30-95%); independently corroborated 4 of 4.
+
+* **Delhi, by day:** 127 of 501 judged cell-windows flagged as spoofing on 15 Jan, 1 of
+  339 on 1 Feb, 7 of 471 on 15 Feb 2026. The reported 623 incidents in two months
+  (about 10 a day) are compatible with spoofing on some days and almost none on others;
+  the map would show which.
+* **The first event where the model and the rules differ:** in Delhi the model flags 135
+  spoofing cell-windows, the rules 92. Which is right needs a hand check; it is not
+  scored here.
+* Calm Central Europe on the new event days: 0.30-1.65% flagged (1.65% on 3 Nov 2026).
+
+**Calibration set drawn 4 Nov 2026, before any label** (seed 20261104, published model):
+C_low 40 of 39,329 cells scored below 0.1, C_mid 70 of 92 between 0.1 and 0.9, C_high
+40 of 8,459 scored 0.9 or more, from 15-21 Sep 2026 (East Med 62, Baltic 30, Black Sea
+26, Central Europe 22, Punjab 10). Labeling file `labels/calibration_1.csv`, groups
+`labels/calibration_1_groups.csv`, committed before labeling.

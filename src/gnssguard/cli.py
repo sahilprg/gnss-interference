@@ -359,6 +359,50 @@ def cmd_review_sample(args) -> int:
     return 0
 
 
+def cmd_sealed_sample(args) -> int:
+    import numpy as np
+
+    from gnssguard.features.cells import load_cells
+    from gnssguard.labels import sealed
+    from gnssguard.model.dataset import with_context
+    from gnssguard.model.evaluate import rule_frame
+    from gnssguard.model.train import Detectors
+
+    out, groups_out = Path(args.out), Path(args.groups)
+    for f in (out, groups_out):
+        if f.exists() and not args.force:
+            print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
+            return 1
+    det = Detectors.load(args.model or _default_model())
+    cells = with_context(load_cells(args.cells, _split(args.dates), _split(args.regions)))
+    cells = cells.reset_index(drop=True)
+    missing = set(_split(args.dates)) - set(cells["date"].astype(str))
+    if missing:
+        print(f"no cells for {sorted(missing)}: ingest and run `cells` first", file=sys.stderr)
+        return 1
+    rules = rule_frame(cells, det)["label"].astype(str)
+    p = det.predict(cells, calibrated=True)
+    score = pd_series(np.maximum(p["p_jamming"], p["p_spoofing"]), cells.index)
+    model = p["label"].astype(str)
+    fn = sealed.calibration_sample if args.kind == "calibration" else sealed.sealed_test_sample
+    kw = {"seed": args.seed} if args.seed is not None else {}
+    gold, groups = fn(cells, score, rules, model, **kw)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    gold.to_csv(out, index=False)
+    groups.to_csv(groups_out, index=False)
+    print(groups.groupby("group").agg(cells=("gold_id", "size"), pool=("pool", "first"))
+          .to_string())
+    print(f"{len(gold)} cell-windows -> {out}  (labeling file)")
+    print(f"groups and frozen predictions -> {groups_out}  (do not open before labeling)")
+    return 0
+
+
+def pd_series(values, index):
+    import pandas as pd
+
+    return pd.Series(values, index=index)
+
+
 def cmd_trust_report(args) -> int:
     from gnssguard.features.cells import load_cells
     from gnssguard.model import trust
@@ -654,6 +698,18 @@ def main(argv: list[str] | None = None) -> int:
     pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
     pq.add_argument("--force", action="store_true")
     pq.set_defaults(func=cmd_review_sample)
+
+    px = sub.add_parser("sealed-sample", help="blind sample for the calibration or sealed test set")
+    px.add_argument("--kind", choices=["calibration", "test"], required=True)
+    px.add_argument("--dates", required=True)
+    px.add_argument("--cells", default="data/cells")
+    px.add_argument("--model", help="frozen model (default: models/detector if present)")
+    px.add_argument("--regions", default=PRODUCT_REGIONS)
+    px.add_argument("--seed", type=int, help="default: 20261104 (calibration), 20261119 (test)")
+    px.add_argument("--out", required=True)
+    px.add_argument("--groups", required=True)
+    px.add_argument("--force", action="store_true")
+    px.set_defaults(func=cmd_sealed_sample)
 
     pz = sub.add_parser("trust-report", help="day intervals, calibration vs hand labels, "
                         "aircraft overlap")

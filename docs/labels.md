@@ -340,6 +340,26 @@ gnssguard gold-tool --gold labels/review_1.csv --out reports/review_tool.html
 gnssguard review-eval --gold labels/review_1.csv --groups labels/review_1_groups.csv --calm-share <share printed by review-sample>
 ```
 
+## 7d. Sealed set: calibration set and sealed test set
+
+Declared in docs/evaluation_protocol.md ("Sealed set"), with the published model frozen.
+
+* **Calibration set** (15-21 Sep 2026, 150 cells, by score band): label it like the
+  others; it is used only to fit the published score to human labels.
+* **Sealed test set** (5-18 Nov 2026, 250 cells): drawn on 19 Nov 2026 or later, labeled
+  once and scored once at the Phase 1 gate. Nothing is tuned on it.
+
+```bash
+gnssguard sealed-sample --kind calibration --dates 2026-09-15,2026-09-16,2026-09-17,2026-09-18,2026-09-19,2026-09-20,2026-09-21 \
+    --out labels/calibration_1.csv --groups labels/calibration_1_groups.csv
+gnssguard sealed-sample --kind test --dates <5-18 Nov 2026> \
+    --out labels/sealed_test.csv --groups labels/sealed_test_groups.csv
+gnssguard gold-tool --gold labels/calibration_1.csv --out reports/calibration_tool_1.html
+```
+
+As with the other sets, the groups files are committed with the samples, before any
+label, and the labeler does not open them.
+
 ## 8. Not done yet
 
 - A satellite-geometry (DOP) rule from the GPS almanac, to rule out poor accuracy
