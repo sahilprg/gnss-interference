@@ -22,7 +22,7 @@ def test_multipart_stream_concatenates(split_archive):
 
 def test_ingest_day_end_to_end(tmp_path, split_archive):
     out = tmp_path / "processed"
-    m = ingest_day(DAY, REGIONS, out, sources=split_archive)
+    m = ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
     assert m["trace_files"] == 4
     assert m["decode_errors"] == 1
     assert m["rows_per_region"] == {"north": 4, "overlap": 2}
@@ -37,7 +37,7 @@ def test_ingest_day_end_to_end(tmp_path, split_archive):
 
 def test_ingest_skips_finished_day(tmp_path, split_archive):
     out = tmp_path / "processed"
-    ingest_day(DAY, REGIONS, out, sources=split_archive)
+    ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
     before = manifest_path(out, DAY).read_text(encoding="utf-8")
     ingest_day(DAY, REGIONS, out, sources=["/does/not/exist"])  # must not open sources
     assert manifest_path(out, DAY).read_text(encoding="utf-8") == before
@@ -49,6 +49,23 @@ def test_sample_run_is_not_marked_done(tmp_path, split_archive):
     assert m["complete_day"] is False
     assert not is_done(out, DAY)
     assert json.loads(manifest_path(out, DAY).read_text(encoding="utf-8"))["trace_files"] == 1
+
+
+def test_too_many_decode_errors_mark_the_day_incomplete(tmp_path, split_archive):
+    out = tmp_path / "processed"
+    m = ingest_day(DAY, REGIONS, out, sources=split_archive)  # 1 of 4 files unreadable
+    assert m["decode_errors"] == 1 and m["complete_day"] is False
+    assert not is_done(out, DAY)
+
+
+def test_changed_region_box_needs_a_new_run(tmp_path, split_archive):
+    import dataclasses
+
+    out = tmp_path / "processed"
+    ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
+    assert is_done(out, DAY, REGIONS) and is_done(out, DAY, REGIONS[:1])
+    moved = [dataclasses.replace(REGIONS[0], lat_max=REGIONS[0].lat_max + 1)]
+    assert not is_done(out, DAY, moved)
 
 
 def test_parse_preferred():

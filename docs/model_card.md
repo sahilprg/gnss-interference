@@ -7,11 +7,17 @@ and all numbers: docs/model.md. How decisions were made: docs/evaluation_protoco
 
 For each 1° × 15-minute grid cell, from open ADS-B flight data (adsb.lol), it gives:
 
-* `p_jamming`, `p_spoofing`: calibrated probabilities that aircraft in the cell had their
-  GPS jammed or spoofed;
+* `p_jamming`, `p_spoofing`: model scores that aircraft in the cell had their GPS jammed
+  or spoofed, calibrated against the system's own training labels (weak rules and
+  simulated attacks), so not validated probabilities of real interference;
 * a label (jamming, spoofing, both, normal, unknown);
 * for groups of jammed cells, a coarse estimate of where the jammer was, with an
-  uncertainty radius and a confidence flag.
+  uncertainty radius and a confidence flag. **Experimental:** tested only on simulated
+  jammers that follow the same physics as the fit; accuracy on real jammers is unknown.
+  The affected areas are the main result.
+
+The label is decided on the uncalibrated score at 0.5. Every published summary and map
+file states the threshold, what the scores mean, the model's hash and the run settings.
 
 ## Intended use
 
@@ -33,7 +39,7 @@ truth. No hand labels are used for training.
 | What | Result |
 | --- | --- |
 | Agreement with 300 hand labels (253 decided), interference vs normal | 96.8% [93.9-98.4]; 94.7% weighted to the whole day; same as the rules |
-| Hand-labeled normal cells flagged | 0 of 112 |
+| Hand-labeled normal cells flagged | 0 of 112 (95% upper bound about 2.7%, rule of three) |
 | Holdout day 1 Nov (150 hand labels, never used for any decision), 3+ aircraft | 92.0% weighted to the whole day (roughly 87-96%); same as the rules |
 | Holdout 1 Nov, flags on cells with 1-2 aircraft | 47 of 47 right [92-100%] |
 | Synthetic jamming caught, calm background (standard / hard / stress) | 1.00 / 0.95 / 0.96 (rules 0.82 / 0.51 / 0.74) |

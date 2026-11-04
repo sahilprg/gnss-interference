@@ -124,7 +124,9 @@ def test_quality_gates():
     alarm = {**ok, "central_europe": {"aircraft": 4000, "judged_cells": 2600,
                                       "flagged_share": 0.08}}
     st, day = quality.check_day(alarm, _hist(5), complete_day=True)
-    assert all(v["status"] == "withheld" for v in st.values()) and "control alarm" in day[0]
+    # an output alarm marks the day for review but does not hide it
+    assert not day and all(v["status"] == "published" for v in st.values())
+    assert all("control alarm" in v["review"][0] for v in st.values())
     st, day = quality.check_day(ok, _hist(5), complete_day=False)
     assert all(v["status"] == "withheld" for v in st.values()) and "incomplete" in day[0]
 
@@ -219,3 +221,16 @@ def test_outside_reports_daily_check(tmp_path):
     assert [r["report"] for r in out] == ["A1"]  # A2 was not in force that day
     assert out[0]["judged_inside"] == 12 and out[0]["verdict"] == "seen"
     assert out[0]["share_inside"] == 1.0 and out[0]["share_outside"] == 0.0
+
+
+def test_model_hash_and_run_config_are_stable(tmp_path):
+    from gnssguard.product.publish import file_hash, run_config
+
+    (tmp_path / "meta.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "y_jam.txt").write_text("tree", encoding="utf-8")
+    h = file_hash(tmp_path)
+    assert len(h) == 12 and h == file_hash(tmp_path)
+    (tmp_path / "y_jam.txt").write_text("other tree", encoding="utf-8")
+    assert file_hash(tmp_path) != h
+    a = run_config(["baltic", "punjab"], SPEC)
+    assert a == run_config(["punjab", "baltic"], SPEC) and a["label_threshold"] == 0.5

@@ -218,7 +218,7 @@
     const ac = c.aircraft[i] != null ? `${c.aircraft[i]} aircraft checked`
       : (SPARSE(v) ? 'Only 1-2 aircraft: a model flag, right 47 of 47 times on a hand-labeled day' : '1-2 aircraft (not judged)');
     return `<b>${where}</b><br>${LABELS[v][0].toUpperCase() + LABELS[v].slice(1)}<br>${ac}` +
-      `<br>Probability of jamming ${pct(c.p_jamming[i], 0)}, of spoofing ${pct(c.p_spoofing[i], 0)}`;
+      `<br>Model score: jamming ${pct(c.p_jamming[i], 0)}, spoofing ${pct(c.p_spoofing[i], 0)}`;
   }
 
   function drawIncidents() {
@@ -231,7 +231,7 @@
       if (x.source) {
         L.circle([x.source.lat, x.source.lon], {radius: x.source.radius_km * 1000, color: COL.src, weight: 2,
           dashArray: '6 5', fill: false})
-          .bindTooltip(`<b>Likely jammer area</b><br>${when}<br>90% circle, radius ${x.source.radius_km} km.<br>A statistical estimate, not an attribution.`,
+          .bindTooltip(`<b>Possible jammer area (experimental)</b><br>${when}<br>90% circle, radius ${x.source.radius_km} km.<br>Tested on simulated jammers only (median error 13 km); accuracy on real ones is not known.<br>A statistical estimate, not an attribution.`,
                        {sticky: true, className: 'tip'})
           .addTo(incLayer);
       } else {
@@ -257,6 +257,10 @@
       st.classList.add('withheld');
       st.textContent = 'Withheld by the quality checks: ' + (rs.reasons || []).join('; ') + '.';
       message('No map for this region on this day: the data did not pass the quality checks.');
+    } else if ((rs.review || []).length) {
+      st.classList.add('withheld');
+      st.textContent = 'Published, but marked for review: ' + rs.review.join('; ') + '.';
+      message('');
     } else {
       st.textContent = 'Published. Quality checks passed.';
       message('');

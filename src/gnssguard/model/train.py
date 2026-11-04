@@ -140,6 +140,8 @@ def environment() -> dict:
     import platform
 
     out = {"python": platform.python_version(), "os": platform.system()}
+    # scipy is a dependency of lightgbm (pinned in constraints.txt), recorded because it
+    # affects training results
     for pkg in ("gnssguard", "lightgbm", "numpy", "pandas", "pyarrow", "scipy"):
         try:
             out[pkg] = md.version(pkg)

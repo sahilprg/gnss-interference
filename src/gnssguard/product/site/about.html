@@ -43,14 +43,21 @@ test day; anything else is shown as low coverage.</p>
 <p>For a group of jammed cells, the site estimates where a ground jammer would have to be
 to explain which aircraft were affected and which were not: a jammer reaches higher
 aircraft from farther away, because of the curvature of the Earth. The estimate is shown
-as a circle that should contain the source 9 times in 10, and only when the fit is good.</p>
+as a circle that should contain the source 9 times in 10, and only when the fit is good.
+This layer is experimental: it was tested on simulated jammers that follow the same
+physics as the fit, and its accuracy on real jammers is not known. The affected areas
+are the main result.</p>
+<p>The numbers behind each cell, <code>p_jamming</code> and <code>p_spoofing</code>, are
+model scores. They are calibrated against the system's own training labels, so 0.8
+means "8 in 10 such cells carried those labels in testing", not a validated 80% chance
+of real interference.</p>
 
 <h2>How well it works</h2>
 <table>
   <thead><tr><th>Test</th><th>Rules</th><th>Model</th></tr></thead>
   <tbody>
     <tr><td>Agreement with 300 hand-labelled cells (interference or not)</td><td class="n">96.8%</td><td class="n">96.8%</td></tr>
-    <tr><td>Hand-labelled normal cells wrongly flagged</td><td class="n">0 of 112</td><td class="n">0 of 112</td></tr>
+    <tr><td>Hand-labelled normal cells wrongly flagged</td><td class="n">0 of 112 (at most 2.7%)</td><td class="n">0 of 112 (at most 2.7%)</td></tr>
     <tr><td>Second hand-labelled day (1 Nov, never used to build anything), whole-day estimate</td><td class="n">92%</td><td class="n">92%</td></tr>
     <tr><td>Flags on cells with only 1-2 aircraft, 1 Nov</td><td></td><td class="n">47 of 47</td></tr>
     <tr><td>Simulated weak jamming caught (edges of the affected area)</td><td class="n">14%</td><td class="n">92%</td></tr>
@@ -88,9 +95,10 @@ each with a model trained only on earlier days. Full results:
 
 <h2>What the site does not publish</h2>
 <p>No aircraft identifiers, callsigns or tracks: only counts per cell, and not even
-exact counts for cells with fewer than three aircraft. Days or regions that fail the
-quality checks (incomplete download, too little traffic, an alarm in the calm control
-region) are withheld, with the reason.</p>
+exact counts for cells with fewer than three aircraft. Days or regions whose input fails
+the quality checks (incomplete download, too little traffic or coverage) are withheld,
+with the reason. If the calm control region shows an unusual amount of interference, the
+day is still published but marked for review, so a real event is not hidden.</p>
 <p class="notice">Research output, not for navigation, flight planning or any
 operational decision. Code: MIT. Data: derived from adsb.lol under ODbL 1.0.
 Read the <a href="https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md">model card</a>

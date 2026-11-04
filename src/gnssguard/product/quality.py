@@ -13,8 +13,13 @@ Gates (all thresholds are module constants):
 * **coverage**: at least COVERAGE_MIN_RATIO of its median number of judged cells
   (cells with 3+ usable aircraft).
 * **control**: the calm control region flags at most CONTROL_MAX_SHARE of its judged
-  cells. Above that, something systematic is wrong (the model, the data, or a real
-  event far outside anything seen in training), and the whole day is withheld.
+  cells. Above that, either something systematic is wrong (the model or the data) or a
+  real event happened where the model expects none. The day is still published, marked
+  "needs review" with the reason, so a real event is not hidden (changed 4 Nov 2026;
+  before, the whole day was withheld).
+
+The first three test the input and withhold; the control alarm tests the output and
+only marks it.
 
 Traffic and coverage gates need at least MIN_HISTORY earlier days; before that they
 pass with a note.
@@ -41,7 +46,8 @@ def _median(history: list[dict], region: str, key: str) -> float | None:
 
 def check_day(stats: dict[str, dict], history: list[dict], complete_day: bool,
               control: str = CONTROL_REGION) -> tuple[dict[str, dict], list[str]]:
-    """Return per-region {"status", "reasons", "notes"} and the day-level reasons.
+    """Return per-region {"status", "reasons", "notes", "review"} and the day-level
+    reasons that withhold everything. "review" lists output warnings (published anyway).
 
     stats: per region {"aircraft", "judged_cells", "flagged_share"}.
     history: earlier published day summaries, oldest first.
@@ -49,11 +55,12 @@ def check_day(stats: dict[str, dict], history: list[dict], complete_day: bool,
     day_reasons = []
     if not complete_day:
         day_reasons.append("incomplete download: the archive day was not read to the end")
+    review = []
     c = stats.get(control)
     if c and c.get("judged_cells") and c["flagged_share"] > CONTROL_MAX_SHARE:
-        day_reasons.append(
+        review.append(
             f"control alarm: calm {control} flagged {c['flagged_share']:.1%} of judged cells "
-            f"(limit {CONTROL_MAX_SHARE:.0%})")
+            f"(limit {CONTROL_MAX_SHARE:.0%}); check before relying on this day")
     out = {}
     for region, s in stats.items():
         reasons, notes = [], []
@@ -68,5 +75,6 @@ def check_day(stats: dict[str, dict], history: list[dict], complete_day: bool,
         if s.get("aircraft", 0) == 0:
             reasons.append("no aircraft")
         status = "withheld" if (reasons or day_reasons) else "published"
-        out[region] = {"status": status, "reasons": reasons + day_reasons, "notes": notes}
+        out[region] = {"status": status, "reasons": reasons + day_reasons, "notes": notes,
+                       "review": review if status == "published" else []}
     return out, day_reasons

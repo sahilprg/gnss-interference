@@ -27,6 +27,7 @@ What is published, and what is not (docs/model_card.md):
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 from datetime import datetime, timezone
@@ -54,8 +55,35 @@ FLAGGED = ("jamming", "spoofing", "both")
 # model flags on cells with 1-2 usable aircraft (docs/evaluation_protocol.md, holdout 2)
 SPARSE_FLAGGED = tuple(f"{k}_sparse" for k in FLAGGED)
 MODEL_CARD = "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+# What p_jamming / p_spoofing are (written into every summary and map file).
+SCORE_MEANING = (
+    "p_jamming and p_spoofing are model scores, calibrated (isotonic) against the "
+    "system's own training labels (weak rules and simulated attacks) on its validation "
+    "day: of cells scored 0.8, about 8 in 10 carried those labels in testing. They are "
+    "not validated probabilities of real interference. The label uses the uncalibrated "
+    "score at the threshold given.")
+LABEL_THRESHOLD = 0.5  # Detectors.predict default; the label is decided on the raw score
 NOTICE = ("Research output. Not for navigation, flight planning or any operational "
           "decision. Not an attribution of interference to any party.")
+
+
+def file_hash(folder: str | Path, pattern: str = "*") -> str:
+    """Short SHA-256 over the files of a folder (names and contents, sorted)."""
+    h = hashlib.sha256()
+    for f in sorted(p for p in Path(folder).glob(pattern) if p.is_file()):
+        h.update(f.name.encode())
+        h.update(f.read_bytes())
+    return h.hexdigest()[:12]
+
+
+def run_config(regions: list[str], spec: GridSpec) -> dict:
+    """What decides the published numbers besides the model, with a short hash."""
+    from gnssguard import __version__
+    cfg = {"code_version": __version__, "schema": SCHEMA, "regions": sorted(regions),
+           "cell_deg": spec.cell_deg, "window_min": spec.window_min,
+           "min_aircraft": MIN_AIRCRAFT, "label_threshold": LABEL_THRESHOLD}
+    blob = json.dumps(cfg, sort_keys=True).encode()
+    return {**cfg, "hash": hashlib.sha256(blob).hexdigest()[:12]}
 
 
 def cell_table(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
@@ -118,7 +146,8 @@ def map_payload(table: pd.DataFrame, date: str, region: str, spec: GridSpec) -> 
                       "p_jamming": pj, "p_spoofing": ps, "aircraft": n})
     return {"schema": SCHEMA, "date": date, "region": region, "cell_deg": spec.cell_deg,
             "window_min": spec.window_min, "windows": n_win,
-            "label_codes": LABEL_CODES, "cells": cells, "notice": NOTICE}
+            "label_codes": LABEL_CODES, "label_threshold": LABEL_THRESHOLD,
+            "score_meaning": SCORE_MEANING, "cells": cells, "notice": NOTICE}
 
 
 def _num(v) -> float | None:
@@ -241,10 +270,15 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "published": any(s["status"] == "published" for s in status.values()),
         "day_reasons": day_reasons,
+        "needs_review": sorted({x for s in status.values() for x in s.get("review", [])}),
         "model": {"train_dates": [det.meta.get("train_dates", [None])[0],
                                   det.meta.get("train_dates", [None])[-1]],
                   "versions": det.meta.get("versions", {}),
+                  "hash": file_hash(model_dir),
+                  "label_threshold": LABEL_THRESHOLD,
+                  "score_meaning": SCORE_MEANING,
                   "card": MODEL_CARD},
+        "config": run_config(regions, spec),
         "regions": {r: {**stats[r], **status[r]} for r in regions},
         "incidents": len(all_incidents),
         "outside_reports": {"checked": len(reports),

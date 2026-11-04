@@ -20,6 +20,9 @@ every night).
 | 4. Evaluation: gold labels, rolling 7-day test, stress attacks, ablations, calibration, pre-declared protocol | done |
 | 5. Product: nightly pipeline, live map website, open data files, outside-report checks, retrain alarm | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
 
+Next: a correctness pass and independent evidence before any bigger model
+([docs/roadmap.md](docs/roadmap.md), with the status of each item).
+
 ## Quickstart
 
 ```bash
@@ -99,7 +102,7 @@ gnssguard rolling    # retrain and test separately on each of the last 7 days
 | --- | --- | --- |
 | 300 hand-labeled cells: interference vs normal (253 decided) | 96.8% | 96.8% |
 | Same, weighted to all cells of the day | 94.7% | 94.7% |
-| Hand-labeled normal cells wrongly flagged (of 112) | 0 | 0 |
+| Hand-labeled normal cells wrongly flagged (of 112; 95% upper bound 2.7%) | 0 | 0 |
 | Hard synthetic attacks: jamming caught | 51% | **95%** |
 | Hard synthetic attacks: footprint edges caught | 14% | **92%** |
 | Hard synthetic attacks: spoofing caught | 74% | **96%** |
@@ -136,7 +139,8 @@ files on GitHub Pages: https://sahilprg.github.io/gnss-interference/ (how it run
 file formats and the setup: [docs/product.md](docs/product.md)). Only cell-level aggregates are
 published, cells with fewer than 3 aircraft get no count and show only a model flag
 (dashed) or low coverage, jammer areas are
-coarse circles, and days that fail the quality checks are withheld.
+coarse, experimental circles, days whose input fails the quality checks are withheld,
+and an alarm in the calm control region marks a day for review instead of hiding it.
 
 ```bash
 gnssguard publish --dates 2026-10-26   # public files + website for a stored day -> public/
@@ -189,7 +193,7 @@ src/gnssguard/product/      daily publishing, quality gates, website
 models/detector/            the model the nightly job uses (commit after training)
 scripts/                    protocol decisions, localization fitting and checks
 tests/                      unit tests (no network)
-docs/                       data, labels, model, model card, evaluation protocol, product
+docs/                       data, labels, model, model card, evaluation protocol, product, roadmap
 ```
 
 ## How to cite

@@ -39,15 +39,25 @@ def manifest_path(out_root: Path, day: dt.date) -> Path:
     return Path(out_root) / "_manifests" / f"{day.isoformat()}.json"
 
 
-def is_done(out_root: Path, day: dt.date) -> bool:
-    """True only if a full (not sampled) run of this day finished."""
+POINTS_SCHEMA = "points/1"  # stored point columns (ingest/trace.py SCHEMA)
+MAX_DECODE_ERROR_SHARE = 0.001  # more unreadable trace files than this: day incomplete
+
+
+def is_done(out_root: Path, day: dt.date, regions: Sequence[Region] | None = None) -> bool:
+    """True only if a full (not sampled) run of this day finished, and, when regions are
+    given, it covered each of them with the same box (a changed box needs a new run)."""
     path = manifest_path(out_root, day)
     if not path.exists():
         return False
     try:
-        return bool(json.loads(path.read_text(encoding="utf-8")).get("complete_day"))
+        m = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return False
+    if not m.get("complete_day"):
+        return False
+    stored = m.get("regions", {})
+    return all(stored.get(r.name) == [r.lat_min, r.lat_max, r.lon_min, r.lon_max]
+               for r in regions or [])
 
 
 def _decode(raw: bytes) -> dict:
@@ -65,6 +75,7 @@ def ingest_day(
     max_traces: int | None = None,
     force: bool = False,
     log_every: int = 25_000,
+    max_decode_error_share: float = MAX_DECODE_ERROR_SHARE,
 ) -> dict:
     """Process one day. Returns the manifest dict.
 
@@ -72,7 +83,7 @@ def ingest_day(
     max_traces: stop after this many trace files (sampling / smoke tests).
     """
     out_root = Path(out_root)
-    if is_done(out_root, day) and not force:
+    if is_done(out_root, day, regions) and not force:
         log.info("%s already ingested; use --force to redo", day)
         return json.loads(manifest_path(out_root, day).read_text(encoding="utf-8"))
 
@@ -121,6 +132,10 @@ def ingest_day(
     finally:
         rows = writer.close()
         stream.close()
+    if stats["decode_errors"] > max_decode_error_share * max(stats["trace_files"], 1):
+        log.warning("%s: %d of %d trace files unreadable; day marked incomplete", day,
+                    stats["decode_errors"], stats["trace_files"])
+        complete = False
 
     manifest = {
         "date": day.isoformat(),
@@ -131,6 +146,7 @@ def ingest_day(
         "seconds": round(time.time() - t0, 1),
         "complete_day": complete,
         "code_version": __version__,
+        "points_schema": POINTS_SCHEMA,
         "ingested_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         **stats,
     }

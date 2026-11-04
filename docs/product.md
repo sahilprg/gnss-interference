@@ -42,7 +42,7 @@ gnssguard daily --out public                                  # what the nightly
 | --- | --- |
 | `data/index.json` | every processed day, newest first, per-region status, latest published day |
 | `data/<day>/summary.json` | per region: status, quality-gate reasons, aircraft, judged cells, cells with 1-2 aircraft and how many of them are flagged, affected shares; model versions |
-| `data/<day>/<region>.json` | map file: per cell, one label, probability pair and aircraft count per 15-minute window |
+| `data/<day>/<region>.json` | map file: per cell, one label, model-score pair and aircraft count per 15-minute window; the label threshold and what the scores mean |
 | `data/<day>/<region>.csv.gz` | the same as a table, one row per cell-window with any aircraft |
 | `data/<day>/incidents.json` | groups of jammed cells: time span, affected area, and a source circle for confident fits |
 
@@ -67,13 +67,14 @@ Format version `gnssguard-public/1`; column meanings are on the site's Data page
 
 ## Quality gates
 
-`product/quality.py`. A region-day that fails is withheld: its files are not written,
-and its status and reasons are published instead.
+`product/quality.py`. Gates on the input withhold: a region-day that fails has no files,
+only its status and reasons. The gate on the output (control alarm) only marks the day
+for review (`needs_review` in the summary). Since 4 Nov 2026; before, it withheld.
 
 | Gate | Withholds | Rule |
 | --- | --- | --- |
 | Complete download | the whole day | the ingest must have read the archive day to the end |
-| Control alarm | the whole day | calm Central Europe flags at most 3% of judged cells (0.4-1.3% on all study days) |
+| Control alarm | nothing (marks the day "needs review") | calm Central Europe flags at most 3% of judged cells (0.4-1.3% on all study days). Above that the day is still published, with the reason shown on the map, so a real event is not hidden |
 | Traffic | the region | at least half its median number of aircraft over the last 14 published days |
 | Coverage | the region | at least 30% of its median number of judged cells |
 

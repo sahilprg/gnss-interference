@@ -26,7 +26,7 @@ def days_to_run(out: str | Path, today: dt.date, lookback: int) -> list[dt.date]
     """Days in the look-back window that are not published yet, oldest first.
 
     A withheld day is retried only if it was withheld for an incomplete download; other
-    reasons (low traffic, control alarm) would come out the same again.
+    reasons (low traffic, no aircraft) would come out the same again.
     """
     known = {d["date"]: d for d in read_index(out)}
     days = []
