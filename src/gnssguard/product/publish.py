@@ -128,7 +128,15 @@ def region_stats(table: pd.DataFrame, aircraft: int) -> dict:
     }
 
 
-def map_payload(table: pd.DataFrame, date: str, region: str, spec: GridSpec) -> dict:
+def score_bands_for(model_dir: str | Path) -> dict | None:
+    """The reviewer table per score band (`gnssguard score-bands`), stored next to the
+    model folder as score_bands.json; None if there is none."""
+    f = Path(model_dir).parent / "score_bands.json"
+    return json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+
+
+def map_payload(table: pd.DataFrame, date: str, region: str, spec: GridSpec,
+                bands: dict | None = None) -> dict:
     """Compact map file: per cell, arrays with one entry per window of the day."""
     start = pd.Timestamp(date, tz="UTC")
     n_win = int(24 * 60 / spec.window_min)
@@ -150,7 +158,8 @@ def map_payload(table: pd.DataFrame, date: str, region: str, spec: GridSpec) -> 
     return {"schema": SCHEMA, "date": date, "region": region, "cell_deg": spec.cell_deg,
             "window_min": spec.window_min, "windows": n_win,
             "label_codes": LABEL_CODES, "label_threshold": LABEL_THRESHOLD,
-            "score_meaning": SCORE_MEANING, "cells": cells, "notice": NOTICE}
+            "score_meaning": SCORE_MEANING, "reviewed_score_bands": bands, "cells": cells,
+            "notice": NOTICE}
 
 
 def _num(v) -> float | None:
@@ -215,6 +224,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
     """Publish one day. Returns the day summary (also written to summary.json)."""
     processed, out = Path(processed), Path(out)
     det = Detectors.load(model_dir)
+    bands = score_bands_for(model_dir)
     manifest_path = processed / "_manifests" / f"{date}.json"
     manifest = (json.loads(manifest_path.read_text(encoding="utf-8"))
                 if manifest_path.exists() else {})
@@ -248,7 +258,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
         if st["status"] != "published":
             continue
         (day_dir / f"{region}.json").write_text(
-            json.dumps(map_payload(t, date, region, spec), separators=(",", ":")),
+            json.dumps(map_payload(t, date, region, spec, bands), separators=(",", ":")),
             encoding="utf-8")
         _write_csv(day_dir / f"{region}.csv.gz", t)
         if locate and points[region] is not None:
@@ -280,6 +290,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
                   "hash": file_hash(model_dir),
                   "label_threshold": LABEL_THRESHOLD,
                   "score_meaning": SCORE_MEANING,
+                  "reviewed_score_bands": bands,
                   "card": MODEL_CARD},
         "config": run_config(regions, spec),
         "regions": {r: {**stats[r], **status[r]} for r in regions},

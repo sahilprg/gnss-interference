@@ -561,3 +561,36 @@ C_low 40 of 39,329 cells scored below 0.1, C_mid 70 of 92 between 0.1 and 0.9, C
 40 of 8,459 scored 0.9 or more, from 15-21 Sep 2026 (East Med 62, Baltic 30, Black Sea
 26, Central Europe 22, Punjab 10). Labeling file `labels/calibration_1.csv`, groups
 `labels/calibration_1_groups.csv`, committed before labeling.
+
+### Result of the calibration set (labeled 5 Nov 2026)
+
+Labels committed at 18:36 on 5 Nov (80887dd), after the sample at 01:09 (a00d0f8); 150
+labeled, 29 unsure (17 of them in the middle band).
+
+| Published score | Decided | Reviewer called interference | 95% interval |
+| --- | --- | --- | --- |
+| below 0.1 | 31 | 10% | 3-25% |
+| 0.1 to 0.9 | 53 | 60% | 47-72% |
+| 0.9 or more | 37 | 92% | 79-97% |
+
+* **What is published:** this three-band table (`models/score_bands.json`, made by
+  `gnssguard score-bands`), in every summary and map file as `reviewed_score_bands`,
+  and on the map as "On hand review, cells scored like this were interference X% of the
+  time". The score, the label and the model are unchanged (same model hash).
+* **Why a table and not a fitted curve:** almost all scores sit at the ends, and an
+  isotonic curve through 121 decided cells came out jagged (0.83 just below 0.999, 0.97
+  at 1.0), which is noise. Three bands with intervals say only what the labels support.
+* **The middle band is where the misses are.** 70 of the 92 middle-band cells of the week
+  were sampled; the reviewer called 60% of the decided ones interference, and the model
+  labels every cell under 0.5 normal. Across the set, 25 cells the model labels normal
+  were interference to the reviewer (18 jamming, 5 spoofing, 2 both), 22 of them in the
+  middle band (East Med 12, Black Sea 7, Baltic 5); every decided middle-band cell in
+  the Black Sea and the Baltic (13) was interference. These cells are rare (92 of
+  47,880 judged cells in the week, 0.2%), so the effect on the shares is small.
+* Consistent with the trust report (412 earlier hand labels: 7% below 0.1, 97% at 0.9 or
+  more).
+
+**Added to the sealed test before it is drawn (question 5):** would a label threshold
+of 0.1 instead of 0.5 agree better with the reviewer? The calibration set suggests it;
+it may not decide it (its declared use is the score table). Both thresholds are scored
+once on the sealed test, which then decides; the 0.5 threshold stays until then.

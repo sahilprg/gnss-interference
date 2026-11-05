@@ -1,0 +1,39 @@
+{
+ "source": "calibration set 1: 150 hand-reviewed cells, 15-21 Sep 2026 (docs/evaluation_protocol.md)",
+ "bands": [
+  {
+   "score_from": 0.0,
+   "score_to": 0.1,
+   "band": "below 0.1",
+   "cells": 31,
+   "interference_share": 0.097,
+   "ci95": [
+    0.033,
+    0.249
+   ]
+  },
+  {
+   "score_from": 0.1,
+   "score_to": 0.9,
+   "band": "0.1 to 0.9",
+   "cells": 53,
+   "interference_share": 0.604,
+   "ci95": [
+    0.469,
+    0.724
+   ]
+  },
+  {
+   "score_from": 0.9,
+   "score_to": 1.0,
+   "band": "0.9 or more",
+   "cells": 37,
+   "interference_share": 0.919,
+   "ci95": [
+    0.787,
+    0.972
+   ]
+  }
+ ],
+ "meaning": "Share of hand-reviewed cells in each score band that the reviewer called interference (jamming, spoofing or both)."
+}

@@ -359,6 +359,24 @@ def cmd_review_sample(args) -> int:
     return 0
 
 
+def cmd_score_bands(args) -> int:
+    import json
+
+    import pandas as pd
+
+    from gnssguard.labels.sealed import score_bands
+
+    gold = pd.read_csv(args.gold, dtype={"label": str})
+    groups = pd.read_csv(args.groups)
+    res = score_bands(gold, groups, source=args.source or Path(args.gold).name)
+    Path(args.out).write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
+    for b in res["bands"]:
+        print(f"score {b['band']:>12}: {b['interference_share']:.0%} interference "
+              f"({b['ci95'][0]:.0%}-{b['ci95'][1]:.0%}), {b['cells']} decided cells")
+    print(f"-> {args.out}")
+    return 0
+
+
 def cmd_sealed_sample(args) -> int:
     import numpy as np
 
@@ -698,6 +716,13 @@ def main(argv: list[str] | None = None) -> int:
     pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
     pq.add_argument("--force", action="store_true")
     pq.set_defaults(func=cmd_review_sample)
+
+    pb = sub.add_parser("score-bands", help="reviewer share of interference per score band")
+    pb.add_argument("--gold", default="labels/calibration_1.csv")
+    pb.add_argument("--groups", default="labels/calibration_1_groups.csv")
+    pb.add_argument("--source", help="text recorded as the source")
+    pb.add_argument("--out", default="models/score_bands.json")
+    pb.set_defaults(func=cmd_score_bands)
 
     px = sub.add_parser("sealed-sample", help="blind sample for the calibration or sealed test set")
     px.add_argument("--kind", choices=["calibration", "test"], required=True)

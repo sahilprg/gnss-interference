@@ -217,8 +217,14 @@
     if (!v) return `<b>${where}</b><br>No data in this window`;
     const ac = c.aircraft[i] != null ? `${c.aircraft[i]} aircraft checked`
       : (SPARSE(v) ? 'Only 1-2 aircraft: a model flag, right 47 of 47 times on a hand-labeled day' : '1-2 aircraft (not judged)');
+    const score = Math.max(c.p_jamming[i] ?? 0, c.p_spoofing[i] ?? 0);
+    const band = ((state.day.reviewed_score_bands || {}).bands || [])
+      .find(b => score >= b.score_from && (score < b.score_to || b.score_to >= 1));
+    const reviewed = band && band.interference_share != null
+      ? `<br>On hand review, cells scored like this were interference ${pct(band.interference_share, 0)} of the time (${pct(band.ci95[0], 0)}-${pct(band.ci95[1], 0)})`
+      : '';
     return `<b>${where}</b><br>${LABELS[v][0].toUpperCase() + LABELS[v].slice(1)}<br>${ac}` +
-      `<br>Model score: jamming ${pct(c.p_jamming[i], 0)}, spoofing ${pct(c.p_spoofing[i], 0)}`;
+      `<br>Model score: jamming ${pct(c.p_jamming[i], 0)}, spoofing ${pct(c.p_spoofing[i], 0)}` + reviewed;
   }
 
   function drawIncidents() {

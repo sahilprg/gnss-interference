@@ -45,3 +45,16 @@ def test_test_sample_groups_are_disjoint_and_blind():
     assert (sp["model_label"] == "jamming").all()
     g2 = sealed_test_sample(cells, score, rules, model)[0]
     pd.testing.assert_frame_equal(gold, g2)
+
+
+def test_score_bands_table():
+    from gnssguard.labels.sealed import score_bands
+
+    groups = pd.DataFrame({"gold_id": ["a", "b", "c", "d", "e"],
+                           "score": [0.001, 0.002, 0.5, 0.95, 0.99]})
+    gold = pd.DataFrame({"gold_id": ["a", "b", "c", "d", "e"],
+                         "label": ["normal", "jamming", "unsure", "spoofing", "normal"]})
+    b = {x["band"]: x for x in score_bands(gold, groups, "test")["bands"]}
+    assert b["below 0.1"]["cells"] == 2 and b["below 0.1"]["interference_share"] == 0.5
+    assert b["0.1 to 0.9"]["cells"] == 0  # unsure is not decided
+    assert b["0.9 or more"]["interference_share"] == 0.5

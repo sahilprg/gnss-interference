@@ -20,6 +20,11 @@ In practice 99.9% of judged cells score below 0.1 or at least 0.9, so the score 
 little to the label. Against hand labels, scores of 0.9 or more were interference 97% of
 the time, scores below 0.1 7% of the time (Black Sea 35%, on stratified samples).
 
+On the calibration set (150 hand-reviewed cells, 15-21 Sep 2026) the reviewer called
+interference 10% of cells scored below 0.1 (3-25%), 60% between 0.1 and 0.9 (47-72%) and
+92% at 0.9 or more (79-97%). This table is published with every file and shown on the
+map; the score itself is unchanged.
+
 The label is decided on the uncalibrated score at 0.5. Every published summary and map
 file states the threshold, what the scores mean, the model's hash and the run settings.
 

@@ -65,3 +65,7 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   rules (135 vs 92 cell-windows): the first real-data difference between them.
 * **Sealed set declared:** calibration set (15-21 Sep 2026, 150 cells, drawn) and sealed
   test set (5-18 Nov 2026, 250 cells, drawn on 19 Nov or later).
+* **Calibration set labeled** (5 Nov): published scores now come with a reviewer table
+  (below 0.1: 10% interference; 0.1-0.9: 60%; 0.9 or more: 92%), on the map and in the
+  files. The middle band holds misses the 0.5 label threshold calls normal; a 0.1
+  threshold is pre-declared as question 5 of the sealed test.

@@ -95,3 +95,30 @@ def sealed_test_sample(cells, score, rules, model, seed=20261119, sizes=None):
          sizes["T_border"], key)
     take("T_sparse", sparse & model.isin(FLAGGED), sizes["T_sparse"], key)
     return _write(cells, picks, meta, "S", rng, score, rules, model)
+
+
+BANDS = [(0.0, 0.1, "below 0.1"), (0.1, 0.9, "0.1 to 0.9"), (0.9, 1.0001, "0.9 or more")]
+
+
+def score_bands(gold: pd.DataFrame, groups: pd.DataFrame, source: str) -> dict:
+    """Reviewer share of interference per published-score band, from the calibration set.
+
+    A three-band table rather than a fitted curve: the scores sit almost all at the ends,
+    and a curve through about 120 decided cells overfits (docs/evaluation_protocol.md,
+    result of the calibration set).
+    """
+    from gnssguard.labels.holdout import wilson
+
+    m = gold[["gold_id", "label"]].merge(groups, on="gold_id")
+    m = m[m["label"].fillna("").isin(["normal", *FLAGGED])]
+    out = []
+    for lo, hi, name in BANDS:
+        b = m[(m["score"] >= lo) & (m["score"] < hi)]
+        k = int(b["label"].isin(FLAGGED).sum())
+        ci = wilson(k, len(b))
+        out.append({"score_from": lo, "score_to": min(hi, 1.0), "band": name,
+                    "cells": len(b), "interference_share": round(k / len(b), 3)
+                    if len(b) else None, "ci95": [ci[0], ci[1]]})
+    return {"source": source, "bands": out,
+            "meaning": "Share of hand-reviewed cells in each score band that the reviewer "
+                       "called interference (jamming, spoofing or both)."}
