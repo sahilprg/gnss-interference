@@ -1,15 +1,15 @@
 {
  "status": "ok",
- "checked_through": "2026-11-03",
+ "checked_through": "2026-11-04",
  "reasons": [],
  "notes": [],
  "signals": {
-  "model_age_days": 10,
-  "control_flagged_share_7d": 0.0083,
+  "model_age_days": 11,
+  "control_flagged_share_7d": 0.0091,
   "baltic_rule_disagreement_7d": 0.0,
-  "black_sea_rule_disagreement_7d": 0.0018,
+  "black_sea_rule_disagreement_7d": 0.002,
   "central_europe_rule_disagreement_7d": 0.0,
   "east_med_rule_disagreement_7d": 0.0001,
-  "punjab_rule_disagreement_7d": 0.0016
+  "punjab_rule_disagreement_7d": 0.0
  }
 }
