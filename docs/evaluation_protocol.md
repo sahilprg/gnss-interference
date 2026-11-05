@@ -611,3 +611,20 @@ before labeling. The earlier labels are not shown.
 **Reported:** agreement on interference or not, and on the exact label, with Wilson 95%
 intervals and Cohen's kappa; cells unsure in either round are counted separately. The
 earlier labels and every result based on them stay as they are, whatever this shows.
+
+### Result of the blind relabel (labeled 5 Nov 2026, scored once)
+
+Sample and key committed at 20:33 (9eae95e), labels at 22:55 (3092e56).
+
+| | Result |
+| --- | --- |
+| Cells relabeled | 55 (30 from 26 Oct, 15 from 1 Nov, 10 from review set 1) |
+| Unsure in either round | 16 (8 decided before and unsure now, 4 unsure before and normal now, 4 unsure both times) |
+| **Interference or not, decided both times** | **39 of 39 (95% interval 91-100%), kappa 1.0** |
+| Exact label | 38 of 39 (87-99%), kappa 0.96; one "both" became "jamming" |
+
+The labels are stable: whenever the labeler decided twice, the decision matched. The
+inconsistency is in deciding at all: 12 cells moved between a decision and "unsure".
+Unsure cells are already kept out of every result, so the earlier results stand as
+they are. This is the same person twice, not a second annotator: it shows the labels are
+reproducible, not that someone else would read the evidence the same way.

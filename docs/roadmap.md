@@ -71,3 +71,5 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   (below 0.1: 10% interference; 0.1-0.9: 60%; 0.9 or more: 92%), on the map and in the
   files. The middle band holds misses the 0.5 label threshold calls normal; a 0.1
   threshold is pre-declared as question 5 of the sealed test.
+* **Blind relabel** (5 Nov, substitute for a second annotator): 39 of 39 decisions
+  matched on interference or not, 38 of 39 on the exact label (kappa 0.96).

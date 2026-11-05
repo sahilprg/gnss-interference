@@ -30,7 +30,9 @@ hash of every input):
 **Limits to keep in mind:**
 
 * **One labeler.** All 700 hand labels come from one person reading the same ADS-B
-  evidence the system uses; there is no second annotator yet.
+  evidence the system uses; there is no second annotator. A blind relabel of 55 of them
+  matched every time a decision was made twice (39 of 39), so the labels are stable,
+  but not checked by anyone else.
 * **Aircraft-altitude view only.** It sees interference where aircraft fly and receivers
   hear them, not on the ground or at sea, and nothing where coverage is thin.
 * **It misses weak interference** at the edges of hotspots (an estimated 4-13% of judged
