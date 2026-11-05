@@ -10,6 +10,37 @@ every night).
 
 > Research project. Not for navigation or operational decisions.
 
+## How far you can trust it
+
+**Evidence so far** (every number: [docs/evaluation_protocol.md](docs/evaluation_protocol.md),
+each check declared before it was run; all of them regenerated in about a minute by
+`gnssguard benchmark` into [results/](results/README.md), with the model hash and the
+hash of every input):
+
+* **Public reports:** 14 of 15 checkable events found (95% interval 70-99%), including
+  all 4 backed by ground radio measurements and Delhi spoofing in 2025-2026; the first
+  Kaliningrad spoofing (Nov 2024) was missed ([configs/events.csv](configs/events.csv)).
+* **False alarms:** on hand review, 13% of flags in calm Central Europe were false, about
+  0.1% of judged cells; flags in the hotspot regions were right 26 of 26 times.
+* **Hand-labeled test days never used for any decision:** 92% agreement over the whole
+  day (1 Nov), and flags from cells with only 1-2 aircraft right 47 of 47 times.
+* **Scores, as checked by a reviewer:** cells scored below 0.1 were interference 10% of
+  the time, 0.1-0.9 60%, 0.9 or more 92% (shown on the map).
+
+**Limits to keep in mind:**
+
+* **One labeler.** All 700 hand labels come from one person reading the same ADS-B
+  evidence the system uses; there is no second annotator yet.
+* **Aircraft-altitude view only.** It sees interference where aircraft fly and receivers
+  hear them, not on the ground or at sea, and nothing where coverage is thin.
+* **It misses weak interference** at the edges of hotspots (an estimated 4-13% of judged
+  cells on 1 Nov, mostly over the Black Sea): published shares are lower bounds.
+* **Spoofing is the weak part:** 45% of hard simulated spoofing over the Black Sea is
+  caught (35-56%).
+* **Jammer locations are experimental:** tested on simulated jammers only.
+* **The model mostly agrees with its own rules** on real data; it has not yet been shown
+  to beat them there.
+
 ## Status
 
 | Phase | State |

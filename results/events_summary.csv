@@ -1,0 +1,11 @@
+group,predictor,found,decided,ci95_low,ci95_high
+all,model,14,15,0.702,0.988
+all,rules,14,15,0.702,0.988
+independently_corroborated,model,4,4,0.51,1.0
+independently_corroborated,rules,4,4,0.51,1.0
+observed_anomaly,model,4,5,0.376,0.964
+observed_anomaly,rules,4,5,0.376,0.964
+suspected_mechanism,model,6,6,0.61,1.0
+suspected_mechanism,rules,6,6,0.61,1.0
+spoofing events,model,3,4,0.301,0.954
+spoofing events,rules,3,4,0.301,0.954

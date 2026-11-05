@@ -78,3 +78,13 @@ def test_parse_preferred():
     got = parse_preferred(text)
     assert list(got) == [DAY]
     assert got[DAY][0].endswith(".tar.aa")  # parts sorted into order
+
+
+def test_changed_point_format_needs_a_new_run(tmp_path, split_archive, monkeypatch):
+    from gnssguard.ingest import pipeline
+
+    out = tmp_path / "processed"
+    ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
+    assert is_done(out, DAY, REGIONS)
+    monkeypatch.setattr(pipeline, "POINTS_SCHEMA", "points/99")
+    assert not pipeline.is_done(out, DAY, REGIONS)

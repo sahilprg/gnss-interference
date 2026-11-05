@@ -1,0 +1,3 @@
+predictor,labeled,decided,binary_agreement,binary_ci95,exact_agreement,exact_ci95,precision,recall,unsure_cells,unsure_flagged,weighted_binary_agreement,weighted_strata_share
+rules,300,253,0.968,"(0.939, 0.984)",0.917,"(0.876, 0.945)",1.0,0.943,47,4,0.9471,1.0
+model,300,253,0.968,"(0.939, 0.984)",0.917,"(0.876, 0.945)",1.0,0.943,47,4,0.9471,1.0

@@ -594,3 +594,20 @@ labeled, 29 unsure (17 of them in the middle band).
 of 0.1 instead of 0.5 agree better with the reviewer? The calibration set suggests it;
 it may not decide it (its declared use is the score table). Both thresholds are scored
 once on the sealed test, which then decides; the 0.5 threshold stays until then.
+
+## Blind relabel (declared 5 Nov 2026, before sampling)
+
+There is no second annotator. The plan's 10% blind relabel is the closest substitute:
+the same labeler labels again, without seeing the earlier labels, a random 10% of the
+cells already labeled. It measures how stable the labels are, not whether a different
+person would agree, and is reported as such.
+
+**Sample:** 55 cells, 10% of the 550 cells labeled before the calibration set (26 Oct
+gold 300, 1 Nov holdout 150, review set 1 100), drawn in proportion to each set (30, 15,
+10) with seed 20261105, new ids (`B0001`...), shuffled, in `labels/relabel_1.csv`; which
+earlier cell each one is lives in `labels/relabel_1_key.csv`, committed with the sample
+before labeling. The earlier labels are not shown.
+
+**Reported:** agreement on interference or not, and on the exact label, with Wilson 95%
+intervals and Cohen's kappa; cells unsure in either round are counted separately. The
+earlier labels and every result based on them stay as they are, whatever this shows.

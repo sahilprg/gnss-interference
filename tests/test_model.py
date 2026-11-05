@@ -164,3 +164,17 @@ def test_gold_weighting_by_stratum(tmp_path):
     out = gold_eval(tmp_path / "gold.csv", cells, pred, pop).iloc[0]
     assert out["binary_agreement"] == 0.75
     assert out["weighted_binary_agreement"] == pytest.approx(0.9 * 0.5 + 0.1 * 1.0)
+
+
+def test_training_fingerprints_identify_table_and_settings():
+    import pandas as pd
+
+    from gnssguard.model.train import fingerprints
+
+    t = pd.DataFrame({"f1": [1.0, 2.0], "y_jam": [0, 1], "y_spoof": [0, 0], "weight": 1.0,
+                      "split": "train", "date": "2026-10-01"})
+    a = fingerprints(t, ["f1"], {"seed": 0}, ["real"])
+    assert a == fingerprints(t.copy(), ["f1"], {"seed": 0}, ["real"])
+    assert a["training_table"] != fingerprints(t.assign(f1=[1.0, 3.0]), ["f1"], {"seed": 0},
+                                               ["real"])["training_table"]
+    assert a["config"] != fingerprints(t, ["f1"], {"seed": 1}, ["real"])["config"]

@@ -15,7 +15,14 @@ Flags: 1 = "stale" (first position after 20 s or more without one; the position 
 fresh, see docs/data.md), 2 = start of new leg, 4 = vrate geometric, 8 = altitude geometric.
 
 The details dict appears only on some points, so quality fields (NIC, NACp, ...) are carried
-forward from the last report and `q_age_s` records how old they are.
+forward from the last report and `q_age_s` records how old they are. Each details dict is
+a full snapshot of readsb's state for the aircraft (docs/data.md).
+
+Air data (true airspeed, Mach, headings, readsb's derived wind, outside air temperature)
+comes from different messages than the quality fields and is present in about 35-47% of
+snapshots; it is carried forward separately, with its own age `air_age_s`. Indicated
+airspeed and roll come with the point itself (indexes 12 and 13). Point format
+"points/2" (4 Nov 2026) adds these columns at the end; "points/1" files lack them.
 """
 
 from __future__ import annotations
@@ -26,7 +33,9 @@ import pyarrow as pa
 
 from gnssguard.config import Region
 
-QUALITY_KEYS = ("nic", "nac_p", "sil", "nic_baro", "rc", "gva", "sda", "version")
+QUALITY_KEYS = ("nic", "nac_p", "sil", "nic_baro", "rc", "gva", "sda", "version",
+                "nac_v", "sil_type")
+AIR_KEYS = ("tas", "mach", "mag_heading", "true_heading", "wd", "ws", "oat")
 
 SCHEMA = pa.schema(
     [
@@ -54,8 +63,23 @@ SCHEMA = pa.schema(
         ("q_age_s", pa.float32()),
         ("aircraft_type", pa.string()),
         ("db_flags", pa.int16()),
+        # points/2 (4 Nov 2026)
+        ("nac_v", pa.int8()),
+        ("sil_type", pa.string()),
+        ("ias", pa.float32()),
+        ("roll", pa.float32()),
+        ("tas", pa.float32()),
+        ("mach", pa.float32()),
+        ("mag_heading", pa.float32()),
+        ("true_heading", pa.float32()),
+        ("wind_dir", pa.float32()),
+        ("wind_speed", pa.float32()),
+        ("oat", pa.float32()),
+        ("air_age_s", pa.float32()),
     ]
 )
+NEW_IN_POINTS_2 = ["nac_v", "sil_type", "ias", "roll", "tas", "mach", "mag_heading",
+                   "true_heading", "wind_dir", "wind_speed", "oat", "air_age_s"]
 COLUMNS = SCHEMA.names
 
 # Box enclosing all regions, for a cheap first rejection test.
@@ -115,6 +139,8 @@ def iter_rows(
 
     q = dict.fromkeys(QUALITY_KEYS)
     q_t = None
+    air = dict.fromkeys(AIR_KEYS)
+    air_t = None
     last_t = None
 
     for p in trace:
@@ -131,6 +157,10 @@ def iter_rows(
                 if k in det:
                     q[k] = det[k]
             q_t = t
+        if det and any(k in det for k in ("tas", "mach", "wd", "true_heading")):
+            for k in AIR_KEYS:
+                air[k] = det.get(k)  # a snapshot: a missing key means readsb no longer has it
+            air_t = t
 
         lat, lon = p[1], p[2]
         if lat is None or lon is None:
@@ -185,6 +215,18 @@ def iter_rows(
             None if q_t is None else t - q_t,
             ac_type,
             db_flags,
+            _int(q["nac_v"]),
+            None if q["sil_type"] is None else str(q["sil_type"]),
+            _float(p[12]) if n > 12 else None,
+            _float(p[13]) if n > 13 else None,
+            _float(air["tas"]),
+            _float(air["mach"]),
+            _float(air["mag_heading"]),
+            _float(air["true_heading"]),
+            _float(air["wd"]),
+            _float(air["ws"]),
+            _float(air["oat"]),
+            None if air_t is None else t - air_t,
         )
         for name in hits:
             yield name, row

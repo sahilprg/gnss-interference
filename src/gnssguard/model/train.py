@@ -173,9 +173,25 @@ def train(table: pd.DataFrame, features: list[str] = FEATURES, *, sources=("real
         log.info("%s: %s", target, info[target])
     meta = {"sources": list(sources), "targets": info, "params": params,
             "versions": environment(),
+            "fingerprints": fingerprints(t, list(features), params, list(sources)),
             "train_dates": sorted(t.loc[t["split"] == "train", "date"].unique()),
             "val_dates": sorted(t.loc[t["split"] == "val", "date"].unique())}
     return Detectors(models, list(features), label_model, meta, cal)
+
+
+def fingerprints(table: pd.DataFrame, features: list[str], params: dict, sources: list
+                 ) -> dict:
+    """Short hashes that identify a training run: the exact training table (rows used),
+    and the settings (features, parameters, sources). Same hashes, same model."""
+    import hashlib
+
+    cols = [c for c in [*features, *TARGETS, "weight", "split", "date"] if c in table]
+    rows = pd.util.hash_pandas_object(table[cols].sort_index(axis=1), index=False)
+    data = hashlib.sha256(rows.to_numpy().tobytes()).hexdigest()[:12]
+    blob = json.dumps({"features": features, "params": params, "sources": sources},
+                      sort_keys=True).encode()
+    return {"training_table": data, "rows": len(table),
+            "config": hashlib.sha256(blob).hexdigest()[:12]}
 
 
 def importance(det: Detectors) -> pd.DataFrame:

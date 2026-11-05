@@ -359,6 +359,43 @@ def cmd_review_sample(args) -> int:
     return 0
 
 
+def cmd_relabel(args) -> int:
+    import json
+
+    import pandas as pd
+
+    from gnssguard.labels.relabel import relabel_eval, relabel_sample
+
+    if args.eval:
+        res = relabel_eval(pd.read_csv(args.out, dtype=str, keep_default_na=False),
+                           pd.read_csv(args.key, dtype=str, keep_default_na=False))
+        print(json.dumps(res, indent=1))
+        return 0
+    for f in (Path(args.out), Path(args.key)):
+        if f.exists() and not args.force:
+            print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
+            return 1
+    out, key = relabel_sample(args.seed)
+    out.to_csv(args.out, index=False)
+    key.to_csv(args.key, index=False)
+    print(key["source_set"].value_counts().to_string())
+    print(f"{len(out)} cells -> {args.out}  (labeling file, earlier labels hidden)")
+    print(f"key -> {args.key}  (do not open before labeling)")
+    return 0
+
+
+def cmd_benchmark(args) -> int:
+    from gnssguard.model.benchmark import run
+
+    doc = run(args.model or _default_model(), args.cells, args.labels_table, args.events,
+              args.rolling, args.out)
+    print((Path(args.out) / "README.md").read_text(encoding="utf-8"))
+    bad = [k for k, v in doc["results"].items() if v.get("status") != "ok"]
+    print(f"results -> {args.out}/  ({len(doc['results']) - len(bad)} checks run, "
+          f"{len(bad)} not run)")
+    return 0
+
+
 def cmd_score_bands(args) -> int:
     import json
 
@@ -716,6 +753,23 @@ def main(argv: list[str] | None = None) -> int:
     pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
     pq.add_argument("--force", action="store_true")
     pq.set_defaults(func=cmd_review_sample)
+
+    pr = sub.add_parser("relabel", help="blind relabel of earlier hand-labeled cells")
+    pr.add_argument("--out", default="labels/relabel_1.csv")
+    pr.add_argument("--key", default="labels/relabel_1_key.csv")
+    pr.add_argument("--seed", type=int, default=20261105)
+    pr.add_argument("--eval", action="store_true", help="score the second labels")
+    pr.add_argument("--force", action="store_true")
+    pr.set_defaults(func=cmd_relabel)
+
+    pk = sub.add_parser("benchmark", help="regenerate every published result into results/")
+    pk.add_argument("--model", help="frozen model (default: models/detector if present)")
+    pk.add_argument("--cells", default="data/cells")
+    pk.add_argument("--labels-table", default="data/labels/labels.parquet")
+    pk.add_argument("--events", default="configs/events.csv")
+    pk.add_argument("--rolling", help="folder with rolling_*.csv (optional)")
+    pk.add_argument("--out", default="results")
+    pk.set_defaults(func=cmd_benchmark)
 
     pb = sub.add_parser("score-bands", help="reviewer share of interference per score band")
     pb.add_argument("--gold", default="labels/calibration_1.csv")

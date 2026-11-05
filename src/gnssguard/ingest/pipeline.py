@@ -39,13 +39,36 @@ def manifest_path(out_root: Path, day: dt.date) -> Path:
     return Path(out_root) / "_manifests" / f"{day.isoformat()}.json"
 
 
-POINTS_SCHEMA = "points/1"  # stored point columns (ingest/trace.py SCHEMA)
+POINTS_SCHEMA = "points/2"  # stored point columns (ingest/trace.py SCHEMA)
 MAX_DECODE_ERROR_SHARE = 0.001  # more unreadable trace files than this: day incomplete
 
 
+def field_presence(folder: Path, max_age_s: float = 30.0) -> dict:
+    """Share of airborne points carrying each points/2 field (air data only when fresher
+    than max_age_s): how far the new spoofing checks can reach in each region."""
+    import pyarrow.parquet as pq
+
+    from gnssguard.ingest.trace import NEW_IN_POINTS_2
+
+    names = set(pq.read_schema(next(folder.glob("*.parquet"))).names) if any(
+        folder.glob("*.parquet")) else set()
+    cols = [c for c in NEW_IN_POINTS_2 if c in names]
+    if not cols:
+        return {}
+    t = pq.read_table(folder, columns=[*cols, "on_ground"]).to_pandas()
+    t = t[~t["on_ground"].astype(bool)]
+    if t.empty:
+        return {}
+    fresh = t["air_age_s"].le(max_age_s) if "air_age_s" in t else True
+    air = {"tas", "mach", "mag_heading", "true_heading", "wind_dir", "wind_speed", "oat"}
+    return {c: round(float((t[c].notna() & (fresh if c in air else True)).mean()), 3)
+            for c in cols if c != "air_age_s"}
+
+
 def is_done(out_root: Path, day: dt.date, regions: Sequence[Region] | None = None) -> bool:
-    """True only if a full (not sampled) run of this day finished, and, when regions are
-    given, it covered each of them with the same box (a changed box needs a new run)."""
+    """True only if a full (not sampled) run of this day finished with the current stored
+    point format, and, when regions are given, it covered each of them with the same box
+    (a changed box or format needs a new run). Code changes that keep the format do not."""
     path = manifest_path(out_root, day)
     if not path.exists():
         return False
@@ -54,6 +77,8 @@ def is_done(out_root: Path, day: dt.date, regions: Sequence[Region] | None = Non
     except json.JSONDecodeError:
         return False
     if not m.get("complete_day"):
+        return False
+    if m.get("points_schema", "points/1") != POINTS_SCHEMA:
         return False
     stored = m.get("regions", {})
     return all(stored.get(r.name) == [r.lat_min, r.lat_max, r.lon_min, r.lon_max]
@@ -158,6 +183,9 @@ def ingest_day(
         final_dir.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(writer.path_for(region).parent), str(final_dir))
     shutil.rmtree(tmp_root, ignore_errors=True)
+    manifest["field_presence"] = {
+        region: field_presence(out_root / f"region={region}" / f"date={day.isoformat()}")
+        for region in rows}
 
     mpath = manifest_path(out_root, day)
     mpath.parent.mkdir(parents=True, exist_ok=True)

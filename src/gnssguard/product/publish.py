@@ -116,8 +116,12 @@ def region_stats(table: pd.DataFrame, aircraft: int) -> dict:
     sparse_flag = table["label"].isin(SPARSE_FLAGGED)
     low = (table["label"] == "low_coverage") | sparse_flag  # all cells with 1-2 aircraft
     flagged = table["label"].isin(FLAGGED)
+    seen = table["label"] != "no_data"
+    hours = pd.to_datetime(table.loc[seen, "window"], utc=True).dt.hour
+    hourly = hours.value_counts().reindex(range(24), fill_value=0)
     return {
         "aircraft": int(aircraft), "judged_cells": int(dense.sum()),
+        "hourly_cells": [int(x) for x in hourly],
         "low_coverage_cells": int(low.sum()),
         "sparse_flagged_cells": int(sparse_flag.sum()),
         "flagged_share": round(float(flagged[dense].mean()), 4) if dense.any() else 0.0,
@@ -208,13 +212,20 @@ def _coarse(v) -> float:
     return round(round(float(v) / CENTRE_ROUND_DEG) * CENTRE_ROUND_DEG, 2)
 
 
-def _aircraft(processed: Path, region: str, date: str) -> tuple[int, pd.DataFrame | None]:
+def _aircraft(processed: Path, region: str, date: str) -> int:
+    """Number of airborne aircraft, reading only the two columns needed."""
+    import pyarrow.parquet as pq
+
     folder = processed / f"region={region}" / f"date={date}"
     if not folder.exists():
-        return 0, None
-    pts = read_points(folder)
-    air = pts[~pts["on_ground"].astype(bool)]
-    return int(air["icao"].nunique()), pts
+        return 0
+    t = pq.read_table(folder, columns=["icao", "on_ground"]).to_pandas()
+    return int(t.loc[~t["on_ground"].astype(bool), "icao"].nunique())
+
+
+def _points(processed: Path, region: str, date: str) -> pd.DataFrame | None:
+    folder = processed / f"region={region}" / f"date={date}"
+    return read_points(folder) if folder.exists() else None
 
 
 def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir: str | Path,
@@ -232,18 +243,19 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
     history = [read_summary(out, d["date"]) for d in reversed(history)]
     history = [h for h in history if h]
 
-    tables, stats, points = {}, {}, {}
+    # Statistics first; raw points are loaded one region at a time, only for localization.
+    tables, stats = {}, {}
     cells = load_cells(cells_dir, [date], regions)
     if not cells.empty:
         cells = with_context(cells)
     for region in regions:
-        n_air, pts = _aircraft(processed, region, date)
+        n_air = _aircraft(processed, region, date)
         c = cells[cells["region"] == region] if not cells.empty else cells
         c = c.reset_index(drop=True) if not c.empty else c
         t = cell_table(c, det) if not c.empty else pd.DataFrame(
             columns=["region", "date", "cell_lat", "cell_lon", "window", "usable_aircraft",
                      "p_jamming", "p_spoofing", "label"])
-        tables[region], stats[region], points[region] = t, region_stats(t, n_air), pts
+        tables[region], stats[region] = t, region_stats(t, n_air)
         stats[region]["rule_disagreement"] = rule_disagreement(c, t, det)
 
     status, day_reasons = quality.check_day(stats, history,
@@ -261,14 +273,15 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
             json.dumps(map_payload(t, date, region, spec, bands), separators=(",", ":")),
             encoding="utf-8")
         _write_csv(day_dir / f"{region}.csv.gz", t)
-        if locate and points[region] is not None:
-            dense_jam = (t["label"].isin(["jamming", "both"])).to_numpy()
-            if dense_jam.any():
+        dense_jam = (t["label"].isin(["jamming", "both"])).to_numpy()
+        if locate and dense_jam.any():
+            pts = _points(processed, region, date)
+            if pts is not None:
                 flagged = t.loc[dense_jam, ["cell_lat", "cell_lon", "window"]]
                 inc = incidents(flagged, spec)
-                est = localize_incidents(aircraft_points(points[region], spec), inc, spec)
+                est = localize_incidents(aircraft_points(pts, spec), inc, spec)
                 all_incidents += public_incidents(region, est, inc, spec)
-        points[region] = None
+                del pts
     (day_dir / "incidents.json").write_text(json.dumps(
         {"schema": SCHEMA, "date": date, "incidents": all_incidents, "notice": NOTICE},
         indent=1), encoding="utf-8")

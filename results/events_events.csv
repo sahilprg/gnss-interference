@@ -1,0 +1,39 @@
+event_id,type,evidence_level,region,date,predictor,judged,matching,share,verdict
+EV01,jamming,suspected_mechanism,baltic,2024-03-13,rules,48,6,0.125,found
+EV01,jamming,suspected_mechanism,baltic,2024-03-13,model,48,6,0.125,found
+EV02,jamming,suspected_mechanism,baltic,2024-04-25,rules,0,0,,too few cells
+EV02,jamming,suspected_mechanism,baltic,2024-04-25,model,0,0,,too few cells
+EV03,unknown,independently_corroborated,baltic,2024-10-16,rules,711,101,0.142,found
+EV03,unknown,independently_corroborated,baltic,2024-10-16,model,711,101,0.142,found
+EV04,unknown,independently_corroborated,baltic,2024-11-04,rules,683,47,0.069,found
+EV04,unknown,independently_corroborated,baltic,2024-11-04,model,683,47,0.069,found
+EV05,spoofing,observed_anomaly,baltic,2024-11-09,rules,69,1,0.014,not found
+EV05,spoofing,observed_anomaly,baltic,2024-11-09,model,69,1,0.014,not found
+EV06,jamming,independently_corroborated,baltic,2025-01-27,rules,371,196,0.528,found
+EV06,jamming,independently_corroborated,baltic,2025-01-27,model,371,196,0.528,found
+EV07,unknown,independently_corroborated,baltic,2025-02-07,rules,12,12,1.0,found
+EV07,unknown,independently_corroborated,baltic,2025-02-07,model,12,12,1.0,found
+EV08,jamming,observed_anomaly,baltic,2025-03-05,rules,274,39,0.142,found
+EV08,jamming,observed_anomaly,baltic,2025-03-05,model,274,39,0.142,found
+EV09,spoofing,observed_anomaly,baltic,2025-03-09,rules,13,5,0.385,found
+EV09,spoofing,observed_anomaly,baltic,2025-03-09,model,13,5,0.385,found
+EV10,jamming,independently_corroborated,baltic,2025-05-18,rules,2,2,1.0,too few cells
+EV10,jamming,independently_corroborated,baltic,2025-05-18,model,2,2,1.0,too few cells
+EV11,jamming,suspected_mechanism,baltic,2025-09-24,rules,271,31,0.114,found
+EV11,jamming,suspected_mechanism,baltic,2025-09-24,model,271,31,0.114,found
+EV12,jamming,suspected_mechanism,,2025-08-31,rules,0,0,,not checked
+EV12,jamming,suspected_mechanism,,2025-08-31,model,0,0,,not checked
+EV13,spoofing,suspected_mechanism,delhi,2025-11-04,rules,251,15,0.06,found
+EV13,spoofing,suspected_mechanism,delhi,2025-11-04,model,251,16,0.064,found
+EV14,jamming,suspected_mechanism,baltic,2025-01-16,rules,17,3,0.176,found
+EV14,jamming,suspected_mechanism,baltic,2025-01-16,model,17,3,0.176,found
+EV15,unknown,suspected_mechanism,punjab,2025-02-01,rules,0,0,,too few cells
+EV15,unknown,suspected_mechanism,punjab,2025-02-01,model,0,0,,too few cells
+EV16,spoofing,suspected_mechanism,delhi,2026-01-01,rules,1311,92,0.07,found
+EV16,spoofing,suspected_mechanism,delhi,2026-01-01,model,1311,135,0.103,found
+EV17,jamming,suspected_mechanism,black_sea,2026-06-04,rules,187,59,0.316,found
+EV17,jamming,suspected_mechanism,black_sea,2026-06-04,model,187,59,0.316,found
+EV18,jamming,observed_anomaly,black_sea,2026-11-03,rules,249,81,0.325,found
+EV18,jamming,observed_anomaly,black_sea,2026-11-03,model,249,81,0.325,found
+EV19,jamming,observed_anomaly,baltic,2026-11-03,rules,364,252,0.692,found
+EV19,jamming,observed_anomaly,baltic,2026-11-03,model,364,252,0.692,found

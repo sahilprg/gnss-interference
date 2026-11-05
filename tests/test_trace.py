@@ -66,3 +66,20 @@ def test_drops_non_forward_points_but_keeps_their_quality():
 
 def test_empty_trace():
     assert list(iter_rows({"timestamp": BASE_TS, "trace": []}, REGIONS)) == []
+
+
+def test_points_2_air_data_carried_with_its_own_age():
+    t = make_trace("DEF456", [
+        [0.0, 50.5, 10.5, 35000, 450.0, 90.0, 0, 0,
+         det(8, 9, nac_v=2, sil_type="perhour", tas=470, mach=0.78, true_heading=92.5,
+             mag_heading=88.0, wd=270, ws=55, oat=-50), "adsb_icao", 35100, None, 280, 1.5],
+        [10.0, 50.6, 10.6, 35000, 450.0, 90.0, 0, 0, det(7, 8), "adsb_icao", 35100],
+    ])
+    first, second = rows_by_region(t)["north"]
+    assert first["tas"] == 470 and first["wind_dir"] == 270 and first["wind_speed"] == 55
+    assert first["ias"] == 280 and first["roll"] == 1.5 and first["air_age_s"] == 0.0
+    assert first["nac_v"] == 2 and first["sil_type"] == "perhour"
+    # a quality-only snapshot updates NIC but leaves the air data with a growing age
+    assert second["nic"] == 7 and second["q_age_s"] == 0.0
+    assert second["tas"] == 470 and second["air_age_s"] == 10.0
+    assert second["ias"] is None

@@ -23,17 +23,19 @@ Code findings from the review of commit 05709be, checked against the code and da
 | 3 | Calibration on the early-stopping day, on weak labels | Wording fixed: scores are called model scores everywhere, with their meaning and the 0.5 label threshold in every published file. Separate calibration split: Phase 1 |
 | 4 | Features use the whole day | Fine for a next-day map; a causal feature path is needed only before any real-time claim |
 | 5, 6 | Synthetic truth rebuilt from surviving points; mixed events merged | Open (affects synthetic scores only); needs a protocol round |
-| 7 | Decode errors do not mark a day incomplete; changed regions reuse a day | **Fixed**: more than 0.1% unreadable trace files mark the day incomplete (0 on all 32 days so far); a changed region box needs a new run |
+| 7 | Decode errors do not mark a day incomplete; changed regions reuse a day | **Fixed**: more than 0.1% unreadable trace files mark the day incomplete (0 on all days so far); a changed region box or stored point format needs a new run |
 | 8 | Control alarm hides a possible real event | **Fixed**: input failures withhold; the control alarm publishes the day marked "needs review" |
-| 9 | All regions' points in memory at once while publishing | Open (low: every nightly run has fitted easily) |
+| 9 | All regions' points in memory at once while publishing | **Fixed**: statistics first, then one region's points at a time, only where localization needs them |
 | 10 | Label on the raw score, map shows the calibrated one | **Documented** in every published file (`label_threshold`, `score_meaning`) |
 | 11 | `nic_cluster` and `nic_zero` near-duplicates | Open; changes labels, needs a protocol round |
-| 12 | Airspeed, heading, roll, wind not extracted | Open; needs the one-time re-ingest (present in about 37% of state snapshots) |
+| 12 | Airspeed, heading, roll, wind not extracted | **Fixed**: point format points/2 (docs/data.md); wind on 53-69% and true airspeed on 64-75% of airborne points. Re-ingest gate passed on 1 Nov: identical rows and features |
 | 13 | `scipy` recorded but not declared | Not an issue: a dependency of LightGBM, pinned in constraints.txt |
 | 14 | MLAT vs ADS-B difference looks like a matching error | Open |
 | 15 | 1° cells are not equal area | Phase 2 |
 
-Also done: model hash and run settings (with a hash) in every summary; the jammer
+Also done: `gnssguard benchmark` regenerates every published result into `results/`
+with the model hash, training fingerprints and input hashes; an hourly-gap check marks
+partial outages for review; model hash and run settings (with a hash) in every summary; the jammer
 circles are labelled experimental; "0 of 112 normal cells flagged" is shown with its
 95% upper bound (2.7%).
 

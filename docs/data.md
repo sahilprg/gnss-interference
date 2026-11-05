@@ -113,3 +113,37 @@ whole period. Consequences:
 - **Rolling evaluation** (`gnssguard rolling`, docs/model.md) reports results day by day
   for exactly this reason: one test day can hide a coverage jump.
 - `gnssguard coverage` per day is the first check when a region's numbers move suddenly.
+
+## Point format points/2 (4 Nov 2026)
+
+New columns at the end of every point file (`ingest/trace.py`): `nac_v`, `sil_type`,
+`ias` and `roll` (from the point itself), and the air data `tas`, `mach`,
+`mag_heading`, `true_heading`, `wind_dir`, `wind_speed`, `oat` with its own age
+`air_age_s` (carried forward from the last snapshot that had air data; quality fields
+keep `q_age_s`). These are the inputs for spoofing checks that do not depend on GNSS:
+heading against track, airspeed and wind against ground speed. Days stored as points/1
+(no `points_schema` in the manifest) are downloaded again when re-ingested; nothing else
+reads the new columns yet.
+
+**Re-ingest check (Phase 0 gate), 1 Nov 2026:** downloaded again in the new format and
+compared with the stored day. Rows per region identical (2,046,311 / 430,158 / 417,666 /
+225,447 / 48,831), and the cell features identical in all five regions (same
+cell-windows, every value equal): the format change and the Phase 0 fixes change no
+existing number, as intended.
+
+Share of airborne points with each new field (air data only if under 30 s old), from
+the day's manifest (`field_presence`):
+
+| Field | Central Europe | Baltic | East Med | Black Sea | Punjab |
+| --- | --- | --- | --- | --- | --- |
+| NACv | 96% | 99% | 100% | 100% | 98% |
+| Indicated airspeed | 80% | 84% | 85% | 91% | 88% |
+| Roll | 75% | 84% | 81% | 88% | 81% |
+| True airspeed | 64% | 74% | 72% | 75% | 65% |
+| True heading | 70% | 77% | 77% | 77% | 69% |
+| Wind (direction and speed) | 61% | 64% | 69% | 68% | 53% |
+| Outside air temperature | 45% | 48% | 56% | 54% | 65% |
+
+Every new day ingested from now on (including the nightly job) is in the new format.
+The full study period needs re-ingesting only when a feature uses the new columns
+(Phase 2); it then takes one run of `gnssguard ingest` over the stored days.

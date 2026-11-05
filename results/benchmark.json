@@ -1,0 +1,689 @@
+{
+ "provenance": {
+  "generated_at": "2026-11-05T13:30:18+00:00",
+  "code_version": "0.1.0",
+  "model_hash": "81062b5eb365",
+  "model_train_dates": [
+   "2026-09-29",
+   "2026-10-24"
+  ],
+  "model_fingerprints": null,
+  "score_bands": "7d9eef5a6270",
+  "inputs": {
+   "events.csv": "24607d4547a1",
+   "gold.csv": "bc5423b17ca6",
+   "gold_2026-11-01.csv": "dc431ac07202",
+   "holdout_2026-11-01_strata.csv": "c0d7023e6304",
+   "review_1.csv": "294338282990",
+   "review_1_groups.csv": "59ce30235422",
+   "calibration_1.csv": "07d56b9641f4",
+   "calibration_1_groups.csv": "6007fd19495e"
+  }
+ },
+ "results": {
+  "gold_2026-10-26": {
+   "status": "ok",
+   "rows": [
+    {
+     "predictor": "rules",
+     "labeled": 300,
+     "decided": 253,
+     "binary_agreement": 0.968,
+     "binary_ci95": [
+      0.939,
+      0.984
+     ],
+     "exact_agreement": 0.917,
+     "exact_ci95": [
+      0.876,
+      0.945
+     ],
+     "precision": 1.0,
+     "recall": 0.943,
+     "unsure_cells": 47,
+     "unsure_flagged": 4,
+     "weighted_binary_agreement": 0.9471,
+     "weighted_strata_share": 1.0
+    },
+    {
+     "predictor": "model",
+     "labeled": 300,
+     "decided": 253,
+     "binary_agreement": 0.968,
+     "binary_ci95": [
+      0.939,
+      0.984
+     ],
+     "exact_agreement": 0.917,
+     "exact_ci95": [
+      0.876,
+      0.945
+     ],
+     "precision": 1.0,
+     "recall": 0.943,
+     "unsure_cells": 47,
+     "unsure_flagged": 4,
+     "weighted_binary_agreement": 0.9471,
+     "weighted_strata_share": 1.0
+    }
+   ]
+  },
+  "holdout_2026-11-01": {
+   "status": "ok",
+   "labeled": 150,
+   "decided": 114,
+   "unsure": 36,
+   "primary": {
+    "decided_disagreements": 1,
+    "human_sides_with_model": 1,
+    "human_sides_with_rules": 0,
+    "p_value": 1.0,
+    "verdict": "inconclusive (fewer than 10 decided disagreements)"
+   },
+   "S3_borderline_missed_by_both": {
+    "decided": 18,
+    "human_interference": 7,
+    "share": 0.389
+   },
+   "primary_2_sparse_precision": {
+    "decided": 47,
+    "human_agrees": 47,
+    "precision": 1.0,
+    "ci95": [
+     0.924,
+     1.0
+    ],
+    "verdict": "supported"
+   },
+   "rules_agreement": {
+    "sample": 0.881,
+    "sample_ci95": [
+     0.782,
+     0.938
+    ],
+    "weighted_to_day": 0.9198
+   },
+   "model_agreement": {
+    "sample": 0.896,
+    "sample_ci95": [
+     0.8,
+     0.948
+    ],
+    "weighted_to_day": 0.9199
+   },
+   "exact_label_agreement_sample": {
+    "rules": 0.825,
+    "model": 0.921
+   },
+   "by_stratum": [
+    {
+     "stratum": "S1_disagree",
+     "decided": 1,
+     "rules_agree": 0,
+     "model_agree": 1
+    },
+    {
+     "stratum": "S2_sparse",
+     "decided": 47,
+     "rules_agree": 37,
+     "model_agree": 47
+    },
+    {
+     "stratum": "S3_borderline",
+     "decided": 18,
+     "rules_agree": 11,
+     "model_agree": 11
+    },
+    {
+     "stratum": "S4_random",
+     "decided": 48,
+     "rules_agree": 48,
+     "model_agree": 48
+    }
+   ]
+  },
+  "review_1": {
+   "status": "ok",
+   "labeled": 100,
+   "unsure": 8,
+   "primary_calm_flags": {
+    "decided": 46,
+    "human_normal": 6,
+    "false_alarm_share": 0.13,
+    "ci95": [
+     0.061,
+     0.257
+    ],
+    "unsure": 4,
+    "calm_flagged_share": 0.0083,
+    "estimated_real_false_alarm_rate": [
+     0.00051,
+     0.00108,
+     0.00213
+    ]
+   },
+   "R2_hotspot_precision": {
+    "decided": 26,
+    "human_interference": 26,
+    "ci95": [
+     0.871,
+     1.0
+    ],
+    "precision": 1.0,
+    "weighted": 1.0
+   },
+   "R3_calm_normal": {
+    "decided": 20,
+    "human_normal": 20,
+    "ci95": [
+     0.839,
+     1.0
+    ]
+   },
+   "type_agreement_on_confirmed_flags": {
+    "cells": 66,
+    "same_type": 63
+   },
+   "rules_agree_with_model": 0.98
+  },
+  "calibration_1": {
+   "status": "ok",
+   "source": "calibration_1.csv",
+   "bands": [
+    {
+     "score_from": 0.0,
+     "score_to": 0.1,
+     "band": "below 0.1",
+     "cells": 31,
+     "interference_share": 0.097,
+     "ci95": [
+      0.033,
+      0.249
+     ]
+    },
+    {
+     "score_from": 0.1,
+     "score_to": 0.9,
+     "band": "0.1 to 0.9",
+     "cells": 53,
+     "interference_share": 0.604,
+     "ci95": [
+      0.469,
+      0.724
+     ]
+    },
+    {
+     "score_from": 0.9,
+     "score_to": 1.0,
+     "band": "0.9 or more",
+     "cells": 37,
+     "interference_share": 0.919,
+     "ci95": [
+      0.787,
+      0.972
+     ]
+    }
+   ],
+   "meaning": "Share of hand-reviewed cells in each score band that the reviewer called interference (jamming, spoofing or both)."
+  },
+  "events": {
+   "status": "ok",
+   "summary": [
+    {
+     "group": "all",
+     "predictor": "model",
+     "found": 14,
+     "decided": 15,
+     "ci95_low": 0.702,
+     "ci95_high": 0.988
+    },
+    {
+     "group": "all",
+     "predictor": "rules",
+     "found": 14,
+     "decided": 15,
+     "ci95_low": 0.702,
+     "ci95_high": 0.988
+    },
+    {
+     "group": "independently_corroborated",
+     "predictor": "model",
+     "found": 4,
+     "decided": 4,
+     "ci95_low": 0.51,
+     "ci95_high": 1.0
+    },
+    {
+     "group": "independently_corroborated",
+     "predictor": "rules",
+     "found": 4,
+     "decided": 4,
+     "ci95_low": 0.51,
+     "ci95_high": 1.0
+    },
+    {
+     "group": "observed_anomaly",
+     "predictor": "model",
+     "found": 4,
+     "decided": 5,
+     "ci95_low": 0.376,
+     "ci95_high": 0.964
+    },
+    {
+     "group": "observed_anomaly",
+     "predictor": "rules",
+     "found": 4,
+     "decided": 5,
+     "ci95_low": 0.376,
+     "ci95_high": 0.964
+    },
+    {
+     "group": "suspected_mechanism",
+     "predictor": "model",
+     "found": 6,
+     "decided": 6,
+     "ci95_low": 0.61,
+     "ci95_high": 1.0
+    },
+    {
+     "group": "suspected_mechanism",
+     "predictor": "rules",
+     "found": 6,
+     "decided": 6,
+     "ci95_low": 0.61,
+     "ci95_high": 1.0
+    },
+    {
+     "group": "spoofing events",
+     "predictor": "model",
+     "found": 3,
+     "decided": 4,
+     "ci95_low": 0.301,
+     "ci95_high": 0.954
+    },
+    {
+     "group": "spoofing events",
+     "predictor": "rules",
+     "found": 3,
+     "decided": 4,
+     "ci95_low": 0.301,
+     "ci95_high": 0.954
+    }
+   ],
+   "verdicts": {
+    "EV01": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV02": {
+     "model": "too few cells",
+     "rules": "too few cells"
+    },
+    "EV03": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV04": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV05": {
+     "model": "not found",
+     "rules": "not found"
+    },
+    "EV06": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV07": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV08": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV09": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV10": {
+     "model": "too few cells",
+     "rules": "too few cells"
+    },
+    "EV11": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV12": {
+     "model": "not checked",
+     "rules": "not checked"
+    },
+    "EV13": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV14": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV15": {
+     "model": "too few cells",
+     "rules": "too few cells"
+    },
+    "EV16": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV17": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV18": {
+     "model": "found",
+     "rules": "found"
+    },
+    "EV19": {
+     "model": "found",
+     "rules": "found"
+    }
+   }
+  },
+  "scores_vs_hand_labels": {
+   "status": "ok",
+   "decided_cells": 412,
+   "bands": [
+    {
+     "score_band": "<0.1",
+     "cells": 194,
+     "mean_score": 0.001,
+     "human_interference_share": 0.072,
+     "ci95_low": 0.043,
+     "ci95_high": 0.117
+    },
+    {
+     "score_band": "0.1-0.5",
+     "cells": 1,
+     "mean_score": 0.176,
+     "human_interference_share": 1.0,
+     "ci95_low": 0.207,
+     "ci95_high": 1.0
+    },
+    {
+     "score_band": "0.5-0.9",
+     "cells": 2,
+     "mean_score": 0.694,
+     "human_interference_share": 1.0,
+     "ci95_low": 0.342,
+     "ci95_high": 1.0
+    },
+    {
+     "score_band": ">=0.9",
+     "cells": 215,
+     "mean_score": 0.999,
+     "human_interference_share": 0.972,
+     "ci95_low": 0.94,
+     "ci95_high": 0.987
+    }
+   ]
+  },
+  "rolling": {
+   "status": "ok",
+   "rows": [
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "hard",
+     "predictor": "model",
+     "metric": "recall_jamming",
+     "mean": 0.8887,
+     "ci95_low": 0.8372,
+     "ci95_high": 0.9385,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "hard",
+     "predictor": "model",
+     "metric": "recall_spoofing",
+     "mean": 0.4548,
+     "ci95_low": 0.3535,
+     "ci95_high": 0.5592,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "hard",
+     "predictor": "model",
+     "metric": "false_positive_rate_away_from_events",
+     "mean": 0.1285,
+     "ci95_low": 0.11,
+     "ci95_high": 0.147,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "standard",
+     "predictor": "model",
+     "metric": "recall_jamming",
+     "mean": 0.9785,
+     "ci95_low": 0.969,
+     "ci95_high": 0.9873,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "standard",
+     "predictor": "model",
+     "metric": "recall_spoofing",
+     "mean": 0.8408,
+     "ci95_low": 0.773,
+     "ci95_high": 0.897,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "standard",
+     "predictor": "model",
+     "metric": "false_positive_rate_away_from_events",
+     "mean": 0.1333,
+     "ci95_low": 0.1207,
+     "ci95_high": 0.1483,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "stress",
+     "predictor": "model",
+     "metric": "recall_jamming",
+     "mean": 0.9568,
+     "ci95_low": 0.9462,
+     "ci95_high": 0.9675,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "stress",
+     "predictor": "model",
+     "metric": "recall_spoofing",
+     "mean": 0.6468,
+     "ci95_low": 0.5595,
+     "ci95_high": 0.7369,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "black_sea",
+     "profile": "stress",
+     "predictor": "model",
+     "metric": "false_positive_rate_away_from_events",
+     "mean": 0.131,
+     "ci95_low": 0.1143,
+     "ci95_high": 0.1497,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "hard",
+     "predictor": "model",
+     "metric": "recall_jamming",
+     "mean": 0.9215,
+     "ci95_low": 0.8903,
+     "ci95_high": 0.9527,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "hard",
+     "predictor": "model",
+     "metric": "recall_spoofing",
+     "mean": 0.9667,
+     "ci95_low": 0.9358,
+     "ci95_high": 0.9915,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "hard",
+     "predictor": "model",
+     "metric": "false_positive_rate_away_from_events",
+     "mean": 0.0073,
+     "ci95_low": 0.0055,
+     "ci95_high": 0.0098,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "standard",
+     "predictor": "model",
+     "metric": "recall_jamming",
+     "mean": 1.0,
+     "ci95_low": 1.0,
+     "ci95_high": 1.0,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "standard",
+     "predictor": "model",
+     "metric": "recall_spoofing",
+     "mean": 0.9208,
+     "ci95_low": 0.8977,
+     "ci95_high": 0.946,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "standard",
+     "predictor": "model",
+     "metric": "false_positive_rate_away_from_events",
+     "mean": 0.0092,
+     "ci95_low": 0.0065,
+     "ci95_high": 0.0128,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "stress",
+     "predictor": "model",
+     "metric": "recall_jamming",
+     "mean": 0.9798,
+     "ci95_low": 0.9687,
+     "ci95_high": 0.9902,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "stress",
+     "predictor": "model",
+     "metric": "recall_spoofing",
+     "mean": 0.902,
+     "ci95_low": 0.862,
+     "ci95_high": 0.936,
+     "days": 6
+    },
+    {
+     "source": "synthetic",
+     "region": "central_europe",
+     "profile": "stress",
+     "predictor": "model",
+     "metric": "false_positive_rate_away_from_events",
+     "mean": 0.0085,
+     "ci95_low": 0.0063,
+     "ci95_high": 0.0117,
+     "days": 6
+    },
+    {
+     "source": "real",
+     "region": "baltic",
+     "profile": "",
+     "predictor": "model",
+     "metric": "flagged_share_dense",
+     "mean": 0.4732,
+     "ci95_low": 0.4355,
+     "ci95_high": 0.511,
+     "days": 6
+    },
+    {
+     "source": "real",
+     "region": "black_sea",
+     "profile": "",
+     "predictor": "model",
+     "metric": "flagged_share_dense",
+     "mean": 0.186,
+     "ci95_low": 0.1566,
+     "ci95_high": 0.2154,
+     "days": 6
+    },
+    {
+     "source": "real",
+     "region": "central_europe",
+     "profile": "",
+     "predictor": "model",
+     "metric": "flagged_share_dense",
+     "mean": 0.007,
+     "ci95_low": 0.005,
+     "ci95_high": 0.0095,
+     "days": 6
+    },
+    {
+     "source": "real",
+     "region": "east_med",
+     "profile": "",
+     "predictor": "model",
+     "metric": "flagged_share_dense",
+     "mean": 0.0276,
+     "ci95_low": 0.0226,
+     "ci95_high": 0.0328,
+     "days": 6
+    },
+    {
+     "source": "real",
+     "region": "punjab",
+     "profile": "",
+     "predictor": "model",
+     "metric": "flagged_share_dense",
+     "mean": 0.0746,
+     "ci95_low": 0.0585,
+     "ci95_high": 0.0909,
+     "days": 6
+    }
+   ]
+  }
+ }
+}

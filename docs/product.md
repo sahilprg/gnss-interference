@@ -77,6 +77,7 @@ for review (`needs_review` in the summary). Since 4 Nov 2026; before, it withhel
 | Control alarm | nothing (marks the day "needs review") | calm Central Europe flags at most 3% of judged cells (0.4-1.3% on all study days). Above that the day is still published, with the reason shown on the map, so a real event is not hidden |
 | Traffic | the region | at least half its median number of aircraft over the last 14 published days |
 | Coverage | the region | at least 30% of its median number of judged cells |
+| Hourly gaps | nothing (marks the region "needs review") | an hour with under 30% of its usual cell-windows with aircraft (median of the same hour over the last 14 published days, if at least 20): a partial outage |
 
 The traffic and coverage gates need 3 earlier published days; until then they pass and
 say so in the summary. A day withheld for an incomplete download is retried
@@ -135,8 +136,11 @@ gnssguard evaluate --test-dates 2026-10-26
 gnssguard rolling
 ```
 
-Check the results against docs/model.md before publishing the new model: gold agreement
-not lower, calm Central Europe not higher, synthetic recall not lower. Then copy
+Then run `gnssguard benchmark --model data/models/detector --rolling reports/model
+--out reports/benchmark_new` and compare with `results/README.md` (the published model)
+before publishing the new model: gold agreement not lower, calm Central Europe not higher,
+synthetic recall not lower, events found not fewer. After publishing, run
+`gnssguard benchmark --rolling reports/model` again so `results/` matches the new model. Then copy
 `data/models/detector` to `models/detector`, record the new training dates in
 docs/model_card.md, commit, push, and close the issue. Disk: about 70 MB per new day for
 the five regions; old days can be deleted once a newer model is published.

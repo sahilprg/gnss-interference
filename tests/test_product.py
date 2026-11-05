@@ -234,3 +234,17 @@ def test_model_hash_and_run_config_are_stable(tmp_path):
     assert file_hash(tmp_path) != h
     a = run_config(["baltic", "punjab"], SPEC)
     assert a == run_config(["punjab", "baltic"], SPEC) and a["label_threshold"] == 0.5
+
+
+def test_hourly_gap_marks_review_not_withhold():
+    hist = []
+    for d in ("2026-10-01", "2026-10-02", "2026-10-03"):
+        hist.append({"date": d, "regions": {"baltic": {
+            "status": "published", "aircraft": 100, "judged_cells": 100, "flagged_share": 0.1,
+            "hourly_cells": [50] * 24}}})
+    today = {"baltic": {"aircraft": 100, "judged_cells": 100, "flagged_share": 0.1,
+                        "hourly_cells": [50] * 3 + [5, 5] + [50] * 19}}
+    st, day = quality.check_day(today, hist, complete_day=True)
+    assert st["baltic"]["status"] == "published" and not day
+    assert "hours 03, 04 UTC" in st["baltic"]["review"][0]
+    assert quality.hourly_gaps({"hourly_cells": [50] * 24}, hist, "baltic") == []
