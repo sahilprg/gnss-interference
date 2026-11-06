@@ -12,10 +12,15 @@ abstract: >-
   (docs/evaluation_protocol.md) and regenerated with input hashes by
   `gnssguard benchmark`. Version 0.2.0 fixes the model (hash 81062b5eb365) and the
   scoring rules of the sealed test before its sample is drawn.
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24015201"
+    description: "Archived release 0.2.0 (before the sealed test)"
 repository-code: "https://github.com/sahilprg/gnss-interference"
 url: "https://sahilprg.github.io/gnss-interference/"
 license: MIT
 version: "0.2.0"
+doi: "10.5281/zenodo.24015201"
 date-released: "2026-11-06"
 keywords:
   - GNSS

@@ -2,6 +2,9 @@
 
 ## 0.2.0 (6 Nov 2026): archived before the sealed test
 
+DOI [10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201), tag `v0.2.0`
+(commit bf89f7f).
+
 This release is archived with a DOI **before** the sealed test sample (5-18 Nov 2026)
 is drawn on or after 19 Nov 2026. It fixes, with a public date:
 

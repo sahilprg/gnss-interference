@@ -1,5 +1,7 @@
 # gnssguard: GNSS interference detection from open ADS-B data
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24015201.svg)](https://doi.org/10.5281/zenodo.24015201)
+
 Detects GPS jamming and spoofing that affects aircraft, using only free, open flight data
 from [adsb.lol](https://www.adsb.lol). Goals: flag affected areas, tell jamming from
 spoofing, estimate where the interference comes from, and publish a daily public map.
@@ -63,7 +65,7 @@ hash of every input):
 
 Since then: a correctness pass, independent evidence, a ground-station check and
 incident pages ([docs/roadmap.md](docs/roadmap.md), with the status of each item).
-Release 0.2.0 is archived before the sealed test (19 Nov 2026), which decides whether
+Release 0.2.0 is archived before the sealed test (19 Nov 2026; [doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)), which decides whether
 the model beats the integrity-only baseline ([CHANGELOG.md](CHANGELOG.md)).
 
 ## Quickstart
