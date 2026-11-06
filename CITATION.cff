@@ -3,12 +3,20 @@ message: "If you use this software or its published data, please cite it as belo
 title: "gnssguard: GNSS interference detection from open ADS-B data"
 type: software
 authors:
-  - alias: sahilprg
+  - name: sahilprg
+    alias: sahilprg
+abstract: >-
+  Detects GPS jamming and spoofing that affects aircraft from free, open ADS-B flight
+  data (adsb.lol), in 1-degree cells and 15-minute windows, and publishes a nightly map
+  and open data files. Every evaluation is declared before it is run
+  (docs/evaluation_protocol.md) and regenerated with input hashes by
+  `gnssguard benchmark`. Version 0.2.0 fixes the model (hash 81062b5eb365) and the
+  scoring rules of the sealed test before its sample is drawn.
 repository-code: "https://github.com/sahilprg/gnss-interference"
 url: "https://sahilprg.github.io/gnss-interference/"
 license: MIT
-version: "0.1.0"
-date-released: "2026-11-01"
+version: "0.2.0"
+date-released: "2026-11-06"
 keywords:
   - GNSS
   - GPS jamming
@@ -16,3 +24,4 @@ keywords:
   - ADS-B
   - weak supervision
   - aviation safety
+  - pre-registration

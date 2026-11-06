@@ -146,5 +146,7 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
     the map confirms that the reported area was affected, not that the reported day was
     special. Jamming around Kaliningrad is routine in this data.
   * the index agrees with the event checks: 14 of 15 judged events found.
-* Next: a Zenodo DOI for a tagged release with CITATION.cff, and the write-up after the
-  sealed test.
+* **Release 0.2.0 prepared** (CHANGELOG.md, CITATION.cff, .zenodo.json; steps in
+  docs/release.md): archived with a DOI before the sealed test is drawn, so the model,
+  labels, baseline and questions are fixed with a public date.
+* Next: the write-up after the sealed test.

@@ -27,6 +27,11 @@ hash of every input):
 * **Against a simple baseline** (degraded-NIC share, set to about the same calm-region
   alarm rate): the model finds 86% of hand-labeled interference against 76%, and 56 of
   80 spoofing cells against none (development sets; the sealed test decides).
+* **Ground stations:** six EUREF stations around Kaliningrad show no agreement with the
+  map beyond a shifted-days control (expected and stated before the data: they are
+  outside the jammers' line of sight).
+* **Incident pages** for every catalogued event: the map, the evidence and whether the
+  day stands out against ordinary days ([site](https://sahilprg.github.io/gnss-interference/incidents/index.html)).
 * **Scores, as checked by a reviewer:** cells scored below 0.1 were interference 10% of
   the time, 0.1-0.9 60%, 0.9 or more 92% (shown on the map).
 
@@ -56,8 +61,10 @@ hash of every input):
 | 4. Evaluation: gold labels, rolling 7-day test, stress attacks, ablations, calibration, pre-declared protocol | done |
 | 5. Product: nightly pipeline, live map website, open data files, outside-report checks, retrain alarm | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
 
-Next: a correctness pass and independent evidence before any bigger model
-([docs/roadmap.md](docs/roadmap.md), with the status of each item).
+Since then: a correctness pass, independent evidence, a ground-station check and
+incident pages ([docs/roadmap.md](docs/roadmap.md), with the status of each item).
+Release 0.2.0 is archived before the sealed test (19 Nov 2026), which decides whether
+the model beats the integrity-only baseline ([CHANGELOG.md](CHANGELOG.md)).
 
 ## Quickstart
 
