@@ -139,10 +139,12 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   event, on the site under Incidents. With every event compared with ordinary days of
   the same box (descriptive, not a test):
   * the event day **stands out** for the spoofing events: Baltic 9 Mar 2025 (no ordinary
-    day of 48 as high), Delhi 4 Nov 2025 and Jan-Feb 2026 (none of 7), and partly the
-    Black Sea on 3 Nov 2026 (12 of 59 ordinary days as high);
-  * for the Baltic jamming events the box is flagged as much on most ordinary days (e.g.
-    3 Nov 2026: 31 of 48): the map confirms that the reported area was jammed, not that
-    the reported day was special. Jamming around Kaliningrad is routine in this data.
+    day of 56 as high), Delhi 4 Nov 2025 and Jan-Feb 2026 (none of 7), and partly the
+    Black Sea on 3 Nov 2026 (12 of 67 ordinary days as high);
+  * for the Baltic jamming events, and the Black Sea in June 2026 (40 of 66), the box is
+    flagged as much on most ordinary days (e.g. 3 Nov 2026 near Kaliningrad: 38 of 56):
+    the map confirms that the reported area was affected, not that the reported day was
+    special. Jamming around Kaliningrad is routine in this data.
+  * the index agrees with the event checks: 14 of 15 judged events found.
 * Next: a Zenodo DOI for a tagged release with CITATION.cff, and the write-up after the
   sealed test.

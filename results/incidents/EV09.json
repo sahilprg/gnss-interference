@@ -819,16 +819,16 @@
   }
  ],
  "ordinary_days": {
-  "days": 51,
+  "days": 56,
   "dates": [
    "2025-11-04",
    "2026-11-04"
   ],
   "median_share": 0.019,
-  "p90_share": 0.049,
-  "max_share": 0.102,
+  "p90_share": 0.073,
+  "max_share": 0.128,
   "days_at_or_above_event": 0,
-  "days_with_matching_cells": 10,
+  "days_with_matching_cells": 14,
   "training_days": 26
  },
  "ordinary_series": [
@@ -836,6 +836,31 @@
    "date": "2025-11-04",
    "share": 0.1017,
    "judged": 59
+  },
+  {
+   "date": "2026-01-15",
+   "share": 0.1077,
+   "judged": 65
+  },
+  {
+   "date": "2026-02-01",
+   "share": 0.1277,
+   "judged": 47
+  },
+  {
+   "date": "2026-02-15",
+   "share": 0.1053,
+   "judged": 57
+  },
+  {
+   "date": "2026-06-04",
+   "share": 0.0625,
+   "judged": 48
+  },
+  {
+   "date": "2026-06-05",
+   "share": 0.0189,
+   "judged": 53
   },
   {
    "date": "2026-09-15",
@@ -1088,7 +1113,7 @@
    "judged": 42
   }
  ],
- "reading": "The map flags 5 of 13 judged cell-windows in the reported box and period (38%) with interference of the reported type. On none of 51 ordinary days was the same box flagged as much (median 2%, highest 10%): the event day stands out.",
+ "reading": "The map flags 5 of 13 judged cell-windows in the reported box and period (38%) with interference of the reported type. On none of 56 ordinary days was the same box flagged as much (median 2%, highest 13%): the event day stands out.",
  "provenance": {
   "model_hash": "a1d3d152259c",
   "model_train_dates": [

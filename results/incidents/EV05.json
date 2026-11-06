@@ -871,16 +871,16 @@
   }
  ],
  "ordinary_days": {
-  "days": 51,
+  "days": 56,
   "dates": [
    "2025-11-04",
    "2026-11-04"
   ],
   "median_share": 0.019,
-  "p90_share": 0.049,
-  "max_share": 0.102,
-  "days_at_or_above_event": 31,
-  "days_with_matching_cells": 10,
+  "p90_share": 0.073,
+  "max_share": 0.128,
+  "days_at_or_above_event": 36,
+  "days_with_matching_cells": 14,
   "training_days": 26
  },
  "ordinary_series": [
@@ -888,6 +888,31 @@
    "date": "2025-11-04",
    "share": 0.1017,
    "judged": 59
+  },
+  {
+   "date": "2026-01-15",
+   "share": 0.1077,
+   "judged": 65
+  },
+  {
+   "date": "2026-02-01",
+   "share": 0.1277,
+   "judged": 47
+  },
+  {
+   "date": "2026-02-15",
+   "share": 0.1053,
+   "judged": 57
+  },
+  {
+   "date": "2026-06-04",
+   "share": 0.0625,
+   "judged": 48
+  },
+  {
+   "date": "2026-06-05",
+   "share": 0.0189,
+   "judged": 53
   },
   {
    "date": "2026-09-15",
@@ -1140,7 +1165,7 @@
    "judged": 42
   }
  ],
- "reading": "The map does not find the reported interference: 1 of 69 judged cell-windows flagged, below the fixed threshold. But 31 of 51 ordinary days reach the same share in this box (median 2%): interference here is routine, so the map shows that the box was affected, not that this day was special.",
+ "reading": "The map does not find the reported interference: 1 of 69 judged cell-windows flagged, below the fixed threshold. But 36 of 56 ordinary days reach the same share in this box (median 2%): interference here is routine, so the map shows that the box was affected, not that this day was special.",
  "provenance": {
   "model_hash": "a1d3d152259c",
   "model_train_dates": [
