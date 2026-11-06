@@ -1,0 +1,23 @@
+{
+ "event": {
+  "id": "EV14",
+  "type": "jamming",
+  "region": "baltic",
+  "box": [
+   54.2,
+   55.2,
+   24.6,
+   26.0
+  ],
+  "start_utc": "2025-01-16T16:00:00+00:00",
+  "end_utc": "2025-01-17T00:00:00+00:00",
+  "source_url": "https://www.lrt.lt/en/news-in-english/19/2462548/passenger-plane-fails-to-land-at-vilnius-airport-due-to-gps-interference",
+  "notes": "Ryanair flight from London could not land at Vilnius on the evening of Thursday 16 Jan 2025 (date inferred from the article of Friday 17 Jan): GPS interference and a ground-proximity warning on approach; it diverted to Warsaw. Confirmed by Oro Navigacija (Lithuanian air navigation). Box: Vilnius approach; period: 16:00-24:00 UTC.",
+  "evidence_level": "suspected_mechanism"
+ },
+ "days": [
+  "2025-01-16"
+ ],
+ "days_with_data": [],
+ "status": "no data"
+}

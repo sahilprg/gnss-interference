@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EV17: jamming event, 2026-06-04</title><link rel="stylesheet" href="../style.css"><style>
+.page.incident{max-width:760px}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:2px 16px;margin:8px 0 16px}
+.facts dt{color:var(--ink-soft)}.facts dd{margin:0}
+.verdict{border-left:4px solid var(--ink);padding:8px 14px;background:var(--panel);margin:12px 0}
+.verdict.found{border-color:var(--jam)}.verdict.none{border-color:var(--low)}
+figure{margin:12px 0 20px}figure svg{width:100%;height:auto;display:block}
+figcaption{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.imap .sea{fill:var(--sea)}.imap .land{fill:var(--land)}
+.imap .coast{fill:none;stroke:#5f6c74;stroke-width:.7}
+.imap .border{fill:none;stroke:#5f6c74;stroke-width:.6;stroke-dasharray:3 2}
+.imap .cell{stroke:var(--rule);stroke-width:.4}
+.imap .evbox{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4}
+.tick{font:11px var(--body);fill:var(--ink-soft)}
+.evline{stroke:var(--jam);stroke-width:1.5}
+table.ev{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 16px}
+table.ev th,table.ev td{border-bottom:1px solid var(--rule);padding:4px 6px;text-align:left}
+table.ev td.d{white-space:nowrap}
+table.ev td.n,table.ev th.n{text-align:right;font-variant-numeric:tabular-nums}
+.wrap{overflow-x:auto}.small{font-size:13px;color:var(--ink-soft)}
+code{font-size:13px}pre{background:var(--panel);padding:10px;overflow-x:auto;font-size:13px}
+</style></head><body><header class="bar"><div class="brand"><b>GNSS interference over air traffic</b><span>Incident pages: reported events against the map</span></div><nav><a href="../index.html">Map</a><a href="../incidents/index.html" aria-current="page">Incidents</a><a href="../about.html">How it works</a><a href="../data.html">Data</a></nav></header><main class="page incident"><p class='small'><a href='index.html'>All incidents</a></p><h1>EV17: reported jamming, black_sea</h1><h2>What was reported</h2><dl class='facts'><dt>Period (UTC)</dt><dd>2026-06-04 00:00 to 2026-06-06 00:00</dd><dt>Box</dt><dd>43.7–44.7°N, 28.0–29.2°E</dd><dt>Evidence</dt><dd>reported: a press or official report of an incident; the exact place and time are often approximate</dd><dt>Source</dt><dd><a href='https://newsweek.ro/international/constanta-printre-cele-mai-afectate-zone-din-europa-de-bruiaj-rusesc-gps-inaintea-exploziei-dronei-maritime'>https://newsweek.ro/international/constanta-printre-cele-mai-afectate-zone-din-europa-de-bruiaj-rusesc-gps-inaintea-exploziei-dronei-maritime</a></dd><dt>Notes</dt><dd>Heavy GPS jamming around the port of Constanta, Romania, on 4-5 Jun 2026 (GPSJam data of 4 Jun), before a Ukrainian sea drone that lost navigation exploded in the port; Romania&#x27;s interim defence minister said the jamming was very strong. Box: Constanta and the coast to Mangalia.</dd></dl><div class='verdict none'><b>No data.</b> No cell files for 2026-06-04, 2026-06-05 in this region.</div><h2>Reproduce</h2><pre>gnssguard ingest --date 2026-06-04 --regions black_sea
+gnssguard cells --dates 2026-06-04
+gnssguard incidents --events configs/events.csv --only EV17</pre><p class='small'>Event row: <code>configs/events.csv</code>, EV17. Code and data handling: <a href='https://github.com/sahilprg/gnss-interference'>https://github.com/sahilprg/gnss-interference</a>. Cell-level aggregates only; no aircraft identifiers.</p><p class='small'><b>Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party.</b> A reported event is not established by this page: the box and times in the catalog are often approximate, and a flag says aircraft reported degraded or inconsistent positions, not who or what caused it.</p></main></body></html>

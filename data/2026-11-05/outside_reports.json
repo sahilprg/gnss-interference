@@ -1,0 +1,109 @@
+{
+ "schema": "gnssguard-public/1",
+ "date": "2026-11-05",
+ "checks": [
+  {
+   "report": "TR1",
+   "reference": "NOTAM LTAA A4412/26",
+   "issuer": "Turkey",
+   "source": "https://safeairspace.net/summary/",
+   "region": "black_sea",
+   "box": [
+    41.0,
+    43.0,
+    28.0,
+    41.5
+   ],
+   "judged_inside": 621,
+   "share_inside": 0.1771,
+   "share_outside": 0.4158,
+   "verdict": "not seen"
+  },
+  {
+   "report": "CY1",
+   "reference": "NOTAM LCCC A0799/26",
+   "issuer": "Cyprus",
+   "source": "https://safeairspace.net/summary/",
+   "region": "east_med",
+   "box": [
+    33.5,
+    36.5,
+    31.5,
+    35.0
+   ],
+   "judged_inside": 749,
+   "share_inside": 0.0027,
+   "share_outside": 0.0404,
+   "verdict": "not seen"
+  },
+  {
+   "report": "LB1",
+   "reference": "NOTAM OLBB A0191/26",
+   "issuer": "Lebanon",
+   "source": "https://safeairspace.net/summary/",
+   "region": "east_med",
+   "box": [
+    33.0,
+    34.7,
+    34.6,
+    36.7
+   ],
+   "judged_inside": 137,
+   "share_inside": 0.1533,
+   "share_outside": 0.0093,
+   "verdict": "seen"
+  },
+  {
+   "report": "PK1",
+   "reference": "Pilot reports (no NOTAM)",
+   "issuer": "pilot reports",
+   "source": "https://safeairspace.net/summary/",
+   "region": "punjab",
+   "box": [
+    30.5,
+    32.5,
+    73.0,
+    74.6
+   ],
+   "judged_inside": 128,
+   "share_inside": 0.2422,
+   "share_outside": 0.125,
+   "verdict": "seen"
+  },
+  {
+   "report": "RU1",
+   "reference": "EASA CZIB 2025-01 R3",
+   "issuer": "EASA",
+   "source": "https://safeairspace.net/summary/",
+   "region": "baltic",
+   "box": [
+    54.3,
+    55.4,
+    19.4,
+    22.9
+   ],
+   "judged_inside": 32,
+   "share_inside": 1.0,
+   "share_outside": 0.3873,
+   "verdict": "seen"
+  },
+  {
+   "report": "RU2",
+   "reference": "EASA CZIB 2025-01 R3",
+   "issuer": "EASA",
+   "source": "https://safeairspace.net/summary/",
+   "region": "baltic",
+   "box": [
+    56.3,
+    60.5,
+    27.8,
+    28.5
+   ],
+   "judged_inside": 15,
+   "share_inside": 1.0,
+   "share_outside": 0.3942,
+   "verdict": "seen"
+  }
+ ],
+ "notice": "Outside reports are coarse: NOTAMs and bulletins cover large areas for months, and boxes are approximate. 'seen' means the map flags a larger share of judged cells inside the box than in the rest of the region that day; it is a consistency check, not a confirmation."
+}

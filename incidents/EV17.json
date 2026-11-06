@@ -1,0 +1,24 @@
+{
+ "event": {
+  "id": "EV17",
+  "type": "jamming",
+  "region": "black_sea",
+  "box": [
+   43.7,
+   44.7,
+   28.0,
+   29.2
+  ],
+  "start_utc": "2026-06-04T00:00:00+00:00",
+  "end_utc": "2026-06-06T00:00:00+00:00",
+  "source_url": "https://newsweek.ro/international/constanta-printre-cele-mai-afectate-zone-din-europa-de-bruiaj-rusesc-gps-inaintea-exploziei-dronei-maritime",
+  "notes": "Heavy GPS jamming around the port of Constanta, Romania, on 4-5 Jun 2026 (GPSJam data of 4 Jun), before a Ukrainian sea drone that lost navigation exploded in the port; Romania's interim defence minister said the jamming was very strong. Box: Constanta and the coast to Mangalia.",
+  "evidence_level": "suspected_mechanism"
+ },
+ "days": [
+  "2026-06-04",
+  "2026-06-05"
+ ],
+ "days_with_data": [],
+ "status": "no data"
+}
