@@ -1,0 +1,8 @@
+station,status,lat,lon,snr_code,days,windows,ground_affected,aircraft_flag_when_ground_affected,aircraft_flag_otherwise,ratio,spearman_cn0_drop_vs_jam_share,ratio_days_shifted_median,ratio_days_shifted_max
+BYDG00POL,ok,53.135,17.994,S1C,8.0,378,2,0.5,0.612,0.82,0.028,0.86,
+IRBE00LVA,ok,57.554,21.852,S1C,7.0,413,0,,0.361,,0.024,0.0,
+LAMA00POL,ok,53.892,20.67,S1C,9.0,549,9,0.889,0.867,1.03,0.025,1.03,
+VAIN00LVA,ok,56.418,21.837,S1C,9.0,551,5,1.0,0.603,1.66,0.068,0.91,
+VIS000SWE,ok,57.654,18.367,S1C,9.0,554,2,0.0,0.37,0.0,-0.027,0.0,
+VLNS00LTU,ok,54.653,25.299,S1C,9.0,522,1,1.0,0.762,1.31,0.065,1.28,
+all,pooled,,,,,2967,19,0.789,0.603,1.31,0.032,1.1,1.39

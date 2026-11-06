@@ -72,12 +72,34 @@ def read_snr(path: str | Path) -> tuple[pd.DataFrame, dict]:
     k = gps_types.index(code)
     times, sats, vals = [], [], []
     t = None
+    skip = 0
+    info["event_records"] = info["bad_epochs"] = 0
     for line in fh:
+        if skip:  # header lines carried by an event record
+            skip -= 1
+            continue
         if line.startswith(">"):
-            f = line[1:].split()
-            sec = float(f[5])
-            t = pd.Timestamp(int(f[0]), int(f[1]), int(f[2]), int(f[3]), int(f[4]),
-                             int(sec), tz="UTC")
+            flag = line[31:32].strip()
+            if flag and flag in "2345":
+                # event record (antenna moved, new site, header lines follow, external
+                # event): time fields may be blank; the next n lines are not observations
+                info["event_records"] += 1
+                try:
+                    skip = int(line[32:35])
+                except ValueError:
+                    skip = 0
+                t = None
+                continue
+            try:
+                f = line[1:].split()
+                sec = float(f[5])
+                t = pd.Timestamp(int(f[0]), int(f[1]), int(f[2]), int(f[3]), int(f[4]),
+                                 int(sec), tz="UTC")
+            except (IndexError, ValueError):
+                info["bad_epochs"] += 1
+                t = None
+            if flag == "6":  # cycle-slip records repeat satellites, not new readings
+                t = None
             continue
         if t is None or not line.startswith("G"):
             continue

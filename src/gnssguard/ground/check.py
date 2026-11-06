@@ -9,6 +9,7 @@ RADIUS_KM of the station labeled jamming or both by the published model.
 
 from __future__ import annotations
 
+import logging
 import math
 from pathlib import Path
 
@@ -16,6 +17,8 @@ import numpy as np
 import pandas as pd
 
 from gnssguard.ground.rinex import read_snr
+
+log = logging.getLogger(__name__)
 
 DROP_DB = 3.0
 SATS_DROP = 0.30
@@ -26,7 +29,14 @@ WINDOW = "15min"
 def station_windows(files: list[Path]) -> tuple[pd.DataFrame, dict]:
     frames, info = [], {}
     for f in files:
-        df, inf = read_snr(f)
+        try:
+            df, inf = read_snr(f)
+        except Exception as e:  # one unreadable file is reported, not fatal
+            log.warning("%s: unreadable (%s: %s), left out", f, type(e).__name__, e)
+            continue
+        if inf.get("event_records") or inf.get("bad_epochs"):
+            log.info("%s: %d event records, %d unreadable epoch lines skipped", f,
+                     inf.get("event_records", 0), inf.get("bad_epochs", 0))
         info = info or inf
         frames.append(df)
     d = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
@@ -80,6 +90,10 @@ def agreement(m: pd.DataFrame) -> dict:
 
 
 def compare(ground: pd.DataFrame, air: pd.DataFrame, shift_days: int = 0) -> dict:
+    return agreement(shift_merge(ground, air, shift_days))
+
+
+def shift_merge(ground: pd.DataFrame, air: pd.DataFrame, shift_days: int = 0) -> pd.DataFrame:
     a = air.copy()
     if shift_days:
         days = sorted(a["window"].dt.normalize().unique())
@@ -88,18 +102,19 @@ def compare(ground: pd.DataFrame, air: pd.DataFrame, shift_days: int = 0) -> dic
         last = days[-1] + pd.Timedelta(days=1)
         wrap = a["window"] >= last
         a.loc[wrap, "window"] -= pd.Timedelta(days=span)
-    return agreement(ground.merge(a, on="window", how="inner"))
+    return ground.merge(a, on="window", how="inner")
 
 
 def run(station_files: dict[str, list[Path]], cells: pd.DataFrame, labels: pd.Series,
         out: Path) -> pd.DataFrame:
-    rows, merged = [], []
+    rows, merged, pairs = [], [], []
     for st, files in station_files.items():
         g, info = station_windows(files)
         if g.empty or "lat" not in info:
             rows.append({"station": st, "status": "no data"})
             continue
         air = aircraft_windows(cells, labels, info["lat"], info["lon"])
+        pairs.append((g, air))
         res = compare(g, air)
         shifted = [compare(g, air, k)["ratio"] for k in range(1, 10)]
         shifted = [x for x in shifted if x is not None]
@@ -117,7 +132,16 @@ def run(station_files: dict[str, list[Path]], cells: pd.DataFrame, labels: pd.Se
     if merged:
         allm = pd.concat(merged, ignore_index=True)
         allm.to_csv(out / "ground_windows.csv", index=False)
-        pooled = {"station": "all", "status": "pooled", **agreement(allm)}
+        shifted = []
+        for k in range(1, 10):  # every station shifted by the same k days, then pooled
+            parts = [shift_merge(g, air, k) for g, air in pairs]
+            r = agreement(pd.concat(parts, ignore_index=True))["ratio"]
+            if r is not None:
+                shifted.append(r)
+        pooled = {"station": "all", "status": "pooled", **agreement(allm),
+                  "ratio_days_shifted_median": round(float(np.median(shifted)), 2)
+                  if shifted else None,
+                  "ratio_days_shifted_max": max(shifted) if shifted else None}
         res = pd.concat([res, pd.DataFrame([pooled])], ignore_index=True)
         res.to_csv(out / "ground_check.csv", index=False)
     return res

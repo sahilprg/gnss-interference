@@ -3,9 +3,11 @@
 Routes, in order; the first that has a station-day is used, and a missing one is
 reported, not guessed:
 
-1. the EUREF Historical Data Centre's persistent identifiers, one HTTPS address per
-   station and day that redirects to the file:
-   https://w3id.org/EUREF-HDC/YYYY/DDD/STATION_YYYYDDD_01D_30S_R3 (RINEX 3, 30 s);
+1. the EUREF Historical Data Centre's persistent identifiers: one HTTPS landing page
+   per station and day, https://w3id.org/EUREF-HDC/YYYY/DDD/STATION_YYYYDDD_01D_30S_R3,
+   whose "Download URL" points at the file on
+   https://epncb.oma.be/pub/RINEX/YYYY/DDD/ (RINEX 3, 30 s, Hatanaka + gzip); if the
+   landing page is unreachable, the two usual file names there are tried directly;
 2. BKG by FTP (its HTTPS downloads have been off since a June 2026 outage,
    IGSMAIL-8709); skipped quietly if the server or the network refuses FTP;
 3. the data centres' HTTPS day directories (EUREF/obs/YYYY/DDD/).
@@ -30,25 +32,61 @@ HEADERS = {"User-Agent": "gnssguard ground-fetch (research)"}
 PID = "https://w3id.org/EUREF-HDC/{y}/{doy:03d}/{st}_{y}{doy:03d}_01D_30S_R3"
 
 
+RINEX_DIR = "https://epncb.oma.be/pub/RINEX/{y}/{doy:03d}/"
+LINK = re.compile(r'href="(https?://[^"]+?_01D_30S_MO\.(?:crx|rnx)\.gz)"', re.IGNORECASE)
+
+
+def _is_gzip(r) -> bool:
+    return r.status_code == 200 and r.content[:2] == b"\x1f\x8b" and len(r.content) > 1000
+
+
+def _save(out, day, name, content):
+    target = out / str(day) / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    part = target.with_name(name + ".part")
+    part.write_bytes(content)
+    part.replace(target)
+    return str(target)
+
+
 def _pid_day(stations, day, out, result, s):
+    """Landing page -> its download link -> the file; else the usual names directly."""
     doy = day.timetuple().tm_yday
     for st in stations:
+        have = [f for f in (out / str(day)).glob(f"{st}_*") if file_name(st, day).fullmatch(f.name)]
+        if have:
+            result[st] = str(have[0])
+            continue
+        links = []
         url = PID.format(y=day.year, doy=doy, st=st)
         try:
-            r = s.get(url, headers=HEADERS, timeout=300, allow_redirects=True)
+            r = s.get(url, headers=HEADERS, timeout=60, allow_redirects=True)
+            if _is_gzip(r):  # the identifier served the file itself
+                name = r.url.rstrip("/").rsplit("/", 1)[-1]
+                if not file_name(st, day).fullmatch(name):
+                    name = f"{st}_R_{day.year}{doy:03d}0000_01D_30S_MO.crx.gz"
+                result[st] = _save(out, day, name, r.content)
+                continue
+            if r.status_code == 200:
+                links = [u for u in LINK.findall(r.text or "")
+                         if file_name(st, day).fullmatch(u.rsplit("/", 1)[-1])]
         except requests.RequestException as e:
             log.warning("%s: %s", url, e)
-            continue
-        if r.status_code != 200 or len(r.content) < 1000 or r.content[:15].lower() \
-                .startswith(b"<!doctype html"):
-            continue
-        name = r.url.rstrip("/").rsplit("/", 1)[-1]
-        if not name.upper().startswith(st):
-            name = f"{st}_{day.year}{doy:03d}_01D_30S_R3"
-        target = out / str(day) / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(r.content)
-        result[st] = str(target)
+        base = RINEX_DIR.format(y=day.year, doy=doy)
+        links += [f"{base}{st}_{src}_{day.year}{doy:03d}0000_01D_30S_MO.crx.gz"
+                  for src in ("S", "R")]
+        for link in dict.fromkeys(links):
+            try:
+                f = s.get(link, headers=HEADERS, timeout=300)
+            except requests.RequestException as e:
+                log.warning("%s: %s", link, e)
+                continue
+            if _is_gzip(f):
+                result[st] = _save(out, day, link.rsplit("/", 1)[-1], f.content)
+                break
+        else:
+            log.warning("%s %s: not on the EUREF data centre (tried %d links)",
+                        day, st, len(dict.fromkeys(links)))
 
 
 def file_name(station: str, day: dt.date) -> re.Pattern:
@@ -99,7 +137,15 @@ def fetch_day(stations: list[str], day: dt.date, out: Path, session=None,
     """Download what exists for one day; returns station -> saved path or 'missing'."""
     import ftplib
 
-    s = session or requests.Session()
+    if session is None:
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+
+        session = requests.Session()
+        retry = Retry(total=4, backoff_factor=2, status_forcelist=(429, 500, 502, 503, 504),
+                      allowed_methods=("GET",))
+        session.mount("https://", HTTPAdapter(max_retries=retry))
+    s = session
     doy = day.timetuple().tm_yday
     result = {st: "missing" for st in stations}
     _pid_day(stations, day, out, result, s)

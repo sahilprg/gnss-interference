@@ -667,7 +667,7 @@ satellite every 30 s; jamming within their radio horizon lowers it on all satell
 once and can make them lose satellites.
 
 **Stations and days:** the six EPN stations listed in `configs/ground_stations.csv`
-(chosen for being within about 350 km of Kaliningrad, before any data was seen; their
+(chosen for being within about 350 km of Kaliningrad, before any data was seen; one replaced, see the amendment below; their
 exact positions are taken from the files' own headers), on 26 Oct-4 Nov
 2026 (10 days, all published on the map). Files from the EUREF data centres
 (`gnssguard ground-fetch`); a station-day that is missing is reported as missing.
@@ -695,3 +695,47 @@ kilometres and with clear line of sight, while aircraft at altitude see it from 
 of kilometres; a nine-month ground monitor in Gdynia found no correlation with ADS-B
 events (Inside GNSS, 2025). So a weak or absent match is expected and does not refute
 the map; a clear match is support, not proof. Spoofing is not checked here.
+
+**Amendment (6 Nov 2026, after the download and before any ground-check result was
+seen):** KLPD00LTU is not in the EPN archive (not listed in the data centre's index of
+26 Oct), so it is missing on every day, as the station list
+allowed. VAIN00LVA (Vaiņode, Latvia, about 210 km north-east of Kaliningrad), the
+EPN station closest to the gap it leaves, is added in its place. The thresholds, days and
+reported quantities are unchanged.
+
+### Ground check 1: result (6 Nov 2026)
+
+51 of 60 station-days downloaded (4 Nov not yet published; IRBE 2-3 Nov and BYDG 3 Nov
+not available); all six stations readable (S1C). Reports: `reports/ground/`.
+
+| Station | Windows | Ground-affected | Aircraft flag when affected | otherwise | Ratio | Ratio, days shifted (median) |
+| --- | --- | --- | --- | --- | --- | --- |
+| LAMA00POL | 549 | 9 | 0.889 | 0.867 | 1.03 | 1.03 |
+| VAIN00LVA | 551 | 5 | 1.000 | 0.603 | 1.66 | 0.91 |
+| BYDG00POL | 378 | 2 | 0.500 | 0.612 | 0.82 | 0.86 |
+| VIS000SWE | 554 | 2 | 0.000 | 0.370 | 0.00 | 0.00 |
+| VLNS00LTU | 522 | 1 | 1.000 | 0.762 | 1.31 | 1.28 |
+| IRBE00LVA | 413 | 0 | - | 0.361 | - | - |
+| **Pooled** | 2,967 | 19 | 0.789 (15/19) | 0.603 | **1.31** | **1.10** (max 1.39) |
+
+Spearman correlation between C/N0 drop and aircraft jamming share: 0.03 pooled (-0.03
+to 0.07 per station).
+
+**Reading, against what was declared:**
+
+1. Ground-affected windows are rare (0.6%). When they occur, nearby aircraft flag
+   jamming in 15 of 19 (79%, about 57-92%) against 60% of other windows.
+2. The control does not separate: the unshifted pooled ratio (1.31) lies within the
+   ratios with the aircraft series shifted by 1-9 days (median 1.10, up to 1.39). At
+   the two stations with most affected windows, LAMA is equal shifted and unshifted, and
+   only VAIN (5 windows) is above its control.
+3. No correlation between the size of the ground drop and the aircraft signal.
+
+**Conclusion:** no agreement in time between these ground stations and the map beyond
+what time-of-day patterns produce. As stated before the data, this was the expected
+outcome and does not refute the map: aircraft near Kaliningrad report jamming in most
+windows (60-87% here), while ground antennas 90-350 km away, outside the jammer's line
+of sight, rarely see a drop, so the two series cannot line up in time. It also gives no
+support. A useful ground test needs a receiver within line of sight of a known jammer
+(e.g. published spectrum-monitoring data from Estonia or Lithuania, catalog events with
+ground evidence) or a second receiver network (Phase 3 step 1).

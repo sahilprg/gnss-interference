@@ -143,10 +143,11 @@ def test_fetch_uses_ftp_first(tmp_path):
 
     class NoHttp:
         def get(self, url, **k):
-            assert "w3id.org" in url, "only the persistent id is tried before FTP"
+            assert "w3id.org" in url or "epncb.oma.be/pub/RINEX" in url, \
+                "only the EUREF data centre is tried before FTP"
 
             class R:
-                status_code, content, url = 404, b"", ""
+                status_code, content, url, text = 404, b"", "", ""
             return R()
 
     got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, NoHttp(), F)
@@ -195,3 +196,51 @@ def test_ftp_refused_is_skipped(tmp_path):
 
     got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, S(), eof)
     assert got == {"LAMA00POL": "missing"}
+
+
+def test_fetch_follows_the_landing_page_link(tmp_path):
+    import datetime as dt
+
+    from gnssguard.ground.fetch import fetch_day
+
+    name = "LAMA00POL_S_20263050000_01D_30S_MO.crx.gz"
+    link = f"https://epncb.oma.be/pub/RINEX/2026/305/{name}"
+    data = b"\x1f\x8b" + b"x" * 2000
+
+    class R:
+        def __init__(self, status, content=b"", text=""):
+            self.status_code, self.content, self.text, self.url = status, content, text, ""
+
+    class S:
+        calls = []
+
+        def get(self, url, **kw):
+            self.calls.append(url)
+            if "w3id.org" in url:
+                return R(200, b"<!DOCTYPE html>", f'Download URL <a href="{link}">{name}</a>')
+            return R(200, data) if url == link else R(404)
+
+    def no_ftp(*a, **k):
+        raise AssertionError("FTP not needed")
+
+    s = S()
+    got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, s, no_ftp)
+    assert got["LAMA00POL"].endswith(name) and s.calls == [s.calls[0], link]
+    assert (tmp_path / "2026-11-01" / name).read_bytes() == data
+    s.calls.clear()  # a second run reuses the saved file
+    assert fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, s, no_ftp) == got
+    assert s.calls == []
+
+
+def test_event_records_are_skipped(tmp_path):
+    t0 = pd.Timestamp("2026-11-01T00:00:00Z")
+    f = rinex(tmp_path, [(t0, [45.0, 40.0])])
+    text = gzip.decompress(f.read_bytes()).decode()
+    event = (">" + " " * 30 + "4  2\n"
+             + "RECEIVER RESTARTED".ljust(60) + "COMMENT\n"
+             + "G99 not an observation".ljust(60) + "COMMENT\n")
+    later = (f"> {t0:%Y %m %d %H} 00 30.0000000  0  1\n"
+             + "G05" + obs(2.2e7) + obs(1.1e8) + obs(-100.0) + obs(41.0) + "\n")
+    f.write_bytes(gzip.compress((text + event + later).encode()))
+    df, info = read_snr(f)
+    assert df["snr"].tolist() == [45.0, 40.0, 41.0] and info["event_records"] == 1

@@ -122,3 +122,13 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   ground-fetch` and `gnssguard ground-check`, tested on synthetic station files. The
   station archives are not reachable from the development environment, so the run is
   on the laptop.
+* **Ground check 1 result** (51 of 60 station-days; KLPD00LTU is not in the archive and
+  was replaced by VAIN00LVA before any result was seen): ground stations rarely see a
+  signal drop (19 of 2,967 windows); aircraft flag jamming nearby in 15 of those 19
+  against 60% otherwise (ratio 1.31), but shifting the aircraft series by whole days
+  gives ratios up to 1.39 (median 1.10), so there is **no agreement beyond time-of-day
+  patterns**, and no correlation (0.03). Expected and stated before the data: stations
+  90-350 km from Kaliningrad are outside the jammer's line of sight, while aircraft see
+  it most of the time. Neither support nor refutation.
+* Next for Phase 3: a ground source within line of sight of a jammer (published Baltic
+  spectrum monitoring), and the second receiver network (OpenSky).

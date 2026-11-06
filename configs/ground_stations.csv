@@ -1,6 +1,6 @@
 station,name,lat,lon,notes
 LAMA00POL,Lamkowko (Olsztyn),53.89,20.67,about 90 km south of Kaliningrad
-KLPD00LTU,Klaipeda,55.73,21.12,about 120 km north-east; listed if the data centre has it
+VAIN00LVA,Vainode,56.42,21.85,about 210 km north-east; replaces KLPD00LTU (not in the EPN archive), amendment 6 Nov
 BYDG00POL,Bydgoszcz,53.13,17.99,about 250 km south-west
 VLNS00LTU,Vilnius,54.65,25.30,about 310 km east
 IRBE00LVA,Irbene,57.55,21.86,about 330 km north

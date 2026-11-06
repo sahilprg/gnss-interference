@@ -16,10 +16,12 @@ gnssguard ground-check --dates 2026-10-26,2026-10-27,2026-10-28,2026-10-29,2026-
 
 The download is small (a few MB per station and day, about 60 station-days). Files come
 first from the EUREF Historical Data Centre's persistent links (one HTTPS address per
-station and day, e.g. `https://w3id.org/EUREF-HDC/2026/305/LAMA00POL_2026305_01D_30S_R3`),
-then from BKG by FTP (its HTTPS downloads have been off since a June 2026 outage; skipped
-if FTP is refused), and go to `data/ground/<day>/`. Stations are in `configs/ground_stations.csv`; a station a data
-centre does not have is printed as missing. Results go to `reports/ground/`:
+station and day, e.g. `https://w3id.org/EUREF-HDC/2026/305/LAMA00POL_2026305_01D_30S_R3`,
+a landing page whose "Download URL" gives the file under
+`https://epncb.oma.be/pub/RINEX/YYYY/DDD/`), then from BKG by FTP (its HTTPS downloads
+have been off since a June 2026 outage; skipped if FTP is refused), and go to
+`data/ground/<day>/`; files already there are not downloaded again. Stations are in
+`configs/ground_stations.csv`; a station a data centre does not have is printed as missing. Results go to `reports/ground/`:
 `ground_check.csv` (per station and pooled) and `ground_windows.csv` (every window).
 
 ## What it measures
@@ -40,3 +42,9 @@ line of sight; aircraft at altitude hear it from hundreds. A weak or absent matc
 therefore expected and does not refute the map. A nine-month ground monitor in Gdynia
 found no correlation with ADS-B events (Inside GNSS, 2025). A clear match at some
 stations is independent physical support, not proof. Spoofing is not checked.
+
+## Result of ground check 1 (6 Nov 2026)
+
+No agreement beyond the shifted-days control (pooled ratio 1.31 against 1.10 median and
+1.39 maximum when shifted; correlation 0.03). Full table and reading:
+docs/evaluation_protocol.md, "Ground check 1: result".
