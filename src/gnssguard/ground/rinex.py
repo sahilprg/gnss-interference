@@ -28,12 +28,15 @@ def ecef_to_latlon(x: float, y: float, z: float) -> tuple[float, float]:
 
 
 def _open_text(path: Path) -> io.TextIOBase:
-    name = path.name.lower()
+    """Decompress by content, not by name: gzip, Unix compress (.Z) and Hatanaka."""
     raw = path.read_bytes()
-    if name.endswith(".gz"):
+    if raw[:2] == b"\x1f\x8b":
         raw = gzip.decompress(raw)
-        name = name[:-3]
-    if name.endswith(".crx"):  # Hatanaka-compressed RINEX 3
+    elif raw[:2] == b"\x1f\x9d":
+        import ncompress
+
+        raw = ncompress.decompress(raw)
+    if b"COMPACT RINEX" in raw[:200]:
         import hatanaka
 
         raw = hatanaka.crx2rnx(raw)

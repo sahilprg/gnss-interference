@@ -90,6 +90,7 @@ def test_fetch_takes_the_first_mirror_that_has_the_file(tmp_path):
     class R:
         def __init__(self, text="", content=b""):
             self.text, self.content = text, content
+            self.status_code, self.url = (200 if content else 404), ""
 
         def raise_for_status(self):
             pass
@@ -99,6 +100,8 @@ def test_fetch_takes_the_first_mirror_that_has_the_file(tmp_path):
 
         def get(self, url, **kw):
             self.calls.append(url)
+            if "w3id.org" in url:
+                return R(content=b"")  # no persistent id for this day
             if url.endswith(name):
                 return R(content=b"x")
             if "bkg" in url:
@@ -139,9 +142,56 @@ def test_fetch_uses_ftp_first(tmp_path):
             pass
 
     class NoHttp:
-        def get(self, *a, **k):
-            raise AssertionError("HTTPS not needed when FTP has the file")
+        def get(self, url, **k):
+            assert "w3id.org" in url, "only the persistent id is tried before FTP"
+
+            class R:
+                status_code, content, url = 404, b"", ""
+            return R()
 
     got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, NoHttp(), F)
     assert (tmp_path / "2026-11-01" / name).read_bytes() == b"data"
     assert "missing" not in got.values()
+
+
+def test_fetch_follows_the_persistent_id(tmp_path):
+    import datetime as dt
+
+    from gnssguard.ground.fetch import fetch_day
+
+    class R:
+        status_code = 200
+        content = b"\x1f\x8b" + b"x" * 2000
+        url = "https://epncb.oma.be/x/LAMA00POL_R_20263050000_01D_30S_MO.crx.gz"
+
+    class S:
+        def get(self, url, **kw):
+            assert url == "https://w3id.org/EUREF-HDC/2026/305/LAMA00POL_2026305_01D_30S_R3"
+            return R()
+
+    def no_ftp(*a, **k):
+        raise AssertionError("FTP not needed")
+
+    got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, S(), no_ftp)
+    assert got["LAMA00POL"].endswith("LAMA00POL_R_20263050000_01D_30S_MO.crx.gz")
+
+
+def test_ftp_refused_is_skipped(tmp_path):
+    import datetime as dt
+
+    from gnssguard.ground.fetch import fetch_day
+
+    class S:
+        def get(self, url, **kw):
+            class R:
+                status_code, content, url, text = 404, b"", "", ""
+
+                def raise_for_status(self):
+                    pass
+            return R()
+
+    def eof(*a, **k):
+        raise EOFError
+
+    got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, S(), eof)
+    assert got == {"LAMA00POL": "missing"}

@@ -14,9 +14,11 @@ gnssguard ground-fetch --dates 2026-10-26,2026-10-27,2026-10-28,2026-10-29,2026-
 gnssguard ground-check --dates 2026-10-26,2026-10-27,2026-10-28,2026-10-29,2026-10-30,2026-10-31,2026-11-01,2026-11-02,2026-11-03,2026-11-04
 ```
 
-The download is small (a few MB per station and day, about 60 station-days), by FTP from
-BKG first (its HTTPS downloads have been off since a June 2026 outage), and goes to
-`data/ground/<day>/`. Stations are in `configs/ground_stations.csv`; a station a data
+The download is small (a few MB per station and day, about 60 station-days). Files come
+first from the EUREF Historical Data Centre's persistent links (one HTTPS address per
+station and day, e.g. `https://w3id.org/EUREF-HDC/2026/305/LAMA00POL_2026305_01D_30S_R3`),
+then from BKG by FTP (its HTTPS downloads have been off since a June 2026 outage; skipped
+if FTP is refused), and go to `data/ground/<day>/`. Stations are in `configs/ground_stations.csv`; a station a data
 centre does not have is printed as missing. Results go to `reports/ground/`:
 `ground_check.csv` (per station and pooled) and `ground_windows.csv` (every window).
 
