@@ -132,3 +132,17 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   it most of the time. Neither support nor refutation.
 * Next for Phase 3: a ground source within line of sight of a jammer (published Baltic
   spectrum monitoring), and the second receiver network (OpenSky).
+
+## Phase 4 status (6 Nov 2026)
+
+* **Incident pages** (`gnssguard incidents`, docs/product.md): one page per catalogued
+  event, on the site under Incidents. With every event compared with ordinary days of
+  the same box (descriptive, not a test):
+  * the event day **stands out** for the spoofing events: Baltic 9 Mar 2025 (no ordinary
+    day of 48 as high), Delhi 4 Nov 2025 and Jan-Feb 2026 (none of 7), and partly the
+    Black Sea on 3 Nov 2026 (12 of 59 ordinary days as high);
+  * for the Baltic jamming events the box is flagged as much on most ordinary days (e.g.
+    3 Nov 2026: 31 of 48): the map confirms that the reported area was jammed, not that
+    the reported day was special. Jamming around Kaliningrad is routine in this data.
+* Next: a Zenodo DOI for a tagged release with CITATION.cff, and the write-up after the
+  sealed test.

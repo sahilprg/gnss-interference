@@ -1,0 +1,50 @@
+{
+ "event": {
+  "id": "EV15",
+  "type": "unknown",
+  "region": "punjab",
+  "box": [
+   29.0,
+   33.5,
+   72.0,
+   76.5
+  ],
+  "start_utc": "2025-02-01T00:00:00+00:00",
+  "end_utc": "2025-03-01T00:00:00+00:00",
+  "source_url": "https://www.icao.int/sites/default/files/APAC/Meetings/2025/2025%20DGCA60/Agenda%20Item03-Aviation%20Safety/60-IP-03-01%20GNSS%20RFI%20AND%20MITIGATION%20ACTIONS%20TAKEN%20BY%20PAKISTAN.pdf",
+  "notes": "Pakistan CAA paper to the ICAO DGCA conference (Jul-Aug 2025): GNSS RFI events peaked at 165 in February 2025, Lahore FIR among the most affected. No day or place given; adsb.lol has no Punjab data in 2025, so not checkable from this archive. Listed for the record.",
+  "evidence_level": "suspected_mechanism"
+ },
+ "days": [
+  "2025-02-01",
+  "2025-02-02",
+  "2025-02-03",
+  "2025-02-04",
+  "2025-02-05",
+  "2025-02-06",
+  "2025-02-07",
+  "2025-02-08",
+  "2025-02-09",
+  "2025-02-10",
+  "2025-02-11",
+  "2025-02-12",
+  "2025-02-13",
+  "2025-02-14",
+  "2025-02-15",
+  "2025-02-16",
+  "2025-02-17",
+  "2025-02-18",
+  "2025-02-19",
+  "2025-02-20",
+  "2025-02-21",
+  "2025-02-22",
+  "2025-02-23",
+  "2025-02-24",
+  "2025-02-25",
+  "2025-02-26",
+  "2025-02-27",
+  "2025-02-28"
+ ],
+ "days_with_data": [],
+ "status": "no data"
+}

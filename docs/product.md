@@ -157,6 +157,30 @@ Coastlines and borders are Natural Earth outlines shipped with the site.
 * **How it works:** method, test results, known limits.
 * **Data:** file formats, a code example, and the licence (ODbL, from adsb.lol).
 
+## Incident pages
+
+`gnssguard incidents` writes one static page per event of the public catalog
+(`configs/events.csv`) to `results/incidents/`, committed and copied to the site's
+`incidents/` folder by every site build. A page shows, for an outside reader who runs
+nothing:
+
+* **what was reported**: type, box, period, source, evidence level and notes;
+* **what the map saw**: model and rules against the fixed event-check rule
+  (docs/evaluation_protocol.md, "Event check 1"), a map of the box (cells by the share of
+  judged windows flagged), one timeline row per day with data, the evidence in flagged
+  cell-windows against normal ones (aircraft with low NIC, NIC 0, low NACp, MLAT only,
+  GPS-baro altitude gap, position jumps, speed mismatch) and the strongest flagged
+  cell-windows;
+* **ordinary days**: the same box and hours on every archive day of the region that
+  overlaps no catalogued event there, with the event day's share against them. This is
+  descriptive, added after the event checks were scored, not a test: it says whether
+  the day stands out or the box is like this most days;
+* **reproduce**: ingest, cells and incidents commands, model hash, cell-file hashes.
+
+Cell-level aggregates only, as on the map. Rebuild one page with `--only EV19`; pages
+not rebuilt are kept. Events with no data, or outside the study regions, get a page that
+says so.
+
 ## Setup (done once; kept for forks and rebuilds)
 
 1. Copy your trained model into the repository and push:

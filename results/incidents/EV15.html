@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EV15: unknown event, 2025-02-01</title><link rel="stylesheet" href="../style.css"><style>
+.page.incident{max-width:760px}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:2px 16px;margin:8px 0 16px}
+.facts dt{color:var(--ink-soft)}.facts dd{margin:0}
+.verdict{border-left:4px solid var(--ink);padding:8px 14px;background:var(--panel);margin:12px 0}
+.verdict.found{border-color:var(--jam)}.verdict.none{border-color:var(--low)}
+figure{margin:12px 0 20px}figure svg{width:100%;height:auto;display:block}
+figcaption{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.imap .sea{fill:var(--sea)}.imap .land{fill:var(--land)}
+.imap .coast{fill:none;stroke:#5f6c74;stroke-width:.7}
+.imap .border{fill:none;stroke:#5f6c74;stroke-width:.6;stroke-dasharray:3 2}
+.imap .cell{stroke:var(--rule);stroke-width:.4}
+.imap .evbox{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4}
+.tick{font:11px var(--body);fill:var(--ink-soft)}
+.evline{stroke:var(--jam);stroke-width:1.5}
+table.ev{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 16px}
+table.ev th,table.ev td{border-bottom:1px solid var(--rule);padding:4px 6px;text-align:left}
+table.ev td.d{white-space:nowrap}
+table.ev td.n,table.ev th.n{text-align:right;font-variant-numeric:tabular-nums}
+.wrap{overflow-x:auto}.small{font-size:13px;color:var(--ink-soft)}
+code{font-size:13px}pre{background:var(--panel);padding:10px;overflow-x:auto;font-size:13px}
+</style></head><body><header class="bar"><div class="brand"><b>GNSS interference over air traffic</b><span>Incident pages: reported events against the map</span></div><nav><a href="../index.html">Map</a><a href="../incidents/index.html" aria-current="page">Incidents</a><a href="../about.html">How it works</a><a href="../data.html">Data</a></nav></header><main class="page incident"><p class='small'><a href='index.html'>All incidents</a></p><h1>EV15: reported unknown, punjab</h1><h2>What was reported</h2><dl class='facts'><dt>Period (UTC)</dt><dd>2025-02-01 00:00 to 2025-03-01 00:00</dd><dt>Box</dt><dd>29.0–33.5°N, 72.0–76.5°E</dd><dt>Evidence</dt><dd>reported: a press or official report of an incident; the exact place and time are often approximate</dd><dt>Source</dt><dd><a href='https://www.icao.int/sites/default/files/APAC/Meetings/2025/2025%20DGCA60/Agenda%20Item03-Aviation%20Safety/60-IP-03-01%20GNSS%20RFI%20AND%20MITIGATION%20ACTIONS%20TAKEN%20BY%20PAKISTAN.pdf'>https://www.icao.int/sites/default/files/APAC/Meetings/2025/2025%20DGCA60/Agenda%20Item03-Aviation%20Safety/60-IP-03-01%20GNSS%20RFI%20AND%20MITIGATION%20ACTIONS%20TAKEN%20BY%20PAKISTAN.pdf</a></dd><dt>Notes</dt><dd>Pakistan CAA paper to the ICAO DGCA conference (Jul-Aug 2025): GNSS RFI events peaked at 165 in February 2025, Lahore FIR among the most affected. No day or place given; adsb.lol has no Punjab data in 2025, so not checkable from this archive. Listed for the record.</dd></dl><div class='verdict none'><b>No data.</b> No cell files for 2025-02-01, 2025-02-02, 2025-02-03 … in this region.</div><h2>Reproduce</h2><pre>gnssguard ingest --date 2025-02-01 --regions punjab
+gnssguard cells --dates 2025-02-01
+gnssguard incidents --events configs/events.csv --only EV15</pre><p class='small'>Event row: <code>configs/events.csv</code>, EV15. Code and data handling: <a href='https://github.com/sahilprg/gnss-interference'>https://github.com/sahilprg/gnss-interference</a>. Cell-level aggregates only; no aircraft identifiers.</p><p class='small'><b>Research output. Not for navigation, flight planning or any operational decision. Not an attribution of interference to any party.</b> A reported event is not established by this page: the box and times in the catalog are often approximate, and a flag says aircraft reported degraded or inconsistent positions, not who or what caused it.</p></main></body></html>

@@ -1,0 +1,641 @@
+{
+ "event": {
+  "id": "EV02",
+  "type": "jamming",
+  "region": "baltic",
+  "box": [
+   57.9,
+   58.9,
+   26.0,
+   27.5
+  ],
+  "start_utc": "2024-04-25T00:00:00+00:00",
+  "end_utc": "2024-04-26T00:00:00+00:00",
+  "source_url": "https://thenationalnews.com/news/europe/2024/04/30/finnair-suspends-flights-to-estonian-city-due-to-russian-gps-jamming",
+  "notes": "Two Finnair Helsinki-Tartu flights turned back because the GPS-based approach to Tartu was unusable; Finnair suspended the route 29 Apr-31 May 2024. Article of 30 Apr says 'last Thursday': date 25 Apr inferred. Box: Tartu approach area.",
+  "evidence_level": "suspected_mechanism"
+ },
+ "days": [
+  "2024-04-25"
+ ],
+ "days_with_data": [
+  "2024-04-25"
+ ],
+ "check": {
+  "model": {
+   "judged": 0,
+   "matching": 0,
+   "share": null,
+   "verdict": "too few cells"
+  },
+  "rules": {
+   "judged": 0,
+   "matching": 0,
+   "share": null,
+   "verdict": "too few cells"
+  }
+ },
+ "status": "too few cells",
+ "map": [
+  {
+   "lat": 56.0,
+   "lon": 25.0,
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 26.0,
+   "judged": 4,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 27.0,
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 28.0,
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 59.0,
+   "lon": 25.0,
+   "judged": 5,
+   "jamming": 2,
+   "spoofing": 0
+  }
+ ],
+ "timeline": [
+  {
+   "window": "2024-04-25T00:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T00:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T00:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T06:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T06:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T07:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T07:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T08:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T08:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T08:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T08:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T09:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T09:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T09:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T10:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T10:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T10:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T11:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T11:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T11:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T11:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T13:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T13:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T13:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T13:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T14:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T15:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T19:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T19:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T21:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T22:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-04-25T23:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  }
+ ],
+ "evidence": [
+  {
+   "what": "degraded position integrity (low NIC)",
+   "flagged": null,
+   "normal": null
+  },
+  {
+   "what": "NIC 0 (no integrity at all)",
+   "flagged": null,
+   "normal": null
+  },
+  {
+   "what": "low position accuracy (NACp)",
+   "flagged": null,
+   "normal": null
+  },
+  {
+   "what": "positions only from ground multilateration",
+   "flagged": null,
+   "normal": null
+  },
+  {
+   "what": "GPS altitude far from barometric altitude",
+   "flagged": null,
+   "normal": null
+  },
+  {
+   "what": "position jumps",
+   "flagged": null,
+   "normal": null
+  },
+  {
+   "what": "position change not matching reported speed",
+   "flagged": null,
+   "normal": null
+  }
+ ],
+ "evidence_n": {
+  "flagged": 0,
+  "normal": 0,
+  "usable_aircraft_flagged": null,
+  "usable_aircraft_normal": null
+ },
+ "top_cells": [],
+ "ordinary_days": {
+  "days": 50,
+  "dates": [
+   "2025-11-04",
+   "2026-11-04"
+  ],
+  "training_days": 26
+ },
+ "ordinary_series": [
+  {
+   "date": "2025-11-04",
+   "share": 1.0,
+   "judged": 2
+  },
+  {
+   "date": "2026-09-15",
+   "share": 1.0,
+   "judged": 13
+  },
+  {
+   "date": "2026-09-16",
+   "share": 1.0,
+   "judged": 19
+  },
+  {
+   "date": "2026-09-17",
+   "share": 0.9545,
+   "judged": 22
+  },
+  {
+   "date": "2026-09-18",
+   "share": 1.0,
+   "judged": 17
+  },
+  {
+   "date": "2026-09-19",
+   "share": 1.0,
+   "judged": 19
+  },
+  {
+   "date": "2026-09-20",
+   "share": 1.0,
+   "judged": 23
+  },
+  {
+   "date": "2026-09-21",
+   "share": 1.0,
+   "judged": 27
+  },
+  {
+   "date": "2026-09-22",
+   "share": 1.0,
+   "judged": 14
+  },
+  {
+   "date": "2026-09-23",
+   "share": 1.0,
+   "judged": 21
+  },
+  {
+   "date": "2026-09-24",
+   "share": 1.0,
+   "judged": 23
+  },
+  {
+   "date": "2026-09-25",
+   "share": 1.0,
+   "judged": 21
+  },
+  {
+   "date": "2026-09-26",
+   "share": 1.0,
+   "judged": 16
+  },
+  {
+   "date": "2026-09-27",
+   "share": 1.0,
+   "judged": 21
+  },
+  {
+   "date": "2026-09-28",
+   "share": 1.0,
+   "judged": 23
+  },
+  {
+   "date": "2026-09-29",
+   "share": 1.0,
+   "judged": 19
+  },
+  {
+   "date": "2026-09-30",
+   "share": 1.0,
+   "judged": 27
+  },
+  {
+   "date": "2026-10-01",
+   "share": 1.0,
+   "judged": 29
+  },
+  {
+   "date": "2026-10-02",
+   "share": 0.9524,
+   "judged": 21
+  },
+  {
+   "date": "2026-10-03",
+   "share": 1.0,
+   "judged": 16
+  },
+  {
+   "date": "2026-10-04",
+   "share": 0.9565,
+   "judged": 23
+  },
+  {
+   "date": "2026-10-05",
+   "share": 1.0,
+   "judged": 15
+  },
+  {
+   "date": "2026-10-06",
+   "share": 1.0,
+   "judged": 19
+  },
+  {
+   "date": "2026-10-07",
+   "share": 1.0,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-08",
+   "share": 1.0,
+   "judged": 18
+  },
+  {
+   "date": "2026-10-09",
+   "share": 1.0,
+   "judged": 25
+  },
+  {
+   "date": "2026-10-10",
+   "share": 1.0,
+   "judged": 27
+  },
+  {
+   "date": "2026-10-11",
+   "share": 1.0,
+   "judged": 23
+  },
+  {
+   "date": "2026-10-12",
+   "share": 1.0,
+   "judged": 22
+  },
+  {
+   "date": "2026-10-13",
+   "share": 1.0,
+   "judged": 17
+  },
+  {
+   "date": "2026-10-14",
+   "share": 1.0,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-15",
+   "share": 1.0,
+   "judged": 19
+  },
+  {
+   "date": "2026-10-16",
+   "share": 1.0,
+   "judged": 17
+  },
+  {
+   "date": "2026-10-17",
+   "share": 0.8636,
+   "judged": 22
+  },
+  {
+   "date": "2026-10-18",
+   "share": 1.0,
+   "judged": 18
+  },
+  {
+   "date": "2026-10-19",
+   "share": 1.0,
+   "judged": 24
+  },
+  {
+   "date": "2026-10-20",
+   "share": 1.0,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-21",
+   "share": 1.0,
+   "judged": 16
+  },
+  {
+   "date": "2026-10-22",
+   "share": 1.0,
+   "judged": 22
+  },
+  {
+   "date": "2026-10-23",
+   "share": 1.0,
+   "judged": 25
+  },
+  {
+   "date": "2026-10-24",
+   "share": 0.95,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-25",
+   "share": 0.9286,
+   "judged": 14
+  },
+  {
+   "date": "2026-10-26",
+   "share": 1.0,
+   "judged": 19
+  },
+  {
+   "date": "2026-10-27",
+   "share": 0.9412,
+   "judged": 17
+  },
+  {
+   "date": "2026-10-28",
+   "share": 1.0,
+   "judged": 7
+  },
+  {
+   "date": "2026-10-29",
+   "share": 1.0,
+   "judged": 18
+  },
+  {
+   "date": "2026-10-31",
+   "share": 1.0,
+   "judged": 12
+  },
+  {
+   "date": "2026-11-01",
+   "share": 0.9091,
+   "judged": 11
+  },
+  {
+   "date": "2026-11-02",
+   "share": 1.0,
+   "judged": 20
+  },
+  {
+   "date": "2026-11-04",
+   "share": 0.9524,
+   "judged": 21
+  }
+ ],
+ "reading": "Too few aircraft in the box over the period for a judgement: the map can say nothing about this event.",
+ "provenance": {
+  "model_hash": "a1d3d152259c",
+  "model_train_dates": [
+   "2026-09-29",
+   "2026-09-30",
+   "2026-10-01",
+   "2026-10-02",
+   "2026-10-03",
+   "2026-10-04",
+   "2026-10-05",
+   "2026-10-06",
+   "2026-10-07",
+   "2026-10-08",
+   "2026-10-09",
+   "2026-10-10",
+   "2026-10-11",
+   "2026-10-12",
+   "2026-10-13",
+   "2026-10-14",
+   "2026-10-15",
+   "2026-10-16",
+   "2026-10-17",
+   "2026-10-18",
+   "2026-10-19",
+   "2026-10-20",
+   "2026-10-21",
+   "2026-10-22",
+   "2026-10-23",
+   "2026-10-24"
+  ],
+  "cell_files": {
+   "2024-04-25": "90bd0a4e95cb"
+  }
+ }
+}

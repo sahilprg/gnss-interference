@@ -571,6 +571,21 @@ def cmd_event_check(args) -> int:
     return 0
 
 
+def cmd_incidents(args) -> int:
+    from gnssguard.product.incident import build
+
+    only = args.only.split(",") if args.only else None
+    pages = build(args.cells, args.model or _default_model(), args.events, args.out, only)
+    for pg in pages:
+        ch = pg.get("check", {}).get("model", {})
+        base = pg.get("ordinary_days") or {}
+        extra = (f"  ordinary days as high: {base['days_at_or_above_event']} of {base['days']}"
+                 if base.get("days") and ch.get("share") is not None else "")
+        print(f"{pg['event']['id']}  {pg['status']:<14} share {ch.get('share')}{extra}")
+    print(f"\npages: {args.out}/index.html")
+    return 0
+
+
 def pd_options():
     import pandas as pd
 
@@ -774,6 +789,14 @@ def main(argv: list[str] | None = None) -> int:
     pe.add_argument("--events", default="configs/events.csv")
     pe.add_argument("--report", default="reports/events")
     pe.set_defaults(func=cmd_event_check)
+
+    pi = sub.add_parser("incidents", help="one page per catalogued event: report vs map")
+    pi.add_argument("--cells", default="data/cells")
+    pi.add_argument("--model", help="model folder (default: models/detector if present)")
+    pi.add_argument("--events", default="configs/events.csv")
+    pi.add_argument("--out", default="results/incidents")
+    pi.add_argument("--only", help="event ids to rebuild (comma-separated); others are kept")
+    pi.set_defaults(func=cmd_incidents)
 
     ph = sub.add_parser("holdout-sample", help="blind stratified sample of a fresh day")
     ph.add_argument("--date", required=True)

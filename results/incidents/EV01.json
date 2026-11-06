@@ -1,0 +1,1239 @@
+{
+ "event": {
+  "id": "EV01",
+  "type": "jamming",
+  "region": "baltic",
+  "box": [
+   54.0,
+   56.0,
+   18.0,
+   23.0
+  ],
+  "start_utc": "2024-03-13T00:00:00+00:00",
+  "end_utc": "2024-03-14T00:00:00+00:00",
+  "source_url": "https://www.twz.com/news-features/gps-jamming-of-u-k-defense-secretarys-jet-highlights-russias-regional-ew-activities",
+  "notes": "RAF jet carrying the UK defence secretary: about 30 min of GPS jamming near Kaliningrad on the flight back from Orzysz, Poland, plus a shorter episode that morning. Confirmed by the UK Prime Minister's spokesperson. Exact position and time not public: box and whole day are approximate.",
+  "evidence_level": "suspected_mechanism"
+ },
+ "days": [
+  "2024-03-13"
+ ],
+ "days_with_data": [
+  "2024-03-13"
+ ],
+ "check": {
+  "model": {
+   "judged": 48,
+   "matching": 6,
+   "share": 0.125,
+   "verdict": "found"
+  },
+  "rules": {
+   "judged": 48,
+   "matching": 6,
+   "share": 0.125,
+   "verdict": "found"
+  }
+ },
+ "status": "found",
+ "map": [
+  {
+   "lat": 53.0,
+   "lon": 18.0,
+   "judged": 22,
+   "jamming": 9,
+   "spoofing": 0
+  },
+  {
+   "lat": 53.0,
+   "lon": 19.0,
+   "judged": 7,
+   "jamming": 5,
+   "spoofing": 0
+  },
+  {
+   "lat": 53.0,
+   "lon": 20.0,
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 53.0,
+   "lon": 21.0,
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 53.0,
+   "lon": 22.0,
+   "judged": 27,
+   "jamming": 15,
+   "spoofing": 0
+  },
+  {
+   "lat": 53.0,
+   "lon": 23.0,
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 54.0,
+   "lon": 18.0,
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 54.0,
+   "lon": 20.0,
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 54.0,
+   "lon": 22.0,
+   "judged": 23,
+   "jamming": 5,
+   "spoofing": 0
+  },
+  {
+   "lat": 54.0,
+   "lon": 23.0,
+   "judged": 49,
+   "jamming": 4,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 20.0,
+   "judged": 16,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 21.0,
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 22.0,
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 23.0,
+   "judged": 24,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 18.0,
+   "judged": 29,
+   "jamming": 7,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 19.0,
+   "judged": 37,
+   "jamming": 8,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 20.0,
+   "judged": 21,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 21.0,
+   "judged": 12,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 22.0,
+   "judged": 7,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 23.0,
+   "judged": 18,
+   "jamming": 0,
+   "spoofing": 0
+  }
+ ],
+ "timeline": [
+  {
+   "window": "2024-03-13T00:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T00:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T00:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T01:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T01:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T02:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T02:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T03:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T03:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T04:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T04:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T04:30:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T04:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T05:00:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T05:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T05:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T05:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T06:00:00+00:00",
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2024-03-13T06:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T06:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T06:45:00+00:00",
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2024-03-13T07:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T07:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T07:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T07:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T08:00:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T08:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T08:30:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T08:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T09:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T09:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T09:30:00+00:00",
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T09:45:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T10:00:00+00:00",
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T10:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T10:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T10:45:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T11:00:00+00:00",
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T11:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T11:30:00+00:00",
+   "judged": 2,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2024-03-13T11:45:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T12:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T12:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T12:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T12:45:00+00:00",
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T13:00:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T13:15:00+00:00",
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T13:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T13:45:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T14:00:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T14:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T14:30:00+00:00",
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2024-03-13T14:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T15:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T15:15:00+00:00",
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T15:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T15:45:00+00:00",
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T16:00:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T16:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T16:30:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T16:45:00+00:00",
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T17:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T17:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T17:30:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T17:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T18:00:00+00:00",
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2024-03-13T18:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T18:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T18:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T19:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T19:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T19:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T19:45:00+00:00",
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2024-03-13T20:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T20:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T20:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T20:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T21:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T21:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T21:30:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T21:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T22:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T22:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T22:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T23:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T23:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T23:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2024-03-13T23:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  }
+ ],
+ "evidence": [
+  {
+   "what": "degraded position integrity (low NIC)",
+   "flagged": 2.17,
+   "normal": 0.4
+  },
+  {
+   "what": "NIC 0 (no integrity at all)",
+   "flagged": 1.33,
+   "normal": 0.21
+  },
+  {
+   "what": "low position accuracy (NACp)",
+   "flagged": 0.67,
+   "normal": 0.21
+  },
+  {
+   "what": "positions only from ground multilateration",
+   "flagged": 0.0,
+   "normal": 0.0
+  },
+  {
+   "what": "GPS altitude far from barometric altitude",
+   "flagged": 0.0,
+   "normal": 0.0
+  },
+  {
+   "what": "position jumps",
+   "flagged": 0.0,
+   "normal": 0.05
+  },
+  {
+   "what": "position change not matching reported speed",
+   "flagged": 0.0,
+   "normal": 0.07
+  }
+ ],
+ "evidence_n": {
+  "flagged": 6,
+  "normal": 42,
+  "usable_aircraft_flagged": 3.17,
+  "usable_aircraft_normal": 3.43
+ },
+ "top_cells": [
+  {
+   "window": "2024-03-13T06:00:00+00:00",
+   "cell": [
+    54.0,
+    22.0
+   ],
+   "usable_aircraft": 3,
+   "degraded": 2,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 1.0,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  },
+  {
+   "window": "2024-03-13T19:45:00+00:00",
+   "cell": [
+    54.0,
+    22.0
+   ],
+   "usable_aircraft": 3,
+   "degraded": 2,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 1.0,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  },
+  {
+   "window": "2024-03-13T11:30:00+00:00",
+   "cell": [
+    54.0,
+    22.0
+   ],
+   "usable_aircraft": 3,
+   "degraded": 2,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 0.999,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  },
+  {
+   "window": "2024-03-13T14:30:00+00:00",
+   "cell": [
+    54.0,
+    22.0
+   ],
+   "usable_aircraft": 4,
+   "degraded": 2,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 0.999,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  },
+  {
+   "window": "2024-03-13T06:45:00+00:00",
+   "cell": [
+    54.0,
+    22.0
+   ],
+   "usable_aircraft": 3,
+   "degraded": 3,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 0.998,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  },
+  {
+   "window": "2024-03-13T18:00:00+00:00",
+   "cell": [
+    55.0,
+    20.0
+   ],
+   "usable_aircraft": 3,
+   "degraded": 2,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 0.996,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  }
+ ],
+ "ordinary_days": {
+  "days": 51,
+  "dates": [
+   "2025-11-04",
+   "2026-11-04"
+  ],
+  "median_share": 0.939,
+  "p90_share": 0.977,
+  "max_share": 1.0,
+  "days_at_or_above_event": 51,
+  "days_with_matching_cells": 51,
+  "training_days": 26
+ },
+ "ordinary_series": [
+  {
+   "date": "2025-11-04",
+   "share": 0.1429,
+   "judged": 91
+  },
+  {
+   "date": "2026-09-15",
+   "share": 0.9862,
+   "judged": 145
+  },
+  {
+   "date": "2026-09-16",
+   "share": 0.9739,
+   "judged": 115
+  },
+  {
+   "date": "2026-09-17",
+   "share": 0.9586,
+   "judged": 145
+  },
+  {
+   "date": "2026-09-18",
+   "share": 0.976,
+   "judged": 125
+  },
+  {
+   "date": "2026-09-19",
+   "share": 0.9571,
+   "judged": 140
+  },
+  {
+   "date": "2026-09-20",
+   "share": 0.9392,
+   "judged": 148
+  },
+  {
+   "date": "2026-09-21",
+   "share": 0.9771,
+   "judged": 131
+  },
+  {
+   "date": "2026-09-22",
+   "share": 0.9352,
+   "judged": 108
+  },
+  {
+   "date": "2026-09-23",
+   "share": 0.9565,
+   "judged": 138
+  },
+  {
+   "date": "2026-09-24",
+   "share": 0.9481,
+   "judged": 135
+  },
+  {
+   "date": "2026-09-25",
+   "share": 0.9154,
+   "judged": 130
+  },
+  {
+   "date": "2026-09-26",
+   "share": 0.9268,
+   "judged": 123
+  },
+  {
+   "date": "2026-09-27",
+   "share": 0.9615,
+   "judged": 156
+  },
+  {
+   "date": "2026-09-28",
+   "share": 0.9286,
+   "judged": 126
+  },
+  {
+   "date": "2026-09-29",
+   "share": 0.9161,
+   "judged": 155
+  },
+  {
+   "date": "2026-09-30",
+   "share": 0.9098,
+   "judged": 122
+  },
+  {
+   "date": "2026-10-01",
+   "share": 0.916,
+   "judged": 131
+  },
+  {
+   "date": "2026-10-02",
+   "share": 0.9222,
+   "judged": 167
+  },
+  {
+   "date": "2026-10-03",
+   "share": 0.963,
+   "judged": 135
+  },
+  {
+   "date": "2026-10-04",
+   "share": 0.9627,
+   "judged": 134
+  },
+  {
+   "date": "2026-10-05",
+   "share": 0.985,
+   "judged": 133
+  },
+  {
+   "date": "2026-10-06",
+   "share": 0.9609,
+   "judged": 128
+  },
+  {
+   "date": "2026-10-07",
+   "share": 0.9147,
+   "judged": 129
+  },
+  {
+   "date": "2026-10-08",
+   "share": 0.9357,
+   "judged": 140
+  },
+  {
+   "date": "2026-10-09",
+   "share": 0.9448,
+   "judged": 145
+  },
+  {
+   "date": "2026-10-10",
+   "share": 0.9767,
+   "judged": 129
+  },
+  {
+   "date": "2026-10-11",
+   "share": 0.874,
+   "judged": 127
+  },
+  {
+   "date": "2026-10-12",
+   "share": 0.8361,
+   "judged": 122
+  },
+  {
+   "date": "2026-10-13",
+   "share": 0.9358,
+   "judged": 109
+  },
+  {
+   "date": "2026-10-14",
+   "share": 0.9262,
+   "judged": 122
+  },
+  {
+   "date": "2026-10-15",
+   "share": 0.9455,
+   "judged": 110
+  },
+  {
+   "date": "2026-10-16",
+   "share": 1.0,
+   "judged": 108
+  },
+  {
+   "date": "2026-10-17",
+   "share": 0.9068,
+   "judged": 118
+  },
+  {
+   "date": "2026-10-18",
+   "share": 0.8684,
+   "judged": 114
+  },
+  {
+   "date": "2026-10-19",
+   "share": 0.9508,
+   "judged": 122
+  },
+  {
+   "date": "2026-10-20",
+   "share": 0.9421,
+   "judged": 121
+  },
+  {
+   "date": "2026-10-21",
+   "share": 0.9528,
+   "judged": 106
+  },
+  {
+   "date": "2026-10-22",
+   "share": 0.9587,
+   "judged": 121
+  },
+  {
+   "date": "2026-10-23",
+   "share": 0.9924,
+   "judged": 131
+  },
+  {
+   "date": "2026-10-24",
+   "share": 0.9237,
+   "judged": 118
+  },
+  {
+   "date": "2026-10-25",
+   "share": 0.8655,
+   "judged": 119
+  },
+  {
+   "date": "2026-10-26",
+   "share": 0.9266,
+   "judged": 109
+  },
+  {
+   "date": "2026-10-27",
+   "share": 0.9885,
+   "judged": 87
+  },
+  {
+   "date": "2026-10-28",
+   "share": 0.7831,
+   "judged": 83
+  },
+  {
+   "date": "2026-10-29",
+   "share": 0.9519,
+   "judged": 104
+  },
+  {
+   "date": "2026-10-30",
+   "share": 0.7349,
+   "judged": 83
+  },
+  {
+   "date": "2026-10-31",
+   "share": 0.9571,
+   "judged": 70
+  },
+  {
+   "date": "2026-11-01",
+   "share": 0.9103,
+   "judged": 78
+  },
+  {
+   "date": "2026-11-02",
+   "share": 0.8911,
+   "judged": 101
+  },
+  {
+   "date": "2026-11-04",
+   "share": 0.9014,
+   "judged": 71
+  }
+ ],
+ "reading": "The map flags 6 of 48 judged cell-windows in the reported box and period (12%) with interference of the reported type. But 51 of 51 ordinary days reach the same share in this box (median 94%): interference here is routine, so the map shows that the box was affected, not that this day was special.",
+ "provenance": {
+  "model_hash": "a1d3d152259c",
+  "model_train_dates": [
+   "2026-09-29",
+   "2026-09-30",
+   "2026-10-01",
+   "2026-10-02",
+   "2026-10-03",
+   "2026-10-04",
+   "2026-10-05",
+   "2026-10-06",
+   "2026-10-07",
+   "2026-10-08",
+   "2026-10-09",
+   "2026-10-10",
+   "2026-10-11",
+   "2026-10-12",
+   "2026-10-13",
+   "2026-10-14",
+   "2026-10-15",
+   "2026-10-16",
+   "2026-10-17",
+   "2026-10-18",
+   "2026-10-19",
+   "2026-10-20",
+   "2026-10-21",
+   "2026-10-22",
+   "2026-10-23",
+   "2026-10-24"
+  ],
+  "cell_files": {
+   "2024-03-13": "7a35b24607d2"
+  }
+ }
+}

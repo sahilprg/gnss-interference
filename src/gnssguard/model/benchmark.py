@@ -184,7 +184,9 @@ def summary_md(doc: dict) -> str:
              f"* Model hash {p['model_hash']}, trained {p['model_train_dates'][0]} to "
              f"{p['model_train_dates'][1]}",
              "* Inputs (sha256, 12 characters): " + ", ".join(
-                 f"`{k}` {v}" for k, v in p["inputs"].items()), ""]
+                 f"`{k}` {v}" for k, v in p["inputs"].items()),
+             "* Incident pages, one per catalogued event (`gnssguard incidents`, not part of "
+             "this run): `results/incidents/`", ""]
 
     def status(name):
         s = r.get(name, {})

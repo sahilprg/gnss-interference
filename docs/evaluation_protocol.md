@@ -739,3 +739,11 @@ of sight, rarely see a drop, so the two series cannot line up in time. It also g
 support. A useful ground test needs a receiver within line of sight of a known jammer
 (e.g. published spectrum-monitoring data from Estonia or Lithuania, catalog events with
 ground evidence) or a second receiver network (Phase 3 step 1).
+
+## Note: ordinary-day comparison on the incident pages (6 Nov 2026)
+
+The incident pages (docs/product.md) compare each event day with ordinary days of the
+same box. This comparison was added after event checks 1 and 2 were scored and is
+descriptive only: it changes no verdict and is not used to claim detection. If it is
+ever used as a test (e.g. "the event day is above the 90th percentile of ordinary days"),
+that will be declared here first and scored on events added after the declaration.

@@ -1,0 +1,23 @@
+{
+ "event": {
+  "id": "EV12",
+  "type": "jamming",
+  "region": "",
+  "box": [
+   41.6,
+   42.6,
+   24.2,
+   25.4
+  ],
+  "start_utc": "2025-08-31T00:00:00+00:00",
+  "end_utc": "2025-09-01T00:00:00+00:00",
+  "source_url": "https://www.aljazeera.com/amp/news/2025/9/1/russia-suspected-of-jamming-navigation-on-eu-leaders-plane-above-bulgaria",
+  "notes": "Aircraft carrying the European Commission President lost GPS on approach to Plovdiv, Bulgaria; stated by the Bulgarian government. Outside the study regions: listed, not checked.",
+  "evidence_level": "suspected_mechanism"
+ },
+ "days": [
+  "2025-08-31"
+ ],
+ "days_with_data": [],
+ "status": "not checked (outside the study regions)"
+}
