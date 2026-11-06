@@ -24,6 +24,9 @@ hash of every input):
   0.1% of judged cells; flags in the hotspot regions were right 26 of 26 times.
 * **Hand-labeled test days never used for any decision:** 92% agreement over the whole
   day (1 Nov), and flags from cells with only 1-2 aircraft right 47 of 47 times.
+* **Against a simple baseline** (degraded-NIC share, set to about the same calm-region
+  alarm rate): the model finds 86% of hand-labeled interference against 76%, and 56 of
+  80 spoofing cells against none (development sets; the sealed test decides).
 * **Scores, as checked by a reviewer:** cells scored below 0.1 were interference 10% of
   the time, 0.1-0.9 60%, 0.9 or more 92% (shown on the map).
 

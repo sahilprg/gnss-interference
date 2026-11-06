@@ -73,3 +73,29 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   threshold is pre-declared as question 5 of the sealed test.
 * **Blind relabel** (5 Nov, substitute for a second annotator): 39 of 39 decisions
   matched on interference or not, 38 of 39 on the exact label (kappa 0.96).
+
+## Phase 2 status (6 Nov 2026)
+
+* **Full re-ingest done** (15 Sep-4 Nov 2026, 51 days, about 196 GB streamed, no errors):
+  every stored day is in point format points/2 with the air-data fields.
+* **First exploration: air data vs GNSS velocity** (`scripts/air_data_check.py`, no
+  decision). On 26 Oct, 1 and 3 Nov (5 regions) and Delhi on 15 Jan 2026:
+  * readsb drops implausible winds, so the wind-consistency residual stays low
+    everywhere (median 5-12 kt), including in spoofing cells;
+  * a heading-track gap over 45 degrees is rare: 119 of 184,817 aircraft-cell-windows,
+    mostly at NIC 0, where it repeats the jamming evidence;
+  * the spoofing found on these days (Delhi, Punjab, East Med) is **position
+    spoofing**: speed mismatches and position jumps with normal NIC and a velocity that
+    still matches the heading. Velocity spoofing, which the air-data checks would catch,
+    is not seen on these days.
+  * So the wind and heading checks are kept as evidence for the incident pages, not as
+    model features for now. The spoofing features that fit what is observed are
+    position-based (plan, Phase 2 step 3): many aircraft converging on one point,
+    circles and loops, a change in one aircraft's GPS-minus-baro offset, and
+    jam-then-spoof sequences.
+* **Baseline fixed for the gate** (evaluation protocol): integrity-only rule (share of
+  aircraft with degraded NIC), set to the model's calm-region alarm rate. Development
+  check on 533 hand-labeled cells: model 86% of interference found, baseline 76%;
+  spoofing 56 of 80 against 0. The sealed test (after 19 Nov) decides the Phase 2 gate.
+* Next: position-spoofing features (convergence on one point, circles, GPS-minus-baro
+  change per aircraft), tested by a protocol round before the sealed test.

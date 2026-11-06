@@ -628,3 +628,33 @@ inconsistency is in deciding at all: 12 cells moved between a decision and "unsu
 Unsure cells are already kept out of every result, so the earlier results stand as
 they are. This is the same person twice, not a second annotator: it shows the labels are
 reproducible, not that someone else would read the evidence the same way.
+
+## Baseline for the Phase 2 gate (declared 6 Nov 2026, before the sealed test is drawn)
+
+The plan's Phase 2 gate: the model must beat the integrity-only baseline on the sealed
+test at a fixed false-alert rate. Fixed now:
+
+* **Baseline:** a cell-window with 3+ usable aircraft is interference if the share of
+  them with degraded NIC is at least s. s is the loosest multiple of 0.05 whose flagged
+  share in calm Central Europe over the model's training days (29 Sep-24 Oct) is not
+  above the model's: s = 0.30 (0.30% against the model's 0.56%); also reported with the
+  next looser s = 0.25 (0.65%), which raises slightly more calm alarms than the model.
+* **Added to the sealed test as question 6:** recall of interference and false-alarm
+  share for model, rules and both baselines, day-weighted, with day-clustered
+  intervals; and spoofing found. "Beats the baseline" means a higher recall than the
+  s = 0.25 baseline with a false-alarm share not higher by more than 2 points.
+
+**Development check (6 Nov, not the gate):** `scripts/baseline_check.py` on the four
+hand-labeled sets so far (533 decided cells with 3+ aircraft, stratified samples):
+
+| Predictor | Calm alarms, training days | Interference found | False alarms | Spoofing found |
+| --- | --- | --- | --- | --- |
+| Model | 0.56% | 255/295 (86%; 82-90%) | 12/238 (5%) | 56/80 |
+| Rules | | 247/295 (84%; 79-88%) | 8/238 (3%) | 48/80 |
+| Integrity-only, s = 0.25 | 0.65% | 225/295 (76%; 71-81%) | 4/238 (2%) | 0/80 |
+| Integrity-only, s = 0.30 | 0.30% | 208/295 (71%; 65-75%) | 2/238 (1%) | 0/80 |
+
+At about the same calm-region alarm rate, the model finds 10 points more of what the
+labeler called interference, and spoofing the integrity rule cannot see at all, at the
+cost of a few more false alarms on these hard samples. Some of these sets informed
+earlier decisions (the 26 Oct gold set most), so the sealed test decides.
