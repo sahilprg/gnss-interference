@@ -105,6 +105,43 @@ def test_fetch_takes_the_first_mirror_that_has_the_file(tmp_path):
                 return R(text="<a>nothing here</a>")
             return R(text=f'<a href="{name}">{name}</a>')
 
-    got = fetch_day(["LAMA00POL", "XXXX00POL"], dt.date(2026, 11, 1), tmp_path, S())
+    def no_ftp(*a, **k):
+        raise OSError("offline")
+
+    got = fetch_day(["LAMA00POL", "XXXX00POL"], dt.date(2026, 11, 1), tmp_path, S(), no_ftp)
     assert got["XXXX00POL"] == "missing" and got["LAMA00POL"].endswith(name)
     assert (tmp_path / "2026-11-01" / name).read_bytes() == b"x"
+
+
+def test_fetch_uses_ftp_first(tmp_path):
+    import datetime as dt
+
+    from gnssguard.ground.fetch import fetch_day
+
+    name = "LAMA00POL_R_20263050000_01D_30S_MO.crx.gz"
+
+    class F:
+        def __init__(self, host, timeout):
+            assert host == "igs-ftp.bkg.bund.de"
+
+        def login(self):
+            pass
+
+        def nlst(self, d):
+            assert d == "/EUREF/obs/2026/305/"
+            return [d + name, d + "OTHR00XXX_R_20263050000_01D_30S_MO.crx.gz"]
+
+        def retrbinary(self, cmd, write):
+            assert cmd.endswith(name)
+            write(b"data")
+
+        def quit(self):
+            pass
+
+    class NoHttp:
+        def get(self, *a, **k):
+            raise AssertionError("HTTPS not needed when FTP has the file")
+
+    got = fetch_day(["LAMA00POL"], dt.date(2026, 11, 1), tmp_path, NoHttp(), F)
+    assert (tmp_path / "2026-11-01" / name).read_bytes() == b"data"
+    assert "missing" not in got.values()
