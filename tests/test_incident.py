@@ -33,7 +33,7 @@ def day_cells(date, jam_share):
 class FakeScored:
     def __init__(self, tmp_path, days):
         self.days, self.model_dir = days, tmp_path
-        (tmp_path / "m.txt").write_text("model")
+        (tmp_path / "m.txt").write_text("model", encoding="utf-8")
         self.det = SimpleNamespace(meta={"train_dates": ["2026-10-01"]})
 
     def available(self, region):
@@ -48,7 +48,7 @@ class FakeScored:
 
 def test_event_day_against_ordinary_days(tmp_path):
     f = tmp_path / "events.csv"
-    f.write_text(EVENTS)
+    f.write_text(EVENTS, encoding="utf-8")
     events = load_events(f)
     days = {"2026-11-03": day_cells("2026-11-03", 0.8),
             "2026-11-05": day_cells("2026-11-05", 0.9),  # another event: left out
@@ -68,7 +68,7 @@ def test_event_day_against_ordinary_days(tmp_path):
 
 def test_routine_box_is_said_so(tmp_path):
     f = tmp_path / "events.csv"
-    f.write_text(EVENTS)
+    f.write_text(EVENTS, encoding="utf-8")
     events = load_events(f)
     days = {"2026-11-03": day_cells("2026-11-03", 0.5),
             **{f"2026-10-{d:02d}": day_cells(f"2026-10-{d:02d}", 0.6) for d in range(1, 6)}}
@@ -78,7 +78,7 @@ def test_routine_box_is_said_so(tmp_path):
 
 def test_no_data_page(tmp_path):
     f = tmp_path / "events.csv"
-    f.write_text(EVENTS)
+    f.write_text(EVENTS, encoding="utf-8")
     events = load_events(f)
     p = incident(FakeScored(tmp_path, {}), next(events.itertuples(index=False)), events)
     assert p["status"] == "no data" and "No cell files" in page(p)
@@ -89,8 +89,9 @@ def test_site_copies_incident_pages(tmp_path):
 
     inc = tmp_path / "inc"
     inc.mkdir()
-    (inc / "index.html").write_text("<html>incidents</html>")
-    (inc / "EV01.json").write_text("{}")
+    (inc / "index.html").write_text("<html>incidents</html>", encoding="utf-8")
+    (inc / "EV01.json").write_text("{}", encoding="utf-8")
     out = build_site(tmp_path / "site", regions=["baltic"], incidents=inc)
-    assert (out / "incidents" / "index.html").read_text() == "<html>incidents</html>"
-    assert 'href="incidents/index.html"' in (out / "index.html").read_text()
+    copied = (out / "incidents" / "index.html").read_text(encoding="utf-8")
+    assert copied == "<html>incidents</html>"
+    assert 'href="incidents/index.html"' in (out / "index.html").read_text(encoding="utf-8")
