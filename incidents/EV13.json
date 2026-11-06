@@ -973,13 +973,13 @@
   }
  ],
  "ordinary_days": {
-  "days": 5,
+  "days": 7,
   "dates": [
    "2024-03-13",
-   "2025-09-24"
+   "2026-06-05"
   ],
   "median_share": 0.0,
-  "p90_share": 0.008,
+  "p90_share": 0.007,
   "max_share": 0.01,
   "days_at_or_above_event": 0,
   "days_with_matching_cells": 0,
@@ -1010,9 +1010,19 @@
    "date": "2025-09-24",
    "share": 0.0,
    "judged": 166
+  },
+  {
+   "date": "2026-06-04",
+   "share": 0.0032,
+   "judged": 310
+  },
+  {
+   "date": "2026-06-05",
+   "share": 0.0,
+   "judged": 342
   }
  ],
- "reading": "The map flags 16 of 251 judged cell-windows in the reported box and period (6%) with interference of the reported type. On none of 5 ordinary days was the same box flagged as much (median 0%, highest 1%): the event day stands out.",
+ "reading": "The map flags 16 of 251 judged cell-windows in the reported box and period (6%) with interference of the reported type. On none of 7 ordinary days was the same box flagged as much (median 0%, highest 1%): the event day stands out.",
  "provenance": {
   "model_hash": "a1d3d152259c",
   "model_train_dates": [

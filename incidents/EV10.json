@@ -697,16 +697,16 @@
   }
  ],
  "ordinary_days": {
-  "days": 51,
+  "days": 56,
   "dates": [
    "2025-11-04",
    "2026-11-04"
   ],
-  "median_share": 0.905,
-  "p90_share": 0.964,
+  "median_share": 0.901,
+  "p90_share": 0.974,
   "max_share": 1.0,
-  "days_at_or_above_event": 2,
-  "days_with_matching_cells": 51,
+  "days_at_or_above_event": 4,
+  "days_with_matching_cells": 55,
   "training_days": 26
  },
  "ordinary_series": [
@@ -714,6 +714,31 @@
    "date": "2025-11-04",
    "share": 0.1143,
    "judged": 35
+  },
+  {
+   "date": "2026-01-15",
+   "share": 0.1795,
+   "judged": 39
+  },
+  {
+   "date": "2026-02-01",
+   "share": 1.0,
+   "judged": 2
+  },
+  {
+   "date": "2026-02-15",
+   "share": 0.2444,
+   "judged": 45
+  },
+  {
+   "date": "2026-06-04",
+   "share": 1.0,
+   "judged": 23
+  },
+  {
+   "date": "2026-06-05",
+   "share": 0.6,
+   "judged": 40
   },
   {
    "date": "2026-09-15",

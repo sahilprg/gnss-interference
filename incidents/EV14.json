@@ -18,6 +18,719 @@
  "days": [
   "2025-01-16"
  ],
- "days_with_data": [],
- "status": "no data"
+ "days_with_data": [
+  "2025-01-16"
+ ],
+ "check": {
+  "model": {
+   "judged": 17,
+   "matching": 3,
+   "share": 0.176,
+   "verdict": "found"
+  },
+  "rules": {
+   "judged": 17,
+   "matching": 3,
+   "share": 0.176,
+   "verdict": "found"
+  }
+ },
+ "status": "found",
+ "map": [
+  {
+   "lat": 53.0,
+   "lon": 23.0,
+   "judged": 2,
+   "jamming": 2,
+   "spoofing": 0
+  },
+  {
+   "lat": 54.0,
+   "lon": 23.0,
+   "judged": 11,
+   "jamming": 11,
+   "spoofing": 1
+  },
+  {
+   "lat": 54.0,
+   "lon": 24.0,
+   "judged": 10,
+   "jamming": 3,
+   "spoofing": 1
+  },
+  {
+   "lat": 54.0,
+   "lon": 25.0,
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 23.0,
+   "judged": 4,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 24.0,
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 55.0,
+   "lon": 25.0,
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 23.0,
+   "judged": 12,
+   "jamming": 1,
+   "spoofing": 0
+  },
+  {
+   "lat": 56.0,
+   "lon": 24.0,
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0
+  }
+ ],
+ "timeline": [
+  {
+   "window": "2025-01-16T16:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T16:30:00+00:00",
+   "judged": 2,
+   "jamming": 1,
+   "spoofing": 1,
+   "rules": 1
+  },
+  {
+   "window": "2025-01-16T16:45:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T17:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T17:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T17:30:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T17:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T18:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T18:15:00+00:00",
+   "judged": 3,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T18:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T18:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T19:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T19:15:00+00:00",
+   "judged": 3,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2025-01-16T19:30:00+00:00",
+   "judged": 2,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T19:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T20:00:00+00:00",
+   "judged": 1,
+   "jamming": 1,
+   "spoofing": 0,
+   "rules": 1
+  },
+  {
+   "window": "2025-01-16T20:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T20:45:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T21:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T21:15:00+00:00",
+   "judged": 1,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T21:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T21:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T22:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T22:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T22:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T22:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T23:00:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T23:15:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T23:30:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  },
+  {
+   "window": "2025-01-16T23:45:00+00:00",
+   "judged": 0,
+   "jamming": 0,
+   "spoofing": 0,
+   "rules": 0
+  }
+ ],
+ "evidence": [
+  {
+   "what": "degraded position integrity (low NIC)",
+   "flagged": 2.0,
+   "normal": 0.29
+  },
+  {
+   "what": "NIC 0 (no integrity at all)",
+   "flagged": 1.67,
+   "normal": 0.21
+  },
+  {
+   "what": "low position accuracy (NACp)",
+   "flagged": 1.0,
+   "normal": 0.14
+  },
+  {
+   "what": "positions only from ground multilateration",
+   "flagged": 1.0,
+   "normal": 0.21
+  },
+  {
+   "what": "GPS altitude far from barometric altitude",
+   "flagged": 1.0,
+   "normal": 0.0
+  },
+  {
+   "what": "position jumps",
+   "flagged": 0.0,
+   "normal": 0.0
+  },
+  {
+   "what": "position change not matching reported speed",
+   "flagged": 0.0,
+   "normal": 0.0
+  }
+ ],
+ "evidence_n": {
+  "flagged": 3,
+  "normal": 14,
+  "usable_aircraft_flagged": 4.67,
+  "usable_aircraft_normal": 3.43
+ },
+ "top_cells": [
+  {
+   "window": "2025-01-16T16:30:00+00:00",
+   "cell": [
+    54.0,
+    24.0
+   ],
+   "usable_aircraft": 6,
+   "degraded": 2,
+   "altdev": 2,
+   "speed_mismatch": 0,
+   "p_jamming": 1.0,
+   "p_spoofing": 0.978,
+   "model": "both",
+   "rules": "both"
+  },
+  {
+   "window": "2025-01-16T20:00:00+00:00",
+   "cell": [
+    54.0,
+    24.0
+   ],
+   "usable_aircraft": 3,
+   "degraded": 2,
+   "altdev": 1,
+   "speed_mismatch": 0,
+   "p_jamming": 1.0,
+   "p_spoofing": 0.001,
+   "model": "jamming",
+   "rules": "jamming"
+  },
+  {
+   "window": "2025-01-16T19:15:00+00:00",
+   "cell": [
+    54.0,
+    24.0
+   ],
+   "usable_aircraft": 5,
+   "degraded": 2,
+   "altdev": 0,
+   "speed_mismatch": 0,
+   "p_jamming": 0.995,
+   "p_spoofing": 0.0,
+   "model": "jamming",
+   "rules": "jamming"
+  }
+ ],
+ "ordinary_days": {
+  "days": 56,
+  "dates": [
+   "2025-11-04",
+   "2026-11-04"
+  ],
+  "median_share": 0.523,
+  "p90_share": 0.714,
+  "max_share": 0.833,
+  "days_at_or_above_event": 48,
+  "days_with_matching_cells": 47,
+  "training_days": 26
+ },
+ "ordinary_series": [
+  {
+   "date": "2025-11-04",
+   "share": 0.0,
+   "judged": 14
+  },
+  {
+   "date": "2026-01-15",
+   "share": 0.0,
+   "judged": 5
+  },
+  {
+   "date": "2026-02-01",
+   "share": 0.1818,
+   "judged": 11
+  },
+  {
+   "date": "2026-02-15",
+   "share": 0.0,
+   "judged": 20
+  },
+  {
+   "date": "2026-06-04",
+   "share": 0.1333,
+   "judged": 15
+  },
+  {
+   "date": "2026-06-05",
+   "share": 0.2571,
+   "judged": 35
+  },
+  {
+   "date": "2026-09-15",
+   "share": 0.52,
+   "judged": 25
+  },
+  {
+   "date": "2026-09-16",
+   "share": 0.6154,
+   "judged": 13
+  },
+  {
+   "date": "2026-09-17",
+   "share": 0.4762,
+   "judged": 21
+  },
+  {
+   "date": "2026-09-18",
+   "share": 0.5652,
+   "judged": 23
+  },
+  {
+   "date": "2026-09-19",
+   "share": 0.5714,
+   "judged": 14
+  },
+  {
+   "date": "2026-09-20",
+   "share": 0.5385,
+   "judged": 26
+  },
+  {
+   "date": "2026-09-21",
+   "share": 0.7059,
+   "judged": 17
+  },
+  {
+   "date": "2026-09-22",
+   "share": 0.5926,
+   "judged": 27
+  },
+  {
+   "date": "2026-09-23",
+   "share": 0.5625,
+   "judged": 16
+  },
+  {
+   "date": "2026-09-24",
+   "share": 0.4,
+   "judged": 20
+  },
+  {
+   "date": "2026-09-25",
+   "share": 0.7391,
+   "judged": 23
+  },
+  {
+   "date": "2026-09-26",
+   "share": 0.4444,
+   "judged": 9
+  },
+  {
+   "date": "2026-09-27",
+   "share": 0.4286,
+   "judged": 21
+  },
+  {
+   "date": "2026-09-28",
+   "share": 0.5294,
+   "judged": 17
+  },
+  {
+   "date": "2026-09-29",
+   "share": 0.5714,
+   "judged": 14
+  },
+  {
+   "date": "2026-09-30",
+   "share": 0.5385,
+   "judged": 26
+  },
+  {
+   "date": "2026-10-01",
+   "share": 0.6957,
+   "judged": 23
+  },
+  {
+   "date": "2026-10-02",
+   "share": 0.7222,
+   "judged": 18
+  },
+  {
+   "date": "2026-10-03",
+   "share": 0.8333,
+   "judged": 12
+  },
+  {
+   "date": "2026-10-04",
+   "share": 0.6,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-05",
+   "share": 0.5263,
+   "judged": 19
+  },
+  {
+   "date": "2026-10-06",
+   "share": 0.5714,
+   "judged": 21
+  },
+  {
+   "date": "2026-10-07",
+   "share": 0.7727,
+   "judged": 22
+  },
+  {
+   "date": "2026-10-08",
+   "share": 0.4762,
+   "judged": 21
+  },
+  {
+   "date": "2026-10-09",
+   "share": 0.55,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-10",
+   "share": 0.7778,
+   "judged": 9
+  },
+  {
+   "date": "2026-10-11",
+   "share": 0.4231,
+   "judged": 26
+  },
+  {
+   "date": "2026-10-12",
+   "share": 0.55,
+   "judged": 20
+  },
+  {
+   "date": "2026-10-13",
+   "share": 0.5833,
+   "judged": 12
+  },
+  {
+   "date": "2026-10-14",
+   "share": 0.5455,
+   "judged": 11
+  },
+  {
+   "date": "2026-10-15",
+   "share": 0.375,
+   "judged": 16
+  },
+  {
+   "date": "2026-10-16",
+   "share": 0.5909,
+   "judged": 22
+  },
+  {
+   "date": "2026-10-17",
+   "share": 0.5833,
+   "judged": 12
+  },
+  {
+   "date": "2026-10-18",
+   "share": 0.5333,
+   "judged": 15
+  },
+  {
+   "date": "2026-10-19",
+   "share": 0.4545,
+   "judged": 11
+  },
+  {
+   "date": "2026-10-20",
+   "share": 0.4286,
+   "judged": 14
+  },
+  {
+   "date": "2026-10-21",
+   "share": 0.3571,
+   "judged": 14
+  },
+  {
+   "date": "2026-10-22",
+   "share": 0.3913,
+   "judged": 23
+  },
+  {
+   "date": "2026-10-23",
+   "share": 0.2941,
+   "judged": 17
+  },
+  {
+   "date": "2026-10-24",
+   "share": 0.1429,
+   "judged": 7
+  },
+  {
+   "date": "2026-10-25",
+   "share": 0.0714,
+   "judged": 14
+  },
+  {
+   "date": "2026-10-26",
+   "share": 0.3125,
+   "judged": 16
+  },
+  {
+   "date": "2026-10-27",
+   "share": 0.3158,
+   "judged": 19
+  },
+  {
+   "date": "2026-10-28",
+   "share": 0.0312,
+   "judged": 32
+  },
+  {
+   "date": "2026-10-29",
+   "share": 0.6429,
+   "judged": 14
+  },
+  {
+   "date": "2026-10-30",
+   "share": 0.1875,
+   "judged": 16
+  },
+  {
+   "date": "2026-10-31",
+   "share": 0.125,
+   "judged": 8
+  },
+  {
+   "date": "2026-11-01",
+   "share": 0.3,
+   "judged": 10
+  },
+  {
+   "date": "2026-11-02",
+   "share": 0.8,
+   "judged": 15
+  },
+  {
+   "date": "2026-11-04",
+   "share": 0.4167,
+   "judged": 12
+  }
+ ],
+ "reading": "The map flags 3 of 17 judged cell-windows in the reported box and period (18%) with interference of the reported type. But 48 of 56 ordinary days reach the same share in this box (median 52%): interference here is routine, so the map shows that the box was affected, not that this day was special.",
+ "provenance": {
+  "model_hash": "a1d3d152259c",
+  "model_train_dates": [
+   "2026-09-29",
+   "2026-09-30",
+   "2026-10-01",
+   "2026-10-02",
+   "2026-10-03",
+   "2026-10-04",
+   "2026-10-05",
+   "2026-10-06",
+   "2026-10-07",
+   "2026-10-08",
+   "2026-10-09",
+   "2026-10-10",
+   "2026-10-11",
+   "2026-10-12",
+   "2026-10-13",
+   "2026-10-14",
+   "2026-10-15",
+   "2026-10-16",
+   "2026-10-17",
+   "2026-10-18",
+   "2026-10-19",
+   "2026-10-20",
+   "2026-10-21",
+   "2026-10-22",
+   "2026-10-23",
+   "2026-10-24"
+  ],
+  "cell_files": {
+   "2025-01-16": "b40c0a68b2e8"
+  }
+ }
 }

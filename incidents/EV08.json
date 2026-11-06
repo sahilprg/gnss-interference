@@ -1141,16 +1141,16 @@
   }
  ],
  "ordinary_days": {
-  "days": 51,
+  "days": 56,
   "dates": [
    "2025-11-04",
    "2026-11-04"
   ],
-  "median_share": 0.744,
-  "p90_share": 0.832,
+  "median_share": 0.73,
+  "p90_share": 0.822,
   "max_share": 0.858,
-  "days_at_or_above_event": 50,
-  "days_with_matching_cells": 51,
+  "days_at_or_above_event": 53,
+  "days_with_matching_cells": 56,
   "training_days": 26
  },
  "ordinary_series": [
@@ -1158,6 +1158,31 @@
    "date": "2025-11-04",
    "share": 0.1137,
    "judged": 475
+  },
+  {
+   "date": "2026-01-15",
+   "share": 0.1088,
+   "judged": 487
+  },
+  {
+   "date": "2026-02-01",
+   "share": 0.2633,
+   "judged": 414
+  },
+  {
+   "date": "2026-02-15",
+   "share": 0.1268,
+   "judged": 481
+  },
+  {
+   "date": "2026-06-04",
+   "share": 0.7707,
+   "judged": 471
+  },
+  {
+   "date": "2026-06-05",
+   "share": 0.6133,
+   "judged": 649
   },
   {
    "date": "2026-09-15",
@@ -1410,7 +1435,7 @@
    "judged": 468
   }
  ],
- "reading": "The map flags 39 of 274 judged cell-windows in the reported box and period (14%) with interference of the reported type. But 50 of 51 ordinary days reach the same share in this box (median 74%): interference here is routine, so the map shows that the box was affected, not that this day was special.",
+ "reading": "The map flags 39 of 274 judged cell-windows in the reported box and period (14%) with interference of the reported type. But 53 of 56 ordinary days reach the same share in this box (median 73%): interference here is routine, so the map shows that the box was affected, not that this day was special.",
  "provenance": {
   "model_hash": "a1d3d152259c",
   "model_train_dates": [
