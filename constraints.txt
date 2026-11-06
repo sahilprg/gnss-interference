@@ -13,3 +13,4 @@ urllib3==2.8.0
 orjson==3.13.0
 pytest==9.2.0
 ruff==0.17.3
+hatanaka==2.8.1

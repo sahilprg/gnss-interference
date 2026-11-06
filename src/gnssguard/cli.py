@@ -359,6 +359,50 @@ def cmd_review_sample(args) -> int:
     return 0
 
 
+def cmd_ground_fetch(args) -> int:
+    import csv
+    import datetime as dt
+
+    from gnssguard.ground.fetch import fetch_day
+
+    stations = [r["station"] for r in csv.DictReader(open(args.stations, encoding="utf-8"))]
+    days = [dt.date.fromisoformat(d) for d in _split(args.dates)]
+    missing = 0
+    for day in days:
+        got = fetch_day(stations, day, Path(args.out))
+        for st, where in got.items():
+            missing += where == "missing"
+            print(f"{day} {st:10s} {'missing' if where == 'missing' else 'ok'}")
+    print(f"{len(days) * len(stations) - missing} of {len(days) * len(stations)} "
+          f"station-days in {args.out}")
+    return 0
+
+
+def cmd_ground_check(args) -> int:
+    from gnssguard.features.cells import load_cells
+    from gnssguard.ground.check import run
+    from gnssguard.model.dataset import with_context
+    from gnssguard.model.train import Detectors
+
+    root = Path(args.files)
+    days = _split(args.dates)
+    files: dict[str, list[Path]] = {}
+    for day in days:
+        for f in sorted((root / day).glob("*")):
+            files.setdefault(f.name[:9].upper(), []).append(f)
+    if not files:
+        print(f"no station files under {root}; run `gnssguard ground-fetch` first",
+              file=sys.stderr)
+        return 1
+    det = Detectors.load(args.model or _default_model())
+    cells = with_context(load_cells(args.cells, days, ["baltic"])).reset_index(drop=True)
+    labels = det.predict(cells)["label"].astype(str)
+    with pd_options():
+        print(run(files, cells, labels, Path(args.report)).to_string(index=False))
+    print(f"\nreports: {args.report}/")
+    return 0
+
+
 def cmd_relabel(args) -> int:
     import json
 
@@ -753,6 +797,20 @@ def main(argv: list[str] | None = None) -> int:
     pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
     pq.add_argument("--force", action="store_true")
     pq.set_defaults(func=cmd_review_sample)
+
+    gf = sub.add_parser("ground-fetch", help="download EUREF station files (RINEX 3)")
+    gf.add_argument("--stations", default="configs/ground_stations.csv")
+    gf.add_argument("--dates", required=True)
+    gf.add_argument("--out", default="data/ground")
+    gf.set_defaults(func=cmd_ground_fetch)
+
+    gc = sub.add_parser("ground-check", help="station C/N0 against the aircraft map")
+    gc.add_argument("--dates", required=True)
+    gc.add_argument("--files", default="data/ground")
+    gc.add_argument("--cells", default="data/cells")
+    gc.add_argument("--model", help="model folder (default: models/detector if present)")
+    gc.add_argument("--report", default="reports/ground")
+    gc.set_defaults(func=cmd_ground_check)
 
     pr = sub.add_parser("relabel", help="blind relabel of earlier hand-labeled cells")
     pr.add_argument("--out", default="labels/relabel_1.csv")

@@ -97,5 +97,28 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   aircraft with degraded NIC), set to the model's calm-region alarm rate. Development
   check on 533 hand-labeled cells: model 86% of interference found, baseline 76%;
   spoofing 56 of 80 against 0. The sealed test (after 19 Nov) decides the Phase 2 gate.
-* Next: position-spoofing features (convergence on one point, circles, GPS-minus-baro
-  change per aircraft), tested by a protocol round before the sealed test.
+* **Second exploration: position-spoofing signatures** (`scripts/position_spoof_check.py`,
+  no decision), on 1 Nov (5 regions) and Delhi on 15 Jan 2026:
+  * aircraft converging on one point (within 300 m, over 1,000 ft apart) and circling
+    tracks are common in spoofing cells over the East Med (50% and 83%) but also fire
+    in normal busy airspace (calm Central Europe 4% and 13%: holding stacks);
+  * comparing the direction between successive positions with the reported track
+    is noisy (16% of normal Black Sea cells);
+  * a per-aircraft jump in GPS-minus-baro altitude separates well (East Med spoofing 50%
+    of cells with two or more such aircraft, normal 0.2%), but the existing feature
+    `n_ac_altdev` already does better (58% vs 0.7%; Punjab 68% vs 6.7%);
+  * Delhi's spoofing carries no altitude shift and no convergence: it is found by speed
+    mismatches and jumps, which the model already uses.
+  * So no feature is added: the model's current spoofing evidence already covers the
+    spoofing seen in these regions, and the new signatures add mostly noise. They stay
+    available for incident pages (plan, Phase 4).
+* Next: Phase 3 ground check (EUREF stations around the Baltic), while the sealed test
+  waits for 19 Nov.
+
+## Phase 3 status (6 Nov 2026)
+
+* **Ground check 1 declared and built** (docs/ground.md, evaluation protocol): six EUREF
+  stations within about 350 km of Kaliningrad, 26 Oct-4 Nov 2026; `gnssguard
+  ground-fetch` and `gnssguard ground-check`, tested on synthetic station files. The
+  station archives are not reachable from the development environment, so the run is
+  on the laptop.

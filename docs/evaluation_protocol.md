@@ -658,3 +658,40 @@ At about the same calm-region alarm rate, the model finds 10 points more of what
 labeler called interference, and spoofing the integrity rule cannot see at all, at the
 cost of a few more false alarms on these hard samples. Some of these sets informed
 earlier decisions (the 26 Oct gold set most), so the sealed test decides.
+
+## Ground check 1: EUREF reference stations around the Baltic (declared 6 Nov 2026, before any station file was downloaded)
+
+The plan's Phase 3 step 2: a sensor that shares nothing with this pipeline. Permanent
+geodetic GNSS stations of the EUREF network record the signal strength (C/N0) of every
+satellite every 30 s; jamming within their radio horizon lowers it on all satellites at
+once and can make them lose satellites.
+
+**Stations and days:** the six EPN stations listed in `configs/ground_stations.csv`
+(chosen for being within about 350 km of Kaliningrad, before any data was seen; their
+exact positions are taken from the files' own headers), on 26 Oct-4 Nov
+2026 (10 days, all published on the map). Files from the EUREF data centres
+(`gnssguard ground-fetch`); a station-day that is missing is reported as missing.
+
+**Ground signal, per station and 15-minute window** (`gnssguard ground-check`): the
+median C/N0 of GPS L1 C/A (S1C) over all satellites with a reading, and the number of
+GPS satellites tracked. Its usual value is the median for the same window of the day over
+the 10 days (the GPS sky repeats daily, about 4 minutes earlier, close enough at 15
+minutes). A window is **ground-affected** if the median C/N0 is at least 3 dB below
+usual or the satellites tracked are at least 30% below usual.
+
+**Aircraft signal:** the share of judged cell-windows (3+ aircraft) within 150 km of the
+station, in the same window, that the published model labels jamming or both.
+
+**Reported, per station and pooled:**
+
+1. how often the aircraft flag nearby when the ground is affected, against when it is
+   not (a ratio above 1 means the two agree in time);
+2. the same with the aircraft series shifted by whole days (1-9), as a control for
+   time-of-day patterns: agreement should be lower than unshifted;
+3. the correlation, over windows, between the C/N0 drop and the aircraft flagged share.
+
+**Known limits, stated now:** a ground antenna sees a jammer only within a few tens of
+kilometres and with clear line of sight, while aircraft at altitude see it from hundreds
+of kilometres; a nine-month ground monitor in Gdynia found no correlation with ADS-B
+events (Inside GNSS, 2025). So a weak or absent match is expected and does not refute
+the map; a clear match is support, not proof. Spoofing is not checked here.
