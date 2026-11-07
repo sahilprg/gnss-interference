@@ -149,4 +149,7 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
 * **Release 0.2.0 archived** on 6 Nov 2026 (doi:10.5281/zenodo.24015201, tag v0.2.0,
   commit bf89f7f; steps in docs/release.md), before the sealed test is drawn, so the
   model, labels, baseline and questions are fixed with a public date.
+* **Jammer circles** (7 Nov): a circle whose centre falls outside the region box (no
+  aircraft there) is no longer drawn; 13 of 87 published circles affected, 10 of them
+  Baltic (evaluation protocol, "Jammer circles outside the observed area").
 * Next: the write-up after the sealed test.

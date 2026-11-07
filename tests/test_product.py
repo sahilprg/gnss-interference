@@ -106,6 +106,12 @@ def test_incidents_coarse_and_only_confident_sources():
     assert low["source"] is None and low["confidence"] == "low"
     assert low["area"] == {"lat_min": 55.0, "lat_max": 57.0, "lon_min": 20.0, "lon_max": 22.0}
 
+    # a centre outside the region box: no aircraft there to constrain it, not drawn
+    box = (53.0, 60.5, 18.0, 28.5)
+    assert public_incidents("baltic", est, inc, SPEC, box)[0]["source"] is not None
+    away = public_incidents("baltic", est.assign(lon=16.1), inc, SPEC, box)[0]
+    assert away["source"] is None and away["confidence"] == "outside_coverage"
+
 
 def _hist(n, aircraft=1000, judged=500):
     return [{"date": f"2026-10-{10 + i}", "regions": {"baltic": {

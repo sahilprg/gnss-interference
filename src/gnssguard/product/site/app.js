@@ -245,6 +245,8 @@
         L.rectangle([[a.lat_min, a.lon_min], [a.lat_max, a.lon_max]], {color: COL.area, weight: 1, dashArray: '1 4', fill: false})
           .bindTooltip(`<b>Affected area</b><br>${when}<br>` + (x.confidence === 'too_uncertain'
             ? 'A source was fitted, but its 90% circle would be over 200 km wide.'
+            : x.confidence === 'outside_coverage'
+            ? 'A source was fitted outside the area where aircraft are collected, so nothing there can confirm it; not drawn.'
             : 'Source not located with confidence.'), {sticky: true, className: 'tip'})
           .addTo(incLayer);
       }

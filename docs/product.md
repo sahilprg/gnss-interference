@@ -61,8 +61,9 @@ Format version `gnssguard-public/1`; column meanings are on the site's Data page
 * Jammer estimates: only for confident fits, as a circle (centre rounded to 0.1°, radius
   the stated 90% uncertainty, at least 50 km), described as a statistical estimate and
   not an attribution. A circle wider than 200 km in radius says little and is not drawn
-  (about 4 in 10 confident fits on the study days); those incidents, like all others,
-  show only their affected area.
+  (about 4 in 10 confident fits on the study days); nor is one whose centre lies
+  outside the region box, where no aircraft are collected to confirm or rule it out
+  (since 7 Nov 2026). Those incidents, like all others, show only their affected area.
 * Results appear the day after, at the earliest.
 
 ## Quality gates

@@ -63,7 +63,8 @@ def run(out: str | Path, *, processed: str | Path, cells_dir: str | Path,
             log.warning("%s: not available upstream yet (%s); will retry", iso, e)
             continue
         build_all(processed, cells_dir, spec, [iso], regions, force=True)
-        summary = publish_day(iso, regions, processed, cells_dir, model_dir, out, spec=spec)
+        summary = publish_day(iso, regions, processed, cells_dir, model_dir, out, spec=spec,
+                              config=config)
         done.append(summary)
         log.info("%s: published=%s %s", iso, summary["published"],
                  {r: v["status"] for r, v in summary["regions"].items()})

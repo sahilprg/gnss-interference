@@ -747,3 +747,23 @@ same box. This comparison was added after event checks 1 and 2 were scored and i
 descriptive only: it changes no verdict and is not used to claim detection. If it is
 ever used as a test (e.g. "the event day is above the 90th percentile of ordinary days"),
 that will be declared here first and scored on events added after the declaration.
+
+## Jammer circles outside the observed area (7 Nov 2026)
+
+**Found:** a check of all 87 jammer circles published from 26 Oct to 5 Nov 2026 against
+publicly reported source areas (Kaliningrad and Baltiysk, St Petersburg, Sevastopol,
+Novorossiysk, Beirut, Latakia, Lahore, Amritsar; reported areas, not measured jammer
+positions). Black Sea circles cluster on southern Crimea (17 of 31 within 100 km of a
+reported area) and Eastern Mediterranean circles on southern Lebanon and the
+Lebanon-Syria border (20 of 24). Baltic circles are mostly not near Kaliningrad (11 of
+28), and 10 of 28 lie **outside the region box**, e.g. in the sea off western Poland or
+east of St Petersburg, where no aircraft are collected: nothing there can confirm or
+rule out a jammer, so the fit is unconstrained.
+
+**Rule, from 7 Nov 2026:** a circle is drawn only if its centre lies inside the region
+box; otherwise the incident is published with `confidence: outside_coverage` and its
+affected area only. Applied to the 87 circles: 13 removed (Baltic 10, Eastern
+Mediterranean 1, Black Sea 1, Punjab 1); Baltic 18 left, 10 of them within 100 km of
+Kaliningrad or Baltiysk. The remaining Baltic circles are still mixed, and the layer
+stays experimental. The reported areas were used only to find the problem, not to tune
+the rule, which removes no circle for being far from them.

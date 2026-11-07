@@ -605,7 +605,7 @@ def cmd_publish(args) -> int:
     regions = _split(args.regions)
     for day in _split(args.dates) or []:
         s = publish_day(day, regions, args.data, args.cells, args.model or _default_model(),
-                        args.out, spec=_grid(args))
+                        args.out, spec=_grid(args), config=args.config)
         print(f"{day}: " + ", ".join(f"{r} {v['status']}" for r, v in s["regions"].items())
               + f"; {s['incidents']} incidents")
     build_site(args.out, args.config, regions)

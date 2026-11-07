@@ -35,6 +35,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from gnssguard.config import load_regions
 from gnssguard.features.cells import GridSpec, load_cells, read_points
 from gnssguard.model.dataset import with_context
 from gnssguard.model.localize import aircraft_points, incidents, localize_incidents
@@ -171,8 +172,12 @@ def _num(v) -> float | None:
 
 
 def public_incidents(region: str, est: pd.DataFrame, inc: pd.DataFrame,
-                     spec: GridSpec) -> list[dict]:
-    """Incidents with coarse areas; a source circle only for confident fits."""
+                     spec: GridSpec, bbox: tuple[float, float, float, float] | None = None
+                     ) -> list[dict]:
+    """Incidents with coarse areas; a source circle only for confident fits whose centre
+    lies inside the region box (lat_min, lat_max, lon_min, lon_max). Outside it no
+    aircraft are collected, so nothing confirms or rules out a jammer there and the fit
+    is unconstrained (evaluation protocol, "Jammer circles outside the observed area")."""
     out = []
     for iid, g in inc.groupby("incident_id"):
         if len(g) < MIN_INCIDENT_CELLS:
@@ -197,6 +202,9 @@ def public_incidents(region: str, est: pd.DataFrame, inc: pd.DataFrame,
                 item["confidence"] = "low"
             elif radius > MAX_RADIUS_KM:
                 item["confidence"] = "too_uncertain"
+            elif bbox is not None and not (bbox[0] <= float(r["lat"]) <= bbox[1]
+                                           and bbox[2] <= float(r["lon"]) <= bbox[3]):
+                item["confidence"] = "outside_coverage"
             else:
                 item["confidence"] = "confident"
                 item["source"] = {
@@ -230,10 +238,12 @@ def _points(processed: Path, region: str, date: str) -> pd.DataFrame | None:
 
 def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir: str | Path,
                 model_dir: str | Path, out: str | Path, *, spec: GridSpec = GridSpec(),
-                locate: bool = True,
+                locate: bool = True, config: str | Path | None = "configs/regions.yaml",
                 advisories_csv: str | Path | None = "configs/advisories.csv") -> dict:
     """Publish one day. Returns the day summary (also written to summary.json)."""
     processed, out = Path(processed), Path(out)
+    boxes = ({r.name: (r.lat_min, r.lat_max, r.lon_min, r.lon_max)
+              for r in load_regions(config)} if config and Path(config).exists() else {})
     det = Detectors.load(model_dir)
     bands = score_bands_for(model_dir)
     manifest_path = processed / "_manifests" / f"{date}.json"
@@ -280,7 +290,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
                 flagged = t.loc[dense_jam, ["cell_lat", "cell_lon", "window"]]
                 inc = incidents(flagged, spec)
                 est = localize_incidents(aircraft_points(pts, spec), inc, spec)
-                all_incidents += public_incidents(region, est, inc, spec)
+                all_incidents += public_incidents(region, est, inc, spec, boxes.get(region))
                 del pts
     (day_dir / "incidents.json").write_text(json.dumps(
         {"schema": SCHEMA, "date": date, "incidents": all_incidents, "notice": NOTICE},
