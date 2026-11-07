@@ -27,9 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -58,6 +58,7 @@ jobs:
           DATES: ${{ inputs.dates }}
         run: |
           args=(--out public --model models/detector --cleanup)
+          DATES=$(printf '%s' "$DATES" | tr -d '[:space:]')  # pasted lists may carry spaces
           if [ -n "$DATES" ]; then
             [[ "$DATES" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}(,[0-9]{4}-[0-9]{2}-[0-9]{2})*$ ]] \
               || { echo "::error::dates must look like 2026-10-27,2026-10-28"; exit 1; }

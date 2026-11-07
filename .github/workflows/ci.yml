@@ -19,8 +19,8 @@ jobs:
     env:
       PYTHONWARNDEFAULTENCODING: "1"  # text files opened without an encoding fail the tests
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -33,7 +33,7 @@ jobs:
     # pushed range, which breaks when history is rewritten and the old commit is gone.)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install gitleaks 8.21.2 (checksum-verified)
