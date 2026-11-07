@@ -1,7 +1,7 @@
 {
  "schema": "gnssguard-public/1",
  "date": "2026-11-05",
- "generated_at": "2026-11-06T13:04:45+00:00",
+ "generated_at": "2026-11-07T06:36:40+00:00",
  "published": true,
  "day_reasons": [],
  "needs_review": [],
@@ -65,7 +65,7 @@
   "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
  },
  "config": {
-  "code_version": "0.1.0",
+  "code_version": "0.2.0",
   "schema": "gnssguard-public/1",
   "regions": [
    "baltic",
@@ -78,7 +78,7 @@
   "window_min": 15,
   "min_aircraft": 3,
   "label_threshold": 0.5,
-  "hash": "73f3787ca772"
+  "hash": "99d4f403708f"
  },
  "regions": {
   "baltic": {

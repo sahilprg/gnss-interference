@@ -1,9 +1,10 @@
 {
  "schema": "gnssguard-public/1",
  "date": "2026-10-29",
- "generated_at": "2026-11-03T17:46:53+00:00",
+ "generated_at": "2026-11-07T06:01:04+00:00",
  "published": true,
  "day_reasons": [],
+ "needs_review": [],
  "model": {
   "train_dates": [
    "2026-09-29",
@@ -19,12 +20,96 @@
    "pyarrow": "26.0.0",
    "scipy": "1.18.1"
   },
+  "hash": "81062b5eb365",
+  "label_threshold": 0.5,
+  "score_meaning": "p_jamming and p_spoofing are model scores, calibrated (isotonic) against the system's own training labels (weak rules and simulated attacks) on its validation day: of cells scored 0.8, about 8 in 10 carried those labels in testing. They are not validated probabilities of real interference. In practice almost every cell scores below 0.1 or above 0.9; on hand-labeled cells, scores of 0.9 or more were interference 97% of the time and scores below 0.1 were 7% of the time (a third of the time over the Black Sea). The label uses the uncalibrated score at the threshold given.",
+  "reviewed_score_bands": {
+   "source": "calibration set 1: 150 hand-reviewed cells, 15-21 Sep 2026 (docs/evaluation_protocol.md)",
+   "bands": [
+    {
+     "score_from": 0.0,
+     "score_to": 0.1,
+     "band": "below 0.1",
+     "cells": 31,
+     "interference_share": 0.097,
+     "ci95": [
+      0.033,
+      0.249
+     ]
+    },
+    {
+     "score_from": 0.1,
+     "score_to": 0.9,
+     "band": "0.1 to 0.9",
+     "cells": 53,
+     "interference_share": 0.604,
+     "ci95": [
+      0.469,
+      0.724
+     ]
+    },
+    {
+     "score_from": 0.9,
+     "score_to": 1.0,
+     "band": "0.9 or more",
+     "cells": 37,
+     "interference_share": 0.919,
+     "ci95": [
+      0.787,
+      0.972
+     ]
+    }
+   ],
+   "meaning": "Share of hand-reviewed cells in each score band that the reviewer called interference (jamming, spoofing or both)."
+  },
   "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+ },
+ "config": {
+  "code_version": "0.2.0",
+  "schema": "gnssguard-public/1",
+  "regions": [
+   "baltic",
+   "black_sea",
+   "central_europe",
+   "east_med",
+   "punjab"
+  ],
+  "cell_deg": 1.0,
+  "window_min": 15,
+  "min_aircraft": 3,
+  "label_threshold": 0.5,
+  "hash": "99d4f403708f"
  },
  "regions": {
   "baltic": {
    "aircraft": 814,
    "judged_cells": 1652,
+   "hourly_cells": [
+    81,
+    52,
+    48,
+    37,
+    116,
+    153,
+    196,
+    186,
+    203,
+    219,
+    221,
+    237,
+    261,
+    263,
+    252,
+    231,
+    195,
+    201,
+    198,
+    215,
+    177,
+    91,
+    89,
+    42
+   ],
    "low_coverage_cells": 2312,
    "sparse_flagged_cells": 233,
    "flagged_share": 0.3989,
@@ -33,11 +118,38 @@
    "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
-   "notes": []
+   "notes": [],
+   "review": []
   },
   "east_med": {
    "aircraft": 905,
    "judged_cells": 1573,
+   "hourly_cells": [
+    115,
+    116,
+    98,
+    107,
+    105,
+    132,
+    123,
+    122,
+    138,
+    131,
+    135,
+    153,
+    140,
+    132,
+    139,
+    139,
+    138,
+    141,
+    140,
+    140,
+    118,
+    111,
+    106,
+    125
+   ],
    "low_coverage_cells": 1471,
    "sparse_flagged_cells": 0,
    "flagged_share": 0.0191,
@@ -46,11 +158,38 @@
    "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
-   "notes": []
+   "notes": [],
+   "review": []
   },
   "black_sea": {
    "aircraft": 1615,
    "judged_cells": 782,
+   "hourly_cells": [
+    65,
+    61,
+    63,
+    69,
+    62,
+    54,
+    68,
+    56,
+    70,
+    65,
+    56,
+    54,
+    55,
+    63,
+    65,
+    63,
+    56,
+    49,
+    55,
+    49,
+    46,
+    54,
+    51,
+    61
+   ],
    "low_coverage_cells": 628,
    "sparse_flagged_cells": 16,
    "flagged_share": 0.2008,
@@ -59,11 +198,38 @@
    "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
-   "notes": []
+   "notes": [],
+   "review": []
   },
   "punjab": {
    "aircraft": 323,
    "judged_cells": 376,
+   "hourly_cells": [
+    22,
+    30,
+    38,
+    43,
+    51,
+    49,
+    43,
+    42,
+    41,
+    46,
+    46,
+    44,
+    44,
+    34,
+    35,
+    38,
+    35,
+    35,
+    37,
+    42,
+    43,
+    47,
+    25,
+    30
+   ],
    "low_coverage_cells": 564,
    "sparse_flagged_cells": 0,
    "flagged_share": 0.1383,
@@ -72,11 +238,38 @@
    "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
-   "notes": []
+   "notes": [],
+   "review": []
   },
   "central_europe": {
    "aircraft": 4229,
    "judged_cells": 2644,
+   "hourly_cells": [
+    116,
+    109,
+    94,
+    111,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120
+   ],
    "low_coverage_cells": 184,
    "sparse_flagged_cells": 0,
    "flagged_share": 0.0053,
@@ -85,7 +278,8 @@
    "rule_disagreement": 0.0,
    "status": "published",
    "reasons": [],
-   "notes": []
+   "notes": [],
+   "review": []
   }
  },
  "incidents": 53,

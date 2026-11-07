@@ -307,13 +307,8 @@
     "lon_min": 23.0,
     "lon_max": 29.0
    },
-   "source": {
-    "lat": 56.9,
-    "lon": 29.4,
-    "radius_km": 60.0,
-    "meaning": "90% uncertainty area of a single ground jammer fitted to which aircraft were affected; not an attribution"
-   },
-   "confidence": "confident"
+   "source": null,
+   "confidence": "outside_coverage"
   },
   {
    "region": "baltic",

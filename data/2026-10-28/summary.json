@@ -1,9 +1,10 @@
 {
  "schema": "gnssguard-public/1",
  "date": "2026-10-28",
- "generated_at": "2026-11-03T17:42:29+00:00",
+ "generated_at": "2026-11-07T05:55:28+00:00",
  "published": true,
  "day_reasons": [],
+ "needs_review": [],
  "model": {
   "train_dates": [
    "2026-09-29",
@@ -19,12 +20,96 @@
    "pyarrow": "26.0.0",
    "scipy": "1.18.1"
   },
+  "hash": "81062b5eb365",
+  "label_threshold": 0.5,
+  "score_meaning": "p_jamming and p_spoofing are model scores, calibrated (isotonic) against the system's own training labels (weak rules and simulated attacks) on its validation day: of cells scored 0.8, about 8 in 10 carried those labels in testing. They are not validated probabilities of real interference. In practice almost every cell scores below 0.1 or above 0.9; on hand-labeled cells, scores of 0.9 or more were interference 97% of the time and scores below 0.1 were 7% of the time (a third of the time over the Black Sea). The label uses the uncalibrated score at the threshold given.",
+  "reviewed_score_bands": {
+   "source": "calibration set 1: 150 hand-reviewed cells, 15-21 Sep 2026 (docs/evaluation_protocol.md)",
+   "bands": [
+    {
+     "score_from": 0.0,
+     "score_to": 0.1,
+     "band": "below 0.1",
+     "cells": 31,
+     "interference_share": 0.097,
+     "ci95": [
+      0.033,
+      0.249
+     ]
+    },
+    {
+     "score_from": 0.1,
+     "score_to": 0.9,
+     "band": "0.1 to 0.9",
+     "cells": 53,
+     "interference_share": 0.604,
+     "ci95": [
+      0.469,
+      0.724
+     ]
+    },
+    {
+     "score_from": 0.9,
+     "score_to": 1.0,
+     "band": "0.9 or more",
+     "cells": 37,
+     "interference_share": 0.919,
+     "ci95": [
+      0.787,
+      0.972
+     ]
+    }
+   ],
+   "meaning": "Share of hand-reviewed cells in each score band that the reviewer called interference (jamming, spoofing or both)."
+  },
   "card": "https://github.com/sahilprg/gnss-interference/blob/main/docs/model_card.md"
+ },
+ "config": {
+  "code_version": "0.2.0",
+  "schema": "gnssguard-public/1",
+  "regions": [
+   "baltic",
+   "black_sea",
+   "central_europe",
+   "east_med",
+   "punjab"
+  ],
+  "cell_deg": 1.0,
+  "window_min": 15,
+  "min_aircraft": 3,
+  "label_threshold": 0.5,
+  "hash": "99d4f403708f"
  },
  "regions": {
   "baltic": {
    "aircraft": 763,
    "judged_cells": 1459,
+   "hourly_cells": [
+    18,
+    9,
+    29,
+    39,
+    54,
+    100,
+    166,
+    188,
+    186,
+    225,
+    235,
+    235,
+    255,
+    244,
+    231,
+    234,
+    199,
+    189,
+    167,
+    214,
+    194,
+    176,
+    152,
+    93
+   ],
    "low_coverage_cells": 2373,
    "sparse_flagged_cells": 190,
    "flagged_share": 0.3002,
@@ -36,11 +121,38 @@
    "notes": [
     "aircraft: fewer than 3 earlier days to compare with",
     "judged cells: fewer than 3 earlier days to compare with"
-   ]
+   ],
+   "review": []
   },
   "east_med": {
    "aircraft": 952,
    "judged_cells": 1570,
+   "hourly_cells": [
+    115,
+    117,
+    91,
+    98,
+    117,
+    131,
+    122,
+    136,
+    140,
+    140,
+    134,
+    144,
+    143,
+    141,
+    144,
+    145,
+    123,
+    135,
+    134,
+    130,
+    124,
+    104,
+    119,
+    123
+   ],
    "low_coverage_cells": 1480,
    "sparse_flagged_cells": 1,
    "flagged_share": 0.0166,
@@ -52,11 +164,38 @@
    "notes": [
     "aircraft: fewer than 3 earlier days to compare with",
     "judged cells: fewer than 3 earlier days to compare with"
-   ]
+   ],
+   "review": []
   },
   "black_sea": {
    "aircraft": 1691,
    "judged_cells": 858,
+   "hourly_cells": [
+    57,
+    54,
+    69,
+    67,
+    57,
+    54,
+    57,
+    65,
+    61,
+    56,
+    64,
+    68,
+    68,
+    70,
+    74,
+    63,
+    60,
+    55,
+    59,
+    55,
+    49,
+    43,
+    61,
+    61
+   ],
    "low_coverage_cells": 589,
    "sparse_flagged_cells": 26,
    "flagged_share": 0.2156,
@@ -68,11 +207,38 @@
    "notes": [
     "aircraft: fewer than 3 earlier days to compare with",
     "judged cells: fewer than 3 earlier days to compare with"
-   ]
+   ],
+   "review": []
   },
   "punjab": {
    "aircraft": 293,
    "judged_cells": 348,
+   "hourly_cells": [
+    28,
+    34,
+    38,
+    41,
+    48,
+    39,
+    40,
+    39,
+    34,
+    42,
+    37,
+    49,
+    42,
+    38,
+    28,
+    30,
+    30,
+    40,
+    36,
+    50,
+    43,
+    51,
+    42,
+    32
+   ],
    "low_coverage_cells": 583,
    "sparse_flagged_cells": 4,
    "flagged_share": 0.1695,
@@ -84,11 +250,38 @@
    "notes": [
     "aircraft: fewer than 3 earlier days to compare with",
     "judged cells: fewer than 3 earlier days to compare with"
-   ]
+   ],
+   "review": []
   },
   "central_europe": {
    "aircraft": 3986,
    "judged_cells": 2588,
+   "hourly_cells": [
+    109,
+    99,
+    97,
+    114,
+    120,
+    120,
+    119,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    119
+   ],
    "low_coverage_cells": 229,
    "sparse_flagged_cells": 0,
    "flagged_share": 0.0077,
@@ -100,7 +293,8 @@
    "notes": [
     "aircraft: fewer than 3 earlier days to compare with",
     "judged cells: fewer than 3 earlier days to compare with"
-   ]
+   ],
+   "review": []
   }
  },
  "incidents": 51,
