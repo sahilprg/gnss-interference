@@ -767,3 +767,55 @@ Mediterranean 1, Black Sea 1, Punjab 1); Baltic 18 left, 10 of them within 100 k
 Kaliningrad or Baltiysk. The remaining Baltic circles are still mixed, and the layer
 stays experimental. The reported areas were used only to find the problem, not to tune
 the rule, which removes no circle for being far from them.
+
+## Second network check 1: OpenSky (declared 7 Nov 2026, before any OpenSky data was queried)
+
+**Question.** Does a second receiver network with its own receivers and its own decoding
+(OpenSky Network, Trino access granted 7 Nov 2026 until 1 Dec 2026) see the same loss of
+position integrity in the cells our map flags?
+
+**What it can and cannot show.** Both networks receive the same broadcasts from the same
+aircraft: NIC is the aircraft's own report, so a jammed aircraft reports low NIC to both.
+The check therefore tests **our data handling and our input** (adsb.lol feeders,
+reception, decoding, aggregation, the chronic-aircraft filter), not the physics of
+jamming. A clear disagreement would mean a problem on our side (or OpenSky's) that must
+be explained before any claim. Some feeders send to both networks; the overlap is not
+known. Spoofing is not checked (NIC is usually normal under spoofing).
+
+**Data.** OpenSky `position_data4` (airborne position messages with NIC), queried one
+UTC hour at a time with the `hour` partition filter and aggregated on the server to the
+map's grid: 1-degree cells, 15-minute windows (by `mintime`), the five study boxes
+(baltic, east_med, black_sea, punjab, central_europe as calm control). Days: 26 Oct-4 Nov
+2026 (the ground check days). Per aircraft and cell-window, as in our pipeline: only
+airborne messages at or above 3,000 ft (914 m) with a NIC value; the aircraft is
+degraded if NIC < 7 in at least half of its messages there. Aircraft our pipeline marks
+as chronic (faulty transponders) are not removed from the OpenSky side, so they are
+counted as a known source of difference and reported.
+
+**Matched cell-windows.** 3 or more usable aircraft in both networks.
+**OpenSky flag.** Share of OpenSky aircraft degraded at least 0.30 (the primary
+threshold of the integrity-only baseline).
+
+**Reported** (per region and pooled over baltic, east_med, black_sea, punjab):
+
+1. Coverage: share of our judged cell-windows that OpenSky also judges.
+2. P(OpenSky flag | our model says jamming or both) and P(OpenSky flag | our model says
+   normal), with Wilson 95% intervals; the same for the rules' labels.
+3. Spearman correlation of the degraded share between the two networks.
+4. Calm control (central_europe): OpenSky flag rate where our model says normal.
+5. Disagreements: the 20 matched cell-windows with the largest difference in degraded
+   share each way, for inspection (descriptive).
+
+**Agreement is declared** if, pooled over the four hotspot regions, the lower 95% bound
+of P(OpenSky flag | model jamming) is at least 0.70 and the upper 95% bound of
+P(OpenSky flag | model normal) is at most 0.10. Otherwise the disagreement is
+investigated and reported before any further use of the map's numbers. No threshold,
+day, region or definition above is changed after the data is seen; a mistake found in
+the code is fixed and reported as such.
+
+**First query: a probe** of one hour (26 Oct 2026, 12 UTC) over the Baltic box, returning
+only the distribution of NIC and its consistency with HCR (containment radius), to check
+the column meanings before the full fetch. It does not look at agreement.
+
+Cite: M. Schäfer, M. Strohmeier, V. Lenders, I. Martinovic, M. Wilhelm, "Bringing Up
+OpenSky: A Large-scale ADS-B Sensor Network for Research", IPSN 2014.

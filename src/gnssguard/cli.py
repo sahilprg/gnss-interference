@@ -586,6 +586,58 @@ def cmd_incidents(args) -> int:
     return 0
 
 
+OPENSKY_REGIONS = ("baltic", "east_med", "black_sea", "punjab", "central_europe")
+
+
+def _opensky_boxes(config):
+    return {r.name: (r.lat_min, r.lat_max, r.lon_min, r.lon_max)
+            for r in load_regions(config, list(OPENSKY_REGIONS))}
+
+
+def cmd_opensky_probe(args) -> int:
+    from gnssguard.network.opensky import PROBE_HOUR, hour_ts, probe_sql, run_query
+
+    box = _opensky_boxes(args.config)["baltic"]
+    df = run_query(probe_sql(box, hour_ts(PROBE_HOUR)))
+    with pd_options():
+        print(df.to_string(index=False))
+    return 0
+
+
+def cmd_opensky_fetch(args) -> int:
+    from gnssguard.network.opensky import fetch
+
+    days = _split(args.dates)
+    written = fetch(days, _opensky_boxes(args.config), args.out, by_region=args.by_region)
+    have = sum(len(list((Path(args.out) / d).glob("*.parquet"))) for d in days)
+    print(f"{len(written)} hours fetched now; {have} of {24 * len(days)} hours in {args.out}")
+    return 0
+
+
+def cmd_opensky_check(args) -> int:
+    from gnssguard.features.cells import load_cells
+    from gnssguard.model.dataset import with_context
+    from gnssguard.model.evaluate import rule_frame
+    from gnssguard.model.train import Detectors
+    from gnssguard.network.opensky import load, run
+
+    days = _split(args.dates)
+    os_ = load(args.files, days)
+    if os_.empty:
+        print(f"no OpenSky files under {args.files}; run `gnssguard opensky-fetch` first",
+              file=sys.stderr)
+        return 1
+    det = Detectors.load(args.model or _default_model())
+    cells = with_context(load_cells(args.cells, days, list(OPENSKY_REGIONS))).reset_index(drop=True)
+    cells["model"] = det.predict(cells)["label"].astype(str).to_numpy()
+    cells["rules"] = rule_frame(cells, det)["label"].astype(str).to_numpy()
+    summary, verdict = run(cells, os_, args.report)
+    with pd_options():
+        print(summary.to_string(index=False))
+    print(f"\n{verdict}\nreports: {args.report}/")
+    return 0
+
+
 def pd_options():
     import pandas as pd
 
@@ -797,6 +849,26 @@ def main(argv: list[str] | None = None) -> int:
     pi.add_argument("--out", default="results/incidents")
     pi.add_argument("--only", help="event ids to rebuild (comma-separated); others are kept")
     pi.set_defaults(func=cmd_incidents)
+
+    po = sub.add_parser("opensky-probe", help="one-hour OpenSky probe: NIC column meanings")
+    po.add_argument("--config", default="configs/regions.yaml")
+    po.set_defaults(func=cmd_opensky_probe)
+
+    pf = sub.add_parser("opensky-fetch", help="OpenSky cell-window counts, one hour per query")
+    pf.add_argument("--dates", required=True)
+    pf.add_argument("--out", default="data/opensky")
+    pf.add_argument("--config", default="configs/regions.yaml")
+    pf.add_argument("--by-region", action="store_true",
+                    help="one query per hour and region (if an hour takes over 5 minutes)")
+    pf.set_defaults(func=cmd_opensky_fetch)
+
+    pk = sub.add_parser("opensky-check", help="second network check 1: OpenSky against the map")
+    pk.add_argument("--dates", required=True)
+    pk.add_argument("--files", default="data/opensky")
+    pk.add_argument("--cells", default="data/cells")
+    pk.add_argument("--model", help="model folder (default: models/detector if present)")
+    pk.add_argument("--report", default="reports/opensky")
+    pk.set_defaults(func=cmd_opensky_check)
 
     ph = sub.add_parser("holdout-sample", help="blind stratified sample of a fresh day")
     ph.add_argument("--date", required=True)

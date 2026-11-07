@@ -20,6 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 fast = ["orjson>=3.9"]
 ground = ["hatanaka>=2.8.1"]  # EUREF station files (gnssguard ground-check)
+opensky = ["pyopensky>=2.18"]  # second receiver network (gnssguard opensky-check)
 dev = ["pytest>=8", "ruff>=0.5", "pre-commit>=3"]
 
 [project.scripts]

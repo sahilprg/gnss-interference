@@ -130,8 +130,11 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   patterns**, and no correlation (0.03). Expected and stated before the data: stations
   90-350 km from Kaliningrad are outside the jammer's line of sight, while aircraft see
   it most of the time. Neither support nor refutation.
-* Next for Phase 3: a ground source within line of sight of a jammer (published Baltic
-  spectrum monitoring), and the second receiver network (OpenSky).
+* **Second network check 1 declared** (7 Nov, before any OpenSky data; docs/opensky.md):
+  OpenSky's NIC reports in the same cells and windows, 26 Oct-4 Nov 2026, with a fixed
+  agreement rule. Trino access until 1 Dec 2026.
+* Next for Phase 3: run it; a ground source within line of sight of a jammer
+  (published Baltic spectrum monitoring).
 
 ## Phase 4 status (6 Nov 2026)
 
