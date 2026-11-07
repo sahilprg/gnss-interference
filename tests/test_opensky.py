@@ -68,3 +68,22 @@ def test_agreement_and_disagreement(tmp_path):
     ours, os_ = ours_and_os(n_jam=60, n_norm=60, os_jam_flag=30, os_norm_flag=1)
     _, v = osk.run(ours, os_, tmp_path)
     assert v.startswith("no agreement")
+
+
+def test_one_sign_in_for_all_hours(tmp_path):
+    class EngineClient:
+        engines = 0
+
+        def engine(self):
+            EngineClient.engines += 1
+            return object()
+
+    # no Trino here: check only that the engine (and its sign-in) is built once
+    calls = []
+    orig = osk.Session.query
+    osk.Session.query = lambda self, sql: (calls.append(self.engine), pd.DataFrame())[1]
+    try:
+        osk.fetch(["2026-10-26"], BOXES, tmp_path, client=EngineClient(), sleep_s=0)
+    finally:
+        osk.Session.query = orig
+    assert EngineClient.engines == 1 and len(calls) == 24 and len({id(e) for e in calls}) == 1

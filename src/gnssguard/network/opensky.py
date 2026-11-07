@@ -101,10 +101,28 @@ def _client():
     return Trino()
 
 
+class Session:
+    """One sign-in for many queries: pyopensky builds a new engine (and a new browser
+    sign-in, without a keyring) for every `query` call, so the engine is built once and
+    reused. Queries still run one at a time."""
+
+    def __init__(self, client=None):
+        self.client = client or _client()
+        self.engine = self.client.engine() if hasattr(self.client, "engine") else None
+
+    def query(self, sql: str) -> pd.DataFrame:
+        if self.engine is None:  # test doubles
+            return pd.DataFrame(self.client.query(sql, cached=False))
+        from sqlalchemy import text
+
+        with self.engine.connect() as conn:
+            return pd.read_sql_query(text(sql), conn)
+
+
 def run_query(sql: str, client=None) -> pd.DataFrame:
-    client = client or _client()
+    session = client if isinstance(client, Session) else Session(client)
     t0 = time.monotonic()
-    df = client.query(sql, cached=False)
+    df = session.query(sql)
     took = time.monotonic() - t0
     if took > SLOW_S:
         log.warning("query took %.0f s (over 5 minutes): use --by-region to split it", took)
@@ -117,6 +135,7 @@ def fetch(days: list[str], boxes: dict[str, tuple[float, float, float, float]], 
     kept and skipped."""
     out = Path(out)
     written = []
+    session = None
     for day in days:
         d0 = dt.datetime.fromisoformat(day).replace(tzinfo=dt.timezone.utc)
         for h in range(24):
@@ -126,8 +145,9 @@ def fetch(days: list[str], boxes: dict[str, tuple[float, float, float, float]], 
             hour = hour_ts(d0 + dt.timedelta(hours=h))
             groups = [{r: b} for r, b in boxes.items()] if by_region else [boxes]
             parts = []
+            session = session or Session(client)
             for g in groups:
-                parts.append(run_query(hour_sql(hour, g), client))
+                parts.append(run_query(hour_sql(hour, g), session))
                 time.sleep(sleep_s)
             df = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
             f.parent.mkdir(parents=True, exist_ok=True)
