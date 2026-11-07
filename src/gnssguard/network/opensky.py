@@ -119,10 +119,29 @@ class Session:
             return pd.read_sql_query(text(sql), conn)
 
 
-def run_query(sql: str, client=None) -> pd.DataFrame:
+QUEUE_WAIT_S = 60
+QUEUE_TRIES = 10
+
+
+def _queue_full(e: Exception) -> bool:
+    return "QUERY_QUEUE_FULL" in str(e) or "Too many queued queries" in str(e)
+
+
+def run_query(sql: str, client=None, wait_s: float = QUEUE_WAIT_S) -> pd.DataFrame:
+    """Run one query; if OpenSky's queue for this user is full (earlier queries still on
+    the server, at most two queued per user), wait and retry, as OpenSky's guide asks."""
     session = client if isinstance(client, Session) else Session(client)
     t0 = time.monotonic()
-    df = session.query(sql)
+    for attempt in range(1, QUEUE_TRIES + 1):
+        try:
+            df = session.query(sql)
+            break
+        except Exception as e:
+            if not _queue_full(e) or attempt == QUEUE_TRIES:
+                raise
+            log.warning("OpenSky queue full (earlier queries still on the server); "
+                        "waiting %.0f s, try %d of %d", wait_s, attempt, QUEUE_TRIES)
+            time.sleep(wait_s)
     took = time.monotonic() - t0
     if took > SLOW_S:
         log.warning("query took %.0f s (over 5 minutes): use --by-region to split it", took)

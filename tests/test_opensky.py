@@ -87,3 +87,25 @@ def test_one_sign_in_for_all_hours(tmp_path):
     finally:
         osk.Session.query = orig
     assert EngineClient.engines == 1 and len(calls) == 24 and len({id(e) for e in calls}) == 1
+
+
+def test_full_queue_waits_and_retries():
+    class Busy:
+        n = 0
+
+        def query(self, sql, cached=False):
+            Busy.n += 1
+            if Busy.n < 3:
+                raise RuntimeError('QUERY_QUEUE_FULL: Too many queued queries for "x"')
+            return pd.DataFrame({"a": [1]})
+
+    assert len(osk.run_query("SELECT 1", Busy(), wait_s=0)) == 1 and Busy.n == 3
+
+    class Broken:
+        def query(self, sql, cached=False):
+            raise RuntimeError("SYNTAX_ERROR")
+
+    import pytest
+
+    with pytest.raises(RuntimeError):
+        osk.run_query("SELECT 1", Broken(), wait_s=0)
