@@ -32,6 +32,11 @@ hash of every input):
 * **Ground stations:** six EUREF stations around Kaliningrad show no agreement with the
   map beyond a shifted-days control (expected and stated before the data: they are
   outside the jammers' line of sight).
+* **Second receiver network (OpenSky):** where the map says normal, OpenSky agrees
+  (about 2-5% flagged). Where it says jamming, OpenSky confirms 70-84% outside the
+  Baltic but 45% in the Baltic, short of the declared 70%: there most jammed aircraft
+  have no GNSS position at all and are seen only by multilateration. Counting the same
+  aircraft in both, the Baltic reaches 73% (evaluation protocol, second network check 1).
 * **Incident pages** for every catalogued event: the map, the evidence and whether the
   day stands out against ordinary days ([site](https://sahilprg.github.io/gnss-interference/incidents/index.html)).
 * **Scores, as checked by a reviewer:** cells scored below 0.1 were interference 10% of

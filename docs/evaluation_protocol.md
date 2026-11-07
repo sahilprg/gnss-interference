@@ -819,3 +819,67 @@ the column meanings before the full fetch. It does not look at agreement.
 
 Cite: M. Schäfer, M. Strohmeier, V. Lenders, I. Martinovic, M. Wilhelm, "Bringing Up
 OpenSky: A Large-scale ADS-B Sensor Network for Research", IPSN 2014.
+
+### Second network check 1: result (7 Nov 2026)
+
+240 of 240 hours fetched (26 Oct-4 Nov 2026, one query per hour). Reports:
+`reports/opensky/`; table in `results/opensky_check_1.csv`.
+
+| Region | Our judged | Also judged by OpenSky | P(OpenSky flag \| model jamming) | P(OpenSky flag \| model normal) | Spearman |
+| --- | --- | --- | --- | --- | --- |
+| Baltic | 14,271 | 77% | 0.45 (0.43-0.47), n=2,383 | 0.053 (0.048-0.058) | 0.67 |
+| Black Sea | 8,094 | 90% | 0.82 (0.80-0.84), n=1,208 | 0.093 (0.086-0.101) | 0.78 |
+| East Med | 14,968 | 99% | 0.70 (0.65-0.75), n=354 | 0.023 (0.021-0.026) | 0.73 |
+| Punjab | 3,397 | 88% | 0.84 (0.78-0.88), n=226 | 0.073 (0.064-0.084) | 0.77 |
+| **Hotspots pooled** | 40,730 | 89% | **0.60 (0.59-0.62)**, n=4,171 | **0.049 (0.046-0.051)** | 0.73 |
+| Central Europe (control) | 25,911 | 100% | 0.30 (0.24-0.37), n=201 | 0.002 (0.002-0.003) | 0.50 |
+
+The rules give the same numbers within 0.01 (their jamming cells are the same cells).
+
+**Verdict, by the declared rule: no agreement.** The lower bound for P(OpenSky flag |
+model jamming) is 0.59 (needed 0.70); the normal side passes (upper bound 0.05, needed
+0.10 or less). The shortfall is the Baltic (0.45); the other hotspots are 0.70-0.84.
+
+**Investigation (after the result; not part of the declared check).** In our Baltic
+jamming cells, 93% of the degraded aircraft are positioned only by ground multilateration
+(MLAT fallback: no GNSS position of their own, NIC 0), against 8% in the East Med and
+0% in the Black Sea and Punjab. OpenSky's `position_data4` holds only aircraft that still
+broadcast a position, so it does not count these aircraft, and its degraded share in
+the Baltic is lower. The ordering of the regions follows the MLAT share.
+
+**Test of that explanation, declared before it is run** (`scripts/opensky_investigate.py`):
+recount our side with only aircraft that broadcast their own position (usable minus
+MLAT-fallback aircraft, degraded minus MLAT-fallback aircraft) and flag a cell-window
+when that share is at least 0.30 with 3 or more such aircraft, as on the OpenSky side.
+The explanation is **supported** if, on matched cell-windows, P(OpenSky flag | our
+recount flag) in the Baltic is at least 0.70 (the level of the other hotspots), and
+**not supported** otherwise. This does not change the verdict above: the declared check
+failed, and the map's Baltic jamming flags rest mostly on aircraft that lost their GNSS
+position entirely, which OpenSky's position data cannot confirm.
+
+**Follow-up result (7 Nov 2026): explanation supported.** Counting only aircraft that
+broadcast their own position (matched cell-windows with 3 or more such aircraft in both
+networks):
+
+| Region | Recount flags | P(OpenSky flag \| recount flag) | P(OpenSky flag \| recount normal) |
+| --- | --- | --- | --- |
+| Baltic | 992 | **0.727** (0.698-0.754) | 0.019 |
+| Black Sea | 1,862 | 0.716 (0.695-0.736) | 0.042 |
+| East Med | 776 | 0.648 (0.614-0.681) | 0.005 |
+| Punjab | 435 | 0.772 (0.731-0.809) | 0.025 |
+| Pooled | 4,065 | 0.712 (0.698-0.726) | 0.017 |
+
+The Baltic reaches the declared 0.70 (point estimate 0.727; the 95% interval just
+touches 0.70) and now matches the other hotspots. In the model's Baltic jamming cells
+our pipeline sees 5.9 aircraft on average, 3.9 of them with a position of their own, and
+OpenSky 4.9.
+
+**Conclusion.** The two networks agree on which cells have aircraft reporting degraded
+integrity, at about 70% (and about 2% false flags), once both count the same aircraft.
+The declared check failed because, near Kaliningrad, most aircraft that make a cell
+"jammed" in our map have lost their GNSS position completely and are seen only through
+ground multilateration, which OpenSky's position table does not include. So the Baltic
+jamming flags rest largely on aircraft that a second network's position data cannot
+confirm or refute; other evidence for them (event catalog, Lithuanian and Estonian
+spectrum monitoring) is unaffected. A second network check with OpenSky's
+multilateration or state-vector data would be needed to compare those aircraft.

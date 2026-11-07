@@ -133,8 +133,16 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
 * **Second network check 1 declared** (7 Nov, before any OpenSky data; docs/opensky.md):
   OpenSky's NIC reports in the same cells and windows, 26 Oct-4 Nov 2026, with a fixed
   agreement rule. Trino access until 1 Dec 2026.
-* Next for Phase 3: run it; a ground source within line of sight of a jammer
-  (published Baltic spectrum monitoring).
+* **Second network check 1 result** (240 hours): **no agreement** by the declared rule.
+  Where our model says normal, OpenSky agrees (5% flagged, calm control 0.2%); where it
+  says jamming, OpenSky flags 82-84% in the Black Sea and Punjab, 70% in the East Med,
+  but only 45% in the Baltic, so 60% pooled (needed 70%). In the Baltic, 93% of the
+  degraded aircraft in our jamming cells have no GNSS position at all (MLAT only), which
+  OpenSky's position data cannot count. A follow-up declared before it ran supports
+  this: counting only aircraft that report their own position, OpenSky confirms 73% of
+  Baltic flags (71% pooled, 2% false flags), in line with the other regions.
+* Next for Phase 3: a ground source within line of sight of a jammer (published Baltic
+  spectrum monitoring); OpenSky's multilateration data for the aircraft without GNSS.
 
 ## Phase 4 status (6 Nov 2026)
 
