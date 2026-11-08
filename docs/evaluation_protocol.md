@@ -970,3 +970,21 @@ repository activity).
 **Provenance.** Every published day records the git commit (and whether the working tree
 was modified), the region boxes, the point format, a hash of the feature list and of
 `constraints.txt`, besides the model hash and settings hash.
+
+**Follow-up 2 result (8 Nov 2026): explanation supported.** Counting only aircraft that
+broadcast their own position, OpenSky flags 0.884 of the 86 Central Europe
+cell-windows the recount flags (needed 0.70), and 0.001 of the rest (25,771). Of the
+model's 199 Central Europe jamming cell-windows, only 86 remain flagged on the recount:
+the others rest on MLAT-only aircraft. The share threshold is not the cause: OpenSky flags
+0.27 of the model's cells with 2 or fewer degraded aircraft and 0.34 of the rest.
+
+**What this leaves open.** In the Baltic, MLAT-only aircraft at NIC 0 are aircraft that
+lost GPS; in calm Central Europe, with dense multilateration, they may also be aircraft
+whose ADS-B position is missing for other reasons (equipment, non-GNSS aircraft). So more
+than half of the calm region's jamming flags rest on evidence that does not by itself
+show GPS loss. Planned, declared before it is looked at: in the next review set, sample
+calm-region flags separately by whether they rest on MLAT-only aircraft.
+
+**Model hash on the laptop, resolved.** `models/detector` on the laptop has Windows line
+endings in all three files (meta.json 4,414 bytes against 4,197); with line endings
+normalized it hashes to 81062b5eb365, the published value.

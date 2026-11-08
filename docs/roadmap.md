@@ -181,8 +181,10 @@ protocol has the measurements):
 * monitoring against today's date: stale status and issue, a stale banner on the map,
   a persistent backlog, a keep-alive for the nightly schedule;
 * provenance: commit, region boxes, point format and feature hash in every published day;
-* Central Europe follow-up with OpenSky declared (the calm region's flags confirmed only
-  30% by OpenSky).
+* Central Europe follow-up with OpenSky: supported (88% confirmed when counting only
+  aircraft with their own position), but more than half of the calm region's jamming
+  flags rest on MLAT-only aircraft, which may not mean GPS loss there; to be sampled
+  separately in the next review set.
 
 After the sealed test (19 Nov), from the review: the disagreement set and an honest
 benchmark (NIC-only baseline, a GPSJam-style NACp score, the full rules, the model);

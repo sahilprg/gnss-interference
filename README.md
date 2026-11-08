@@ -37,6 +37,8 @@ hash of every input):
   Baltic but 45% in the Baltic, short of the declared 70%: there most jammed aircraft
   have no GNSS position at all and are seen only by multilateration. Counting the same
   aircraft in both, the Baltic reaches 73% (evaluation protocol, second network check 1).
+  In calm Central Europe, more than half of the few jamming flags rest on MLAT-only
+  aircraft; counted without them, OpenSky confirms 88%.
 * **Incident pages** for every catalogued event: the map, the evidence and whether the
   day stands out against ordinary days ([site](https://sahilprg.github.io/gnss-interference/incidents/index.html)).
 * **Scores, as checked by a reviewer** (150 cells, weighted to all cells of the review
