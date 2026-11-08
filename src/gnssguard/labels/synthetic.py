@@ -25,8 +25,10 @@ Spoofing
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -208,7 +210,8 @@ def inject(points: pd.DataFrame, events: list[Event], seed: int = 0
 # short, weak jammers that mostly degrade aircraft partially, and slow spoofing drifts
 # that keep integrity high. A model that only learned the "standard" generator's habits
 # will fall down here.
-PROFILES = {
+# values are numbers or (low, high) ranges, unpacked into rng.uniform(*...)
+PROFILES: dict[str, dict[str, Any]] = {
     "standard": {"durations": [45, 60, 90, 120, 180], "jam_range": (120, 300), "core_frac": 0.6,
                  "p_drop": 0.15, "spoof_radius": (60, 150), "drift": (150, 400),
                  "p_nic_kept": 0.7, "modes": ["drift", "jump"]},
@@ -466,7 +469,7 @@ def save_events(events: list[Event], path: str | Path) -> None:
 
 
 def run_experiment(processed: str | Path, region: str, date: str, *, n_jamming: int = 4,
-                   n_spoofing: int = 4, seeds: list[int] = (0,), p_mlat: float = 0.0,
+                   n_spoofing: int = 4, seeds: Sequence[int] = (0,), p_mlat: float = 0.0,
                    real_cells: str | Path | None = None, out_dir: str | Path = "data/synthetic",
                    report_dir: str | Path = "reports/synthetic",
                    spec: GridSpec = GridSpec()) -> pd.DataFrame:

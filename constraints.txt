@@ -12,5 +12,8 @@ requests==2.34.2
 urllib3==2.8.0
 orjson==3.13.0
 pytest==9.2.0
+pytest-cov==7.1.0
+coverage==7.17.2
+mypy==2.4.1
 ruff==0.17.3
 hatanaka==2.8.1

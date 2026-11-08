@@ -38,7 +38,7 @@ import json
 import statistics
 from pathlib import Path
 
-from gnssguard.product.publish import read_index, read_summary
+from gnssguard.product.publish import read_index, read_summary, write_atomic
 
 WINDOW = 7
 MAX_AGE_DAYS = 45
@@ -120,7 +120,7 @@ def write_health(out: str | Path, today: dt.date | None = None, backlog: int = 0
     res = assess(out, today, backlog)
     data = Path(out) / "data"
     data.mkdir(parents=True, exist_ok=True)
-    (data / "health.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+    write_atomic(data / "health.json", json.dumps(res, indent=1))
     f = res["freshness"]
     lines = [f"Data: **{f['status']}** (newest published day {f['newest_published_day']}, "
              f"{f['days_behind']} days before {res['checked_on']}; "
@@ -128,5 +128,5 @@ def write_health(out: str | Path, today: dt.date | None = None, backlog: int = 0
              f"Model: **{res['status']}** after {res.get('checked_through', 'no day')}", ""]
     lines += [f"- {r}" for r in res["reasons"]] or ["- no retraining signal"]
     lines += ["", "How to retrain: docs/product.md, section \"Retraining\"."]
-    (data / "health.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    write_atomic(data / "health.md", "\n".join(lines) + "\n")
     return res

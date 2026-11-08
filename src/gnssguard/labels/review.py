@@ -8,6 +8,8 @@ groups, weights and predictions live in a separate file the labeler does not ope
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 
@@ -24,7 +26,7 @@ GROUP_COLUMNS = ["gold_id", "group", "weight", "pool", "rule_label", "model_labe
 def _spread(idx: pd.Index, by: pd.Series, k: int, rng) -> list:
     """k of idx, spread as evenly as possible over the values of `by`."""
     groups = {v: list(rng.permutation(np.asarray(g))) for v, g in idx.groupby(by.loc[idx]).items()}
-    out = []
+    out: list = []
     while len(out) < k and any(groups.values()):
         for v in sorted(groups):
             if groups[v] and len(out) < k:
@@ -79,7 +81,7 @@ def review_eval(gold: pd.DataFrame, groups: pd.DataFrame, calm_flagged_share: fl
     """The pre-declared analysis."""
     m = gold[["gold_id", "label"]].merge(groups, on="gold_id", how="inner")
     m = m[m["label"].fillna("") != ""]
-    out = {"labeled": int(len(m)), "unsure": int((m["label"] == "unsure").sum())}
+    out: dict[str, Any] = {"labeled": int(len(m)), "unsure": int((m["label"] == "unsure").sum())}
     sure = m[m["label"] != "unsure"].copy()
     sure["h"] = sure["label"].isin(FLAGGED)
 

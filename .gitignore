@@ -27,3 +27,8 @@ dist/
 
 # local website preview (the nightly job publishes to the gh-pages branch)
 /public/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/

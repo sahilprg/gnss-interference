@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import math
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -27,7 +28,8 @@ WINDOW = "15min"
 
 
 def station_windows(files: list[Path]) -> tuple[pd.DataFrame, dict]:
-    frames, info = [], {}
+    frames: list[pd.DataFrame] = []
+    info: dict[str, Any] = {}
     for f in files:
         try:
             df, inf = read_snr(f)
@@ -107,7 +109,9 @@ def shift_merge(ground: pd.DataFrame, air: pd.DataFrame, shift_days: int = 0) ->
 
 def run(station_files: dict[str, list[Path]], cells: pd.DataFrame, labels: pd.Series,
         out: Path) -> pd.DataFrame:
-    rows, merged, pairs = [], [], []
+    rows: list[dict[str, Any]] = []
+    merged: list[pd.DataFrame] = []
+    pairs: list[tuple] = []
     for st, files in station_files.items():
         g, info = station_windows(files)
         if g.empty or "lat" not in info:

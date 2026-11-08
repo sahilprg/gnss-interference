@@ -19,6 +19,8 @@ from __future__ import annotations
 import json
 import logging
 import math
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 
 import pandas as pd
@@ -66,6 +68,8 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 def rule_frame(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
     """Phase 2 rule labels, with the label model fitted on the training days."""
+    if det.label_model is None:
+        raise ValueError("this model was saved without its label model")
     sc = score(apply_rules(cells), det.label_model)
     return sc[["p_jamming", "majority_vote_jamming", "spoof_votes", "label"]]
 
@@ -153,7 +157,7 @@ def gold_eval(gold_csv: str | Path, test_cells: pd.DataFrame, predictors: dict,
 
 def synthetic_eval(runs_rows: pd.DataFrame, runs: list[dict], predictors: dict,
                    spec: GridSpec = GridSpec(), localize_with: tuple[str, ...] = ()) -> dict:
-    out = {"summary": [], "edge": [], "localization": []}
+    out: dict[str, list] = {"summary": [], "edge": [], "localization": []}
     for run in runs:
         cw = runs_rows[runs_rows["seed"] == run["seed"]]
         cw = cw[cw["date"] == run["date"]].reset_index(drop=True)
@@ -306,8 +310,9 @@ def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame, det: 
         for name, (feats, sources) in VARIANTS.items():
             if name != "full":
                 models[name] = train(table, feats, sources=sources, label_model=det.label_model)
-    predictors = {"rules": lambda c: rule_frame(c, det)}
-    predictors.update({f"model_{n}": (lambda c, m=m: model_frame(c, m)) for n, m in models.items()})
+    predictors: dict[str, Callable[[pd.DataFrame], pd.DataFrame]] = {
+        "rules": lambda c: rule_frame(c, det)}
+    predictors.update({f"model_{n}": partial(model_frame, det=m) for n, m in models.items()})
 
     results = {}
     if gold_csv and Path(gold_csv).exists():

@@ -367,3 +367,18 @@ label, and the labeler does not open them.
 - Done since: neighbouring cells became detector features, and the detector's
   probabilities are calibrated (docs/model.md, sections 4 and 6). The label model
   itself is still overconfident.
+
+## Disagreement set (8 Nov 2026)
+
+Cells where the model and the rules disagree, to find out which one is right
+(evaluation protocol, "Disagreement set 1"):
+
+```
+gnssguard disagreement-sample --dates <15 Sep to 4 Nov 2026, comma-separated> \
+    --out labels/disagreement_1.csv --groups labels/disagreement_1_groups.csv
+gnssguard gold-tool --gold labels/disagreement_1.csv --out reports/disagreement_tool.html
+gnssguard disagreement-eval
+```
+
+Commit the labeling file and the groups file before labeling; do not open the groups
+file until the labels are committed.

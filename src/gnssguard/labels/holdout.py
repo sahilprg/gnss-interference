@@ -14,6 +14,7 @@ predictors' answers are kept in a separate file the labeler does not open.
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -108,7 +109,7 @@ def holdout_eval(gold: pd.DataFrame, strata: pd.DataFrame) -> dict:
     sure["h"] = sure["label"].isin(FLAGGED)
     sure["r"] = sure["rule_label"].isin(FLAGGED)
     sure["m"] = sure["model_label"].isin(FLAGGED)
-    out = {"labeled": int(len(m)), "decided": int(len(sure)),
+    out: dict[str, Any] = {"labeled": int(len(m)), "decided": int(len(sure)),
            "unsure": int((m["label"] == "unsure").sum())}
 
     s1 = sure[sure["stratum"] == "S1_disagree"]

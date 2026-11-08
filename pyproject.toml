@@ -21,7 +21,7 @@ dependencies = [
 fast = ["orjson>=3.9"]
 ground = ["hatanaka>=2.8.1"]  # EUREF station files (gnssguard ground-check)
 opensky = ["pyopensky>=2.18"]  # second receiver network (gnssguard opensky-check)
-dev = ["pytest>=8", "ruff>=0.5", "pre-commit>=3"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.5", "mypy>=1.10", "pre-commit>=3"]
 
 [project.scripts]
 gnssguard = "gnssguard.cli:main"
@@ -58,3 +58,22 @@ filterwarnings = [
     # LightGBM's own save_model writes ASCII without naming an encoding: harmless
     "ignore::EncodingWarning:lightgbm",
 ]
+
+[tool.mypy]
+# pandas ships without type information (pandas-stubs types every cell as a 15-way union
+# and buries real errors), so pandas objects are unchecked; everything else is checked.
+files = ["src"]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.coverage.run]
+source = ["gnssguard"]
+omit = ["*/gnssguard/cli/__main__.py"]
+
+[tool.coverage.report]
+# measured 74% on 8 Nov 2026; the floor stops it from falling unnoticed
+fail_under = 72
+skip_covered = true
+show_missing = true

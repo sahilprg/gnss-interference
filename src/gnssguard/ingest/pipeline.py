@@ -15,8 +15,9 @@ import logging
 import shutil
 import tarfile
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import Any
 
 from gnssguard import __version__
 from gnssguard.config import Region
@@ -28,7 +29,7 @@ from gnssguard.ingest.writer import RegionWriter
 try:
     import orjson
 
-    _loads = orjson.loads
+    _loads: Callable[[str | bytes], Any] = orjson.loads
 except ImportError:  # pragma: no cover - optional speedup
     _loads = json.loads
 

@@ -16,6 +16,18 @@ scored with release 0.2.0 (model, labels, baseline, questions).
   persistent backlog, keep-alive for the nightly schedule.
 * Provenance in every published day: commit, region boxes, point format, feature hash;
   model hash independent of line endings.
+* Sealed-test addendum 1, declared before the draw: a GPSJam-style NACp baseline
+  (development: 45% of hand-labeled interference against the model's 86%).
+* Disagreement sets (`gnssguard disagreement-sample` / `disagreement-eval`): cells where
+  the model and the rules part, labeled blind, outside the sealed days.
+* README shortened to the problem, a map, three numbers with their limits and a pipeline
+  diagram; detail moved to docs/evidence.md and docs/development.md; two case studies
+  (docs/case_studies.md).
+* Engineering: the command line split by area (`gnssguard/cli/`: pipeline, labels,
+  checks, product; help text unchanged for all 32 commands); mypy and coverage (floor
+  72%, now 74%) in CI; an interrupted publish keeps the previous day and index (staging
+  folder and atomic swap, recovered on the next run); `gold-sample` refuses to overwrite
+  before reading any data.
 * Prepared, merged after the sealed test: bug 3 (an expired NACp kept with a fresh age),
   point format points/3.
 

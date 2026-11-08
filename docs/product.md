@@ -126,6 +126,16 @@ GitHub disables scheduled workflows in a public repository after 60 days without
 repository activity; the nightly job re-enables itself on every run, which resets that
 clock.
 
+**An interrupted run** (a killed runner, out of memory, a full disk) leaves the site as
+it was. Each day is written to `data/.staging-<date>/` and swapped in only once it is
+complete; `index.json` and `health.json` are replaced in one step (written to a `.tmp`
+file, then renamed), and the index lists a day only after its folder is in place. So a
+reader, or the next run, sees the previous version of a day or the new one, never a mix,
+and a day that was never finished is not in the index and is run again the next night.
+The next run also removes what an interruption left behind, or restores the previous
+version if the run stopped mid-swap (`recover()` in `product/publish.py`; tests in
+`tests/test_publish_interrupt.py`, which fail on the code before 8 Nov 2026).
+
 ## Retrain alarm
 
 After each publish, `gnssguard health` (`product/health.py`) checks the published days and

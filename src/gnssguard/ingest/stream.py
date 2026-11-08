@@ -11,6 +11,7 @@ import io
 import logging
 import time
 from collections.abc import Sequence
+from typing import Any
 
 import requests
 import urllib3
@@ -47,8 +48,8 @@ class MultiPartStream(io.RawIOBase):
         self.session.headers.setdefault("User-Agent", USER_AGENT)
         self.total_read = 0
         self._idx = -1
-        self._fh = None  # local file handle or urllib3 raw response
-        self._resp = None
+        self._fh: Any = None  # local file handle or urllib3 raw response
+        self._resp: Any = None
         self._part_offset = 0
         self._part_size: int | None = None
         self._next_part()

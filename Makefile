@@ -1,4 +1,4 @@
-.PHONY: install test lint sample ingest coverage cells label synth gold gold-tool maps phase2 train evaluate rolling phase3
+.PHONY: install test lint sample ingest coverage cells label synth gold gold-tool maps phase2 train evaluate rolling phase3 check
 
 DATE ?= 2026-10-26
 REGION ?= baltic
@@ -11,6 +11,11 @@ test:
 
 lint:
 	ruff check .
+
+# type check (mypy) and tests with coverage, as in CI
+check: lint
+	python -m mypy
+	python -m pytest -q --cov
 
 # ~2 minutes: first 5,000 aircraft of one day, to check everything works
 sample:

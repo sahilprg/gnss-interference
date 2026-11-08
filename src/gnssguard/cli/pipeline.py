@@ -1,0 +1,295 @@
+"""Data pipeline: ingest, cells, labels, maps, synthetic attacks, training."""
+
+from __future__ import annotations
+
+import logging
+import sys
+from pathlib import Path
+
+from gnssguard.cli._common import (
+    dates,
+    grid,
+    grid_args,
+    model_args,
+    split,
+    split_days,
+)
+from gnssguard.config import load_regions
+
+
+def cmd_ingest(args) -> int:
+    from gnssguard.ingest import ingest_day
+
+    regions = load_regions(args.config, args.regions.split(",") if args.regions else None)
+    failures = 0
+    for day in dates(args):
+        try:
+            m = ingest_day(day, regions, args.out, sources=args.source or None,
+                           max_traces=args.max_traces, force=args.force)
+            print(f"{day}: {sum(m['rows_per_region'].values()):,} rows, "
+                  f"{m['trace_files']:,} traces, {m['bytes_read'] / 1e9:.2f} GB read, "
+                  f"{m['seconds']:.0f}s")
+        except Exception as e:  # noqa: BLE001 - keep going with the next day
+            failures += 1
+            logging.exception("%s failed: %s", day, e)
+    return 1 if failures else 0
+
+
+def cmd_coverage(args) -> int:
+    from gnssguard.analysis.coverage import scan
+
+    report, hourly = scan(args.data, args.dates.split(",") if args.dates else None,
+                          args.regions.split(",") if args.regions else None)
+    if report.empty:
+        print("no data found", file=sys.stderr)
+        return 1
+    print(report.to_string(index=False))
+    if args.save:
+        out = Path(args.save)
+        out.mkdir(parents=True, exist_ok=True)
+        report.to_csv(out / "coverage.csv", index=False)
+        hourly.to_csv(out / "hourly_degraded.csv", index=False)
+        print(f"saved to {out}/")
+    return 0
+
+
+def cmd_cells(args) -> int:
+    from gnssguard.features.cells import build_all
+
+    done = build_all(args.data, args.out, grid(args), split(args.dates),
+                     split(args.regions), force=args.force)
+    for s in done:
+        print(f"{s['region']:15s} {s['date']}  {s['cell_windows']:6,} cell-windows, "
+              f"{s['chronic_aircraft']} faulty-transponder aircraft excluded")
+    if not done:
+        print("nothing new to build (use --force to rebuild)")
+    return 0
+
+
+def cmd_label(args) -> int:
+    import pandas as pd
+
+    from gnssguard.labels.pipeline import run
+
+    labels = run(args.cells, args.out, args.events, args.report, split(args.dates),
+                 split(args.regions), advisories_csv=args.advisories)
+    table = (labels.groupby(["region", "label"], observed=False).size()
+             .unstack(fill_value=0))
+    with pd.option_context("display.width", 140):
+        print(table.to_string())
+        adv = Path(args.report) / "advisory_check.csv"
+        if args.advisories and adv.exists():
+            print("\nOfficial advisories: flagged share inside vs outside the warned area")
+            print(pd.read_csv(adv).to_string(index=False))
+    print(f"\nlabels: {args.out}\nreports: {args.report}/")
+    return 0
+
+
+def cmd_map(args) -> int:
+    import pandas as pd
+
+    from gnssguard.features.cells import load_cells
+    from gnssguard.viz.map import write_map
+
+    cells = load_cells(args.cells, [args.date], [args.region])
+    if cells.empty:
+        print(f"no cells for {args.region} {args.date}; run `gnssguard cells` first",
+              file=sys.stderr)
+        return 1
+    labels = None
+    if args.labels and Path(args.labels).exists():
+        labels = pd.read_parquet(args.labels)
+        labels = labels[(labels["region"] == args.region) & (labels["date"] == args.date)]
+    gold = None
+    if args.gold and Path(args.gold).exists():
+        gold = pd.read_csv(args.gold, parse_dates=["window"])
+        gold = gold[(gold["region"] == args.region) & (gold["date"] == args.date)]
+    out = args.out or f"reports/maps/{args.region}_{args.date}.html"
+    print(f"map written to {write_map(out, cells, labels, gold)}")
+    return 0
+
+
+def cmd_synth(args) -> int:
+    from gnssguard.labels.synthetic import run_experiment
+
+    seeds = [int(s) for s in split(args.seeds) or ["0"]]
+    res = run_experiment(args.data, args.region, args.date, n_jamming=args.n_jamming,
+                         n_spoofing=args.n_spoofing, seeds=seeds, p_mlat=args.p_mlat,
+                         real_cells=args.cells, out_dir=args.out, report_dir=args.report,
+                         spec=grid(args))
+    print(res.to_string(index=False))
+    print(f"\nreports: {args.report}/   runs: {args.out}/")
+    return 0
+
+
+def cmd_train(args) -> int:
+    from gnssguard.model.train import build_table, importance, train
+
+    tr, va, te = split_days(args)
+    print(f"train: {', '.join(tr)}\nvalidation: {', '.join(va)}\ntest (sealed): {', '.join(te)}")
+    table, lm = build_table(args.data, args.cells, tr, va,
+                            synth_region=split(args.synth_train_regions),
+                            synth_seeds=tuple(int(s) for s in split(args.synth_seeds)),
+                            spec=grid(args), unlabel_borderline=args.unlabel_borderline)
+    Path(args.table).parent.mkdir(parents=True, exist_ok=True)
+    table.to_parquet(args.table, index=False)
+    det = train(table, label_model=lm)
+    det.meta["test_dates"] = te
+    det.meta["training_options"] = {"synth_train_regions": split(args.synth_train_regions),
+                                    "unlabel_borderline": args.unlabel_borderline}
+    det.save(args.model)
+    rep = Path(args.report)
+    rep.mkdir(parents=True, exist_ok=True)
+    importance(det).to_csv(rep / "importance.csv", index=False)
+    for t, info in det.meta["targets"].items():
+        print(f"{t}: {info['train_rows']:,} rows, {info['train_positives']:,} positives, "
+              f"{info['best_iteration']} trees, validation logloss {info['val_logloss']}")
+    print(f"model: {args.model}   table: {args.table}")
+    return 0
+
+
+def cmd_evaluate(args) -> int:
+    import pandas as pd
+
+    from gnssguard.model.evaluate import run
+    from gnssguard.model.train import Detectors
+
+    det = Detectors.load(args.model)
+    table = pd.read_parquet(args.table)
+    test = split(args.test_dates) or det.meta.get("test_dates")
+    if not test:
+        raise SystemExit("give --test-dates: the model does not record its test days")
+    res = run(args.data, args.cells, table, det, test, args.gold, args.advisories, args.report,
+              synth_region=args.synth_region, ablations=not args.no_ablations, spec=grid(args))
+    with pd.option_context("display.width", 160, "display.max_columns", 20):
+        for name in ("gold", "synthetic_mean", "edge", "synthetic_hard_mean", "edge_hard",
+                     "synthetic_stress_mean", "edge_stress", "real_flag_rates", "localization",
+                     "calibration", "advisories"):
+            df = res.get(name)
+            if df is not None and not df.empty:
+                print(f"\n== {name}")
+                print(df.to_string(index=False))
+    print(f"\nreports: {args.report}/  (no per-cell predictions for the test day are written)")
+    return 0
+
+
+def cmd_rolling(args) -> int:
+    import pandas as pd
+
+    from gnssguard.analysis.coverage import partitions
+    from gnssguard.model.rolling import run
+
+    table = pd.read_parquet(args.table)
+    stored = sorted({d for _, d, _ in partitions(args.cells)})
+    days = split(args.test_dates) or stored[-args.days:]
+    print(f"rolling test days: {', '.join(days)}")
+    res = run(args.data, args.cells, table, days, args.report,
+              synth_region=split(args.test_regions), n_seeds=args.seeds, spec=grid(args),
+              unlabel_borderline=args.unlabel_borderline)
+    with pd.option_context("display.width", 160, "display.max_columns", 20):
+        for name in ("rolling_synthetic_overall", "rolling_real_flag_rates"):
+            df = res.get(name)
+            if df is not None and not df.empty:
+                if name == "rolling_real_flag_rates":
+                    df = df.pivot_table(index=["region", "predictor"], columns="test_day",
+                                        values=["flagged_share_dense", "flagged_share_sparse"])
+                print(f"\n== {name}")
+                print(df.to_string())
+    print(f"\nreports: {args.report}/rolling_*.csv")
+    return 0
+
+
+def register(sub) -> None:
+    pi = sub.add_parser("ingest", help="stream adsb.lol days into regional Parquet")
+    pi.add_argument("--date", action="append", help="YYYY-MM-DD (repeatable)")
+    pi.add_argument("--start")
+    pi.add_argument("--end")
+    pi.add_argument("--config", default="configs/regions.yaml")
+    pi.add_argument("--regions", help="comma-separated subset of region names")
+    pi.add_argument("--out", default="data/processed")
+    pi.add_argument("--source", action="append",
+                    help="override: part URL or local path (repeat in order)")
+    pi.add_argument("--max-traces", type=int, help="stop early, for samples and tests")
+    pi.add_argument("--force", action="store_true", help="redo days already ingested")
+    pi.set_defaults(func=cmd_ingest)
+
+    pc = sub.add_parser("coverage", help="traffic and data-quality report per region")
+    pc.add_argument("--data", default="data/processed")
+    pc.add_argument("--dates", help="comma-separated YYYY-MM-DD")
+    pc.add_argument("--regions")
+    pc.add_argument("--save", help="folder for coverage.csv and hourly_degraded.csv")
+    pc.set_defaults(func=cmd_coverage)
+
+    pl = sub.add_parser("cells", help="build grid-cell x time-window features")
+    pl.add_argument("--data", default="data/processed")
+    pl.add_argument("--out", default="data/cells")
+    pl.add_argument("--dates")
+    pl.add_argument("--regions")
+    pl.add_argument("--force", action="store_true", help="rebuild existing tables")
+    grid_args(pl)
+    pl.set_defaults(func=cmd_cells)
+
+    pb = sub.add_parser("label", help="apply weak rules and the label model")
+    pb.add_argument("--cells", default="data/cells")
+    pb.add_argument("--out", default="data/labels/labels.parquet")
+    pb.add_argument("--events", default="configs/events.csv")
+    pb.add_argument("--advisories", default="configs/advisories.csv")
+    pb.add_argument("--report", default="reports/labels")
+    pb.add_argument("--dates")
+    pb.add_argument("--regions")
+    pb.set_defaults(func=cmd_label)
+
+    pm = sub.add_parser("map", help="HTML map of one region-day")
+    pm.add_argument("--region", required=True)
+    pm.add_argument("--date", required=True)
+    pm.add_argument("--cells", default="data/cells")
+    pm.add_argument("--labels", default="data/labels/labels.parquet")
+    pm.add_argument("--gold", help="gold-set CSV to outline on the map")
+    pm.add_argument("--out", help="output HTML (default reports/maps/<region>_<date>.html)")
+    pm.set_defaults(func=cmd_map)
+
+    ps = sub.add_parser("synth", help="inject synthetic attacks and score the rules")
+    ps.add_argument("--region", required=True, help="preferably a calm control region")
+    ps.add_argument("--date", required=True)
+    ps.add_argument("--data", default="data/processed")
+    ps.add_argument("--cells", default="data/cells",
+                    help="real cell tables, used when fitting the label model")
+    ps.add_argument("--n-jamming", type=int, default=4)
+    ps.add_argument("--n-spoofing", type=int, default=4)
+    ps.add_argument("--seeds", default="0,1,2")
+    ps.add_argument("--p-mlat", type=float, default=0.0,
+                    help="share of jammed points the tracker moves to MLAT")
+    ps.add_argument("--out", default="data/synthetic")
+    ps.add_argument("--report", default="reports/synthetic")
+    grid_args(ps)
+    ps.set_defaults(func=cmd_synth)
+
+    pr = sub.add_parser("train", help="train the jamming and spoofing detectors")
+    model_args(pr)
+    pr.add_argument("--train-dates")
+    pr.add_argument("--val-dates")
+    pr.add_argument("--synth-seeds", default="0,1")
+    pr.add_argument("--synth-train-regions", default="central_europe,east_med",
+                    help="regions to inject training attacks into (comma-separated)")
+    pr.add_argument("--unlabel-borderline", action="store_true",
+                    help="leave weak negatives with some jamming evidence unlabeled")
+    grid_args(pr)
+    pr.set_defaults(func=cmd_train)
+
+    pe = sub.add_parser("evaluate", help="score the detectors on gold, synthetic, advisories")
+    model_args(pe)
+    pe.add_argument("--advisories", default="configs/advisories.csv")
+    pe.add_argument("--no-ablations", action="store_true", help="skip retraining variants")
+    grid_args(pe)
+    pe.set_defaults(func=cmd_evaluate)
+
+    pw = sub.add_parser("rolling", help="retrain and test day by day over the last N days")
+    model_args(pw)
+    pw.add_argument("--days", type=int, default=7, help="test the last N stored days")
+    pw.add_argument("--seeds", type=int, default=3, help="synthetic runs per profile per day")
+    pw.add_argument("--test-regions", default="central_europe,black_sea",
+                    help="regions to inject test attacks into (comma-separated)")
+    pw.add_argument("--unlabel-borderline", action="store_true",
+                    help="as in train; must match the table")
+    grid_args(pw)
+    pw.set_defaults(func=cmd_rolling)

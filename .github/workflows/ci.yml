@@ -26,7 +26,8 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev,fast]" -c constraints.txt
       - run: ruff check .
-      - run: python -m pytest -q
+      - run: python -m mypy
+      - run: python -m pytest -q --cov
 
   secrets-scan:
     # Scans the whole history on every push. (The gitleaks GitHub Action scans only the

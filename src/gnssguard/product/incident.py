@@ -24,6 +24,7 @@ import html
 import json
 import math
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -272,7 +273,8 @@ def incident(scored: Scored, ev, events: pd.DataFrame) -> dict:
     # ordinary days in the same box
     od = ordinary_days(scored, ev, events)
     ev_share = checks["model"]["share"]
-    base = {"days": len(od), "dates": [od["date"].min(), od["date"].max()] if len(od) else None}
+    base: dict[str, Any] = {
+        "days": len(od), "dates": [od["date"].min(), od["date"].max()] if len(od) else None}
     if len(od) and ev_share is not None:
         base.update(
             {

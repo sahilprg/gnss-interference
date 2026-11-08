@@ -2,80 +2,72 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24015201.svg)](https://doi.org/10.5281/zenodo.24015201)
 
-Detects GPS jamming and spoofing that affects aircraft, using only free, open flight data
-from [adsb.lol](https://www.adsb.lol). Goals: flag affected areas, tell jamming from
-spoofing, estimate where the interference comes from, and publish a daily public map.
-Total running cost: zero.
+A daily map of where aircraft lose trustworthy GPS (jamming) or are fed false positions
+(spoofing), built only from free, open flight data, with the evidence for every flag
+and an honest statement of how far to trust it.
 
-**Live map and open data: https://sahilprg.github.io/gnss-interference/** (updated
-every night).
+**Live map, incident pages and open data: https://sahilprg.github.io/gnss-interference/**
+(updated every night).
 
-> Research project. Not for navigation or operational decisions.
+![The Baltic on 7 Nov 2026: cells where aircraft reported degraded GPS around Kaliningrad, Lithuania and Latvia, with a timeline of the day](docs/img/map_baltic_2026-11-07.png)
 
-## How far you can trust it
+> Research project. Not for navigation or operational decisions. A flag means aircraft
+> reported degraded or inconsistent positions there, not who or what caused it.
 
-**Evidence so far** (every number: [docs/evaluation_protocol.md](docs/evaluation_protocol.md),
-each check declared before it was run; all of them regenerated in about a minute by
-`gnssguard benchmark` into [results/](results/README.md), with the model hash and the
-hash of every input):
+## The problem
 
-* **Public reports:** 14 of 15 checkable events found (95% interval 70-99%), including
-  all 4 backed by ground radio measurements and Delhi spoofing in 2025-2026; the first
-  Kaliningrad spoofing (Nov 2024) was missed ([configs/events.csv](configs/events.csv)).
-* **False alarms:** on hand review, 13% of flags in calm Central Europe were false, about
-  0.1% of judged cells; flags in the hotspot regions were right 26 of 26 times.
-* **Hand-labeled test days never used for any decision:** 92% agreement over the whole
-  day (1 Nov), and flags from cells with only 1-2 aircraft right 47 of 47 times.
-* **Against a simple baseline** (degraded-NIC share, set to about the same calm-region
-  alarm rate): the model finds 86% of hand-labeled interference against 76%, and 56 of
-  80 spoofing cells against none (development sets; the sealed test decides).
-* **Ground stations:** six EUREF stations around Kaliningrad show no agreement with the
-  map beyond a shifted-days control (expected and stated before the data: they are
-  outside the jammers' line of sight).
-* **Second receiver network (OpenSky):** where the map says normal, OpenSky agrees
-  (about 2-5% flagged). Where it says jamming, OpenSky confirms 70-84% outside the
-  Baltic but 45% in the Baltic, short of the declared 70%: there most jammed aircraft
-  have no GNSS position at all and are seen only by multilateration. Counting the same
-  aircraft in both, the Baltic reaches 73% (evaluation protocol, second network check 1).
-  In calm Central Europe, more than half of the few jamming flags rest on MLAT-only
-  aircraft; counted without them, OpenSky confirms 88%.
-* **Incident pages** for every catalogued event: the map, the evidence and whether the
-  day stands out against ordinary days ([site](https://sahilprg.github.io/gnss-interference/incidents/index.html)).
-* **Scores, as checked by a reviewer** (150 cells, weighted to all cells of the review
-  days): below 0.1 about 4% interference (0-9%), 0.1-0.9 about 58% (44-86%), 0.9 or more
-  about 99% (95-100%), shown on the map. Raw sample shares: 10%, 60%, 92%.
+GPS interference around conflict zones (the Baltic, the Black Sea, the Eastern
+Mediterranean, the India-Pakistan border) now affects thousands of flights a day, and
+aviation authorities, India's DGCA among them, have issued advisories. Every aircraft
+with ADS-B broadcasts how much it trusts its own GPS position (NIC, NACp). When many
+aircraft in one place report low integrity, or impossible motion, at the same time,
+something on the ground is interfering. gnssguard turns one day of the open
+[adsb.lol](https://www.adsb.lol) archive into that picture: per 1° cell and 15-minute
+window, jamming, spoofing, normal, or not enough aircraft to say.
 
-**Limits to keep in mind:**
+## Three numbers, with their limits
 
-* **One labeler.** All 700 hand labels come from one person reading the same ADS-B
-  evidence the system uses; there is no second annotator. A blind relabel of 55 of them
-  matched every time a decision was made twice (39 of 39), so the labels are stable,
-  but not checked by anyone else.
-* **Aircraft-altitude view only.** It sees interference where aircraft fly and receivers
-  hear them, not on the ground or at sea, and nothing where coverage is thin.
-* **It misses weak interference** at the edges of hotspots (an estimated 4-13% of judged
-  cells on 1 Nov, mostly over the Black Sea): published shares are lower bounds.
-* **Spoofing is the weak part:** 45% of hard simulated spoofing over the Black Sea is
-  caught (35-56%).
-* **Jammer locations are experimental:** tested on simulated jammers only.
-* **The model mostly agrees with its own rules** on real data; it has not yet been shown
-  to beat them there.
+| Result | What it shows | What it does not show |
+| --- | --- | --- |
+| **14 of 15** checkable public interference events found (95% interval 70-99%), all 4 backed by ground radio measurements | The map's flags fall where and when incidents were reported | That the day was unusual: near Kaliningrad jamming is routine. One miss (Kaliningrad, Nov 2024) |
+| A **second receiver network** (OpenSky) confirms **70-84%** of jamming cells outside the Baltic and flags 2-5% of normal ones; the Baltic reaches 73% once both count the same aircraft | The data handling holds up against independent receivers and decoding | The physics: both networks hear the same aircraft. The declared check failed (60% pooled) and is published as failed |
+| On hand-labeled cells, the model finds **86%** of interference, a NIC-share baseline 76%, a **GPSJam-style** NACp score **45%** | NIC and motion checks catch what a NACp-only map misses, spoofing included | A real-world rate: development samples, one labeler. The sealed test (19 Nov 2026) decides |
 
-## Status
+**The honest caveat:** the model is trained on labels made by readable rules, and on real
+data it reproduces them (on 1 Nov they disagreed on 1 of 6,542 judged cells). Its
+advantage so far is on simulated attacks the rules miss. The strength of the project is
+the pipeline and the evaluation discipline: every check is declared before its data is
+seen, failed checks are published, and every number is regenerated with hashes by
+`gnssguard benchmark`. Full results and limits: [docs/evidence.md](docs/evidence.md).
 
-| Phase | State |
+## How it works
+
+```mermaid
+flowchart LR
+  A[adsb.lol archive<br/>one day, 4-6 GB] --> B[Stream and filter<br/>study regions, 3,000 ft+,<br/>quality under 30 s old]
+  B --> C[Cells<br/>1° x 15 min,<br/>faulty transponders removed]
+  C --> D[Labels<br/>7 rules + Dawid-Skene<br/>+ synthetic attacks]
+  D --> E[Detectors<br/>2 x LightGBM]
+  E --> F[Quality gates<br/>withhold or<br/>mark for review]
+  F --> G[Published nightly<br/>map, data, incident pages]
+  H[Checks, declared in advance<br/>hand labels, public events,<br/>ground stations, OpenSky] -.judges.-> G
+```
+
+The raw archive is streamed and never stored (about 130 MB kept per day). Only
+cell-level aggregates are published, never aircraft identifiers.
+
+## Documentation
+
+| Read | For |
 | --- | --- |
-| 1. Data foundation: streaming ingest, regional Parquet store, coverage check | done |
-| 2. Labels: weak rules, label model, synthetic attacks, map viewer, 300 hand-labeled gold cells | done |
-| 3. Models: jamming and spoofing detectors, source localization | done |
-| 4. Evaluation: gold labels, rolling 7-day test, stress attacks, ablations, calibration, pre-declared protocol | done |
-| 5. Product: nightly pipeline, live map website, open data files, outside-report checks, retrain alarm | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
-
-Since then: a correctness pass, independent evidence, a ground-station check,
-incident pages, and a correction after an external review (8 Nov 2026: three bugs fixed,
-figures re-measured; evaluation protocol, "Correction 1") ([docs/roadmap.md](docs/roadmap.md), with the status of each item).
-Release 0.2.0 is archived before the sealed test (19 Nov 2026; [doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)), which decides whether
-the model beats the integrity-only baseline ([CHANGELOG.md](CHANGELOG.md)).
+| [docs/evidence.md](docs/evidence.md) | Every result and limit, with the full tables |
+| [docs/case_studies.md](docs/case_studies.md) | Delhi spoofing (found), Kaliningrad Nov 2024 (missed), the Baltic in two networks (failed check) |
+| [docs/evaluation_protocol.md](docs/evaluation_protocol.md) | Each check as declared before its data, then its result |
+| [docs/model_card.md](docs/model_card.md), [docs/model.md](docs/model.md) | Intended use, training, ablations |
+| [docs/data.md](docs/data.md), [docs/labels.md](docs/labels.md) | The archive, the point format, the rules and the hand-labeling protocol |
+| [docs/product.md](docs/product.md) | The nightly job, published files, quality gates, monitoring |
+| [docs/roadmap.md](docs/roadmap.md), [CHANGELOG.md](CHANGELOG.md) | What is done, what is open, and the correction after the 7 Nov 2026 review |
+| [docs/development.md](docs/development.md) | Installing, running on a laptop, repository layout |
 
 ## Quickstart
 
@@ -83,186 +75,25 @@ the model beats the integrity-only baseline ([CHANGELOG.md](CHANGELOG.md)).
 git clone https://github.com/sahilprg/gnss-interference
 cd gnss-interference
 pip install -e ".[dev,fast]" -c constraints.txt   # exact tested versions
-
 make test                      # unit tests, no network
-make sample DATE=2026-10-26    # first 5,000 aircraft of one day, ~2 min
-make ingest DATE=2026-10-26    # one full day (streams ~4-6 GB, stores tens of MB)
-make coverage                  # traffic and data-quality report per region
+make sample DATE=2026-10-26    # first 5,000 aircraft of one day, about 2 min
 ```
 
-Several days:
-
-```bash
-gnssguard ingest --start 2026-10-01 --end 2026-10-07
-gnssguard ingest --date 2026-10-26 --regions baltic,central_europe
-```
-
-## How the data pipeline works
-
-Each day of the adsb.lol archive is a 4-6 GB tar split into 2 GB parts. `gnssguard ingest`
-streams the parts straight from GitHub releases and parses the archive on the fly, so the
-raw data is **never written to disk**. Only positions inside the study regions in
-`configs/regions.yaml` are kept, with GPS quality fields (NIC, NACp, SIL) attached, and
-written as compressed Parquet. Interrupted downloads resume automatically, and a day is
-moved into place only when it finishes, so a crash never leaves partial data.
-
-See [docs/data.md](docs/data.md) for the archive format, the output columns, and why
-quality fields are carried forward with an age.
-
-## Labels (Phase 2)
-
-No labeled dataset of GNSS interference over aircraft exists, so labels are built from
-weak rules, a label model, synthetic attacks and a hand-checked gold set.
-
-```bash
-gnssguard cells          # 1° x 15-min grid-cell features for every stored day
-gnssguard label          # 7 rules -> label model -> jamming / spoofing / both / normal
-gnssguard map --region baltic --date 2026-10-26        # interactive HTML map
-gnssguard synth --region central_europe --date 2026-10-26 --seeds 0,1,2,3,4
-gnssguard gold-sample --dates 2026-10-26 --n 300       # cells for hand labeling
-gnssguard gold-tool                                    # labeling page (keyboard, autosave)
-```
-
-`configs/advisories.csv` holds official area-wide warnings (NOTAMs, EASA bulletins);
-`gnssguard label` compares flagged rates inside and outside each warned area.
-
-First results on one real day (2026-10-26):
-
-| | Result |
-| --- | --- |
-| Judged cell-windows flagged, Baltic | 46% |
-| Judged cell-windows flagged, Central Europe / US Midwest (calm controls) | 0.65% / 0% |
-| Synthetic jamming detected (5 runs) | 76% of affected cell-windows |
-| Synthetic spoofing detected (5 runs) | 77% (range 54-97%) |
-| False alarms away from synthetic events | 1.1% |
-
-Key findings, the open questions and the gold-set protocol are in
-[docs/labels.md](docs/labels.md).
-
-## Detection model (Phase 3)
-
-Two LightGBM models (jamming, spoofing) trained on the rules' weak labels plus synthetic
-attacks, using each cell's neighbours and the windows before and after. No location
-features. The test day (26 Oct) carries the 300 hand labels and was never used for
-training.
-
-```bash
-gnssguard train      # train on all earlier days, validate on the day before the test day
-gnssguard evaluate   # gold, synthetic (standard, hard, stress), real flag rates, ablations
-gnssguard rolling    # retrain and test separately on each of the last 7 days
-```
-
-| Test (26 Oct; trained on 26 days) | Rules | Model |
-| --- | --- | --- |
-| 300 hand-labeled cells: interference vs normal (253 decided) | 96.8% | 96.8% |
-| Same, weighted to all cells of the day | 94.7% | 94.7% |
-| Hand-labeled normal cells wrongly flagged (of 112; 95% upper bound 2.7%) | 0 | 0 |
-| Hard synthetic attacks: jamming caught | 51% | **99%** |
-| Hard synthetic attacks: footprint edges caught | 13% | **98%** |
-| Hard synthetic attacks: spoofing caught | 70% | **95%** |
-| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **98%** |
-| Hard spoofing over the Black Sea (7 test days) | 33% | 47% |
-| Flagged share, calm Central Europe (real data) | 0.65% | 0.65% |
-| ... share of those alerts judged false on hand review (46 cells, 27 Oct-3 Nov) | | about 10% weighted by day (2-25%; 13% unweighted); about 0.1% of all judged cells |
-| Jammer location error, median (synthetic) | | **15 km** (centroid baseline: 89 km) |
-| Stated location uncertainty that contains the truth (confident estimates) | | **90-100%** |
-
-**Holdout day (1 Nov)**, 150 hand labels drawn and committed with the frozen predictions
-before labeling, never used for any decision:
-
-| Test | Rules | Model |
-| --- | --- | --- |
-| Cells with 3+ aircraft, weighted to the whole day | 92.0% | 92.0% |
-| Model flags on cells with only 1-2 aircraft (47 decided) | | **47 of 47** (95% interval 92-100%) |
-| Borderline cells both call normal that were interference (18 decided) | 7 | 7 |
-
-So the map now also shows flags from cells with 1-2 aircraft, and the published shares
-are lower bounds: both predictors miss weak interference at hotspot edges.
-
-On real data the model agrees with the rules wherever both judge; its advantage at
-footprint edges is shown on synthetic attacks, not yet on real data, and spoofing over
-busy hotspots remains weak. Every change in the last round was accepted or rejected by
-rules written before any result ([docs/evaluation_protocol.md](docs/evaluation_protocol.md)).
-Intended use and limits: [docs/model_card.md](docs/model_card.md).
-
-Ablations, limits and the full tables: [docs/model.md](docs/model.md).
-
-## Daily map and open data (Phase 5)
-
-A nightly GitHub Actions job processes the previous day and publishes a map and data
-files on GitHub Pages: https://sahilprg.github.io/gnss-interference/ (how it runs, the
-file formats and the setup: [docs/product.md](docs/product.md)). Only cell-level aggregates are
-published, cells with fewer than 3 aircraft get no count and show only a model flag
-(dashed) or low coverage, jammer areas are
-coarse, experimental circles, days whose input fails the quality checks are withheld,
-and an alarm in the calm control region marks a day for review instead of hiding it.
-
-```bash
-gnssguard publish --dates 2026-10-26   # public files + website for a stored day -> public/
-python -m http.server -d public 8000 --bind 127.0.0.1   # preview at http://127.0.0.1:8000
-```
-
-## Running on a laptop
-
-Measured on one full day (2026-10-26, all six regions):
-
-| Resource | Ingest | Coverage report |
-| --- | --- | --- |
-| Peak RAM | ~0.9 GB | ~1.0-1.2 GB, flat as days are added |
-| Disk written | ~130 MB per day | none |
-| Download | ~3.8 GB per day, streamed, never saved | none |
-
-Disk plan for 20 GB free:
-
-| Item | Size |
-| --- | --- |
-| Python dependencies for Phase 1 | ~0.3 GB |
-| 40 days, all six regions | ~5.5 GB |
-| 40 days without `us_midwest` (half the volume) | ~2.7 GB |
-| Models (LightGBM, CPU only; no GPU needed) | ~0.1 GB |
-
-Tips:
-
-- Install with `pip install --no-cache-dir ...` so pip does not keep a second copy.
-- Choose regions per run: `--regions baltic,east_med,black_sea,punjab,central_europe`.
-- Put data on another drive with `--out D:/gnss-data` (and `--data` for coverage).
-- On Windows without `make`, run the `gnssguard ...` commands from the Makefile directly.
-- Download volume is the real cost: 40 days is ~150 GB. On a capped connection, run the
-  ingest in a free Google Colab notebook and download only the Parquet output.
-
-## Repository layout
-
-```
-configs/regions.yaml        study regions (hotspots and calm controls)
-configs/events.csv          officially reported interference events (filled by hand)
-configs/advisories.csv      official area-wide warnings: NOTAMs, EASA bulletins
-labels/gold.csv             300 hand-labeled gold cells (26 Oct 2026)
-labels/gold_2026-11-01.csv  150 hand-labeled holdout cells (1 Nov 2026), strata in holdout_2026-11-01_strata.csv
-src/gnssguard/ingest/       release lookup, multi-part stream, trace decoder, Parquet writer
-src/gnssguard/analysis/     coverage report
-src/gnssguard/features/     grid-cell x time-window features
-src/gnssguard/labels/       rules, label model, events, synthetic attacks, gold sampler
-src/gnssguard/model/        detector dataset, training, evaluation, source localization
-src/gnssguard/viz/          HTML map viewer
-src/gnssguard/product/      daily publishing, quality gates, website
-models/detector/            the model the nightly job uses (commit after training)
-scripts/                    protocol decisions, localization fitting and checks
-tests/                      unit tests (no network)
-docs/                       data, labels, model, model card, evaluation protocol, product, roadmap
-```
+More, including disk and download sizes: [docs/development.md](docs/development.md).
 
 ## How to cite
 
-If you use the code, the method or the published data, please cite the repository
-(GitHub's "Cite this repository" button uses `CITATION.cff`):
+Release 0.2.0 is archived on Zenodo ([doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)),
+before the sealed test, so the model and the scoring rules are fixed with a public date.
+GitHub's "Cite this repository" button uses `CITATION.cff`:
 
 > sahilprg. *gnssguard: GNSS interference detection from open ADS-B data* (2026).
 > https://github.com/sahilprg/gnss-interference. Daily data:
 > https://sahilprg.github.io/gnss-interference/, derived from adsb.lol under ODbL 1.0.
 
-Derived data must keep the ODbL attribution ([DATA_LICENSE.md](DATA_LICENSE.md)).
+## License
 
-## Data license
-
-Code: MIT. Input data: adsb.lol, [ODbL 1.0](http://opendatacommons.org/licenses/odbl/1.0/).
-Derived datasets are published under ODbL with attribution. See [DATA_LICENSE.md](DATA_LICENSE.md).
+Code: MIT. Input data: adsb.lol, [ODbL 1.0](http://opendatacommons.org/licenses/odbl/1.0/);
+derived data is published under ODbL with attribution ([DATA_LICENSE.md](DATA_LICENSE.md)).
+Second-network check: OpenSky Network (Schäfer et al., IPSN 2014); no raw OpenSky data is
+redistributed.

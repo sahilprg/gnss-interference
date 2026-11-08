@@ -988,3 +988,67 @@ calm-region flags separately by whether they rest on MLAT-only aircraft.
 **Model hash on the laptop, resolved.** `models/detector` on the laptop has Windows line
 endings in all three files (meta.json 4,414 bytes against 4,197); with line endings
 normalized it hashes to 81062b5eb365, the published value.
+
+## Sealed test, addendum 1: a GPSJam-style baseline (declared 8 Nov 2026, after release 0.2.0 and before the sealed test is drawn)
+
+Added after the archived release 0.2.0, so it is marked as an addendum; it changes none
+of questions 1-6, the model, the labels or the NIC baseline. Raised by the review of 7
+Nov 2026: compare with the best-known public method, not only with our own baseline.
+
+* **GPSJam-style score** (gpsjam.org, FAQ): per cell, 100 x (bad - 1) / all aircraft,
+  flagged "red" above 10%. GPSJam names NACp as the field but publishes no cut; here an
+  aircraft is bad if its NACp is below 8 (position worse than 93 m, 95% of the time) in at
+  least half of its usable points, the same cut as the rules. GPSJam uses H3 hexagons over
+  a whole day; here it is computed on the same 1-degree cells, **per 15-minute
+  cell-window** (primary, like every other predictor) and **over the cell's whole day**
+  (secondary, as GPSJam aggregates; an aircraft seen in several windows counts in each).
+* **Threshold:** 10%, GPSJam's own red. Matching the model's calm-region alarm rate on
+  the training days (the rule used for the NIC baseline) gives the same 10%: it flags
+  0.25% of calm cells against the model's 0.56%, and 5% would flag more than the model.
+* **Question 7:** recall of interference, false-alarm share and spoofing found for both
+  GPSJam-style variants, day-weighted with day-clustered intervals, beside the model,
+  the rules and the NIC baselines of question 6. Reported, not a gate.
+
+**Development check (8 Nov, not the gate),** the 533 decided cells of the four
+hand-labeled sets (`scripts/baseline_check.py`, stratified samples, not day-wide rates):
+
+| Predictor | Interference found | False alarms | Spoofing found |
+| --- | --- | --- | --- |
+| Model | 255/295 (86%; 82-90%) | 12/238 (5%) | 56/80 |
+| Rules | 247/295 (84%; 79-88%) | 8/238 (3%) | 48/80 |
+| NIC share, s = 0.25 | 225/295 (76%; 71-81%) | 4/238 (2%) | 0/80 |
+| GPSJam-style, per window | 132/295 (45%; 39-50%) | 1/238 (0%) | 0/80 |
+| GPSJam-style, whole day | 119/295 (40%; 35-46%) | 17/238 (7%) | 0/80 |
+
+A NACp-only score finds about half of what the labeler called interference: NACp often
+stays normal while NIC drops. The labeler's labels draw on NIC too, which favours the
+NIC-based predictors; the sealed test uses the same labels, so it inherits that bias.
+
+## Disagreement set 1 (declared 8 Nov 2026, before it is drawn)
+
+**Why.** On real data the model and the rules agree on about 99% of judged
+cell-windows, so the hand-labeled sets so far say little about which is right when they
+differ (the 1 Nov holdout had one decided disagreement). Raised by the review of 7 Nov.
+
+**Sample** (`gnssguard disagreement-sample`, seed 20261108, the published model): every
+judged cell-window (3+ usable aircraft) of 15 Sep-4 Nov 2026 where the two differ (never
+the sealed days 5-18 Nov), in four groups, each spread over regions and days, all cells
+taken where a pool is smaller: D1 the model flags and the rules do not (30), D2 the rules
+flag and the model says normal (15), D3 both flag with a different type (15), D4 the rules
+give no verdict and the model says normal (20). A trial on 43 days: pools of 79, 4, 7 and
+2,847 (D1 is mostly spoofing the rules miss). Labeled blind once with the labeling tool;
+the groups file is committed with the sample and not opened before labeling.
+
+**Reported** (`gnssguard disagreement-eval`): per group, how many decided labels side
+with the model and with the rules (interference or not; the type in D3), with Wilson
+intervals, and the unsure count. **Read as:** the model adds something over the rules if
+it is right on most of D1 (its extra flags) and on most of D4 (its calls where the rules
+abstain). Small groups (D2, D3) are reported as counts, not rates. Some of these days
+trained the model; these are its own training days, so a model "win" here shows that it
+learned something the rules miss, not how often it is right on new days.
+
+**Disagreement set 2, Delhi (declared with set 1):** the same sampler on the three Delhi
+days of event EV16 (15 Jan, 1 Feb, 15 Feb 2026; region delhi; never training days),
+where the model flags 135 spoofing cell-windows and the rules 92, the largest real-data
+disagreement so far. Same groups and sizes (`--out labels/disagreement_2.csv`, seed
+20261108), labeled blind after set 1, reported separately.

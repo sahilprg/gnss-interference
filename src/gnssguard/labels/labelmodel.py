@@ -95,6 +95,7 @@ class DawidSkene:
             np.clip(q.mean(), 1e-4, 1 - 1e-4))
 
     def _e_step(self, oh: np.ndarray) -> tuple[np.ndarray, float]:
+        assert self.conf_ is not None, "call fit() first"
         lj = np.einsum("nmk,mck->nc", oh, np.log(self.conf_))
         lj = lj + np.log([1 - self.prior_, self.prior_])
         mx = lj.max(axis=1, keepdims=True)
@@ -116,6 +117,7 @@ class DawidSkene:
         One-sided rules: fired vs did not fire, over all cells some rule voted on.
         """
         c = self.conf_
+        assert c is not None, "call fit() first"
         return pd.DataFrame({
             "rule": [r.removeprefix("lf_") for r in self.rules_],
             "kind": ["one-sided" if r in self.one_sided_ else "two-sided" for r in self.rules_],

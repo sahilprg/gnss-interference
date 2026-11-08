@@ -43,7 +43,7 @@ TARGETS = {"y_jam": "p_jamming", "y_spoof": "p_spoofing"}
 
 def build_table(processed: str | Path, cells_dir: str | Path, train_dates: list[str],
                 val_dates: list[str], *,
-                synth_region: str | list[str] = ("central_europe", "east_med"),
+                synth_region: str | list[str] | tuple[str, ...] = ("central_europe", "east_med"),
                 synth_seeds: tuple[int, ...] = (0, 1), spec: GridSpec = GridSpec(),
                 regions: list[str] | None = None, unlabel_borderline: bool = False
                 ) -> tuple[pd.DataFrame, DawidSkene]:
@@ -115,7 +115,7 @@ class Detectors:
                 "calibration": {t: c.to_dict() for t, c in self.calibrators.items()},
                 "label_model": None if lm is None else {
                     "rules": lm.rules_, "one_sided": lm.one_sided_, "prior": lm.prior_,
-                    "conf": lm.conf_.tolist()}}
+                    "conf": None if lm.conf_ is None else lm.conf_.tolist()}}
         (folder / "meta.json").write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
         return folder
 
@@ -139,7 +139,8 @@ def environment() -> dict:
     import importlib.metadata as md
     import platform
 
-    out = {"python": platform.python_version(), "os": platform.system()}
+    out: dict[str, str | None] = {"python": platform.python_version(),
+                                  "os": platform.system()}
     # scipy is a dependency of lightgbm (pinned in constraints.txt), recorded because it
     # affects training results
     for pkg in ("gnssguard", "lightgbm", "numpy", "pandas", "pyarrow", "scipy"):

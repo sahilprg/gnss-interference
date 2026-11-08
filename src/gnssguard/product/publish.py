@@ -29,7 +29,10 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import logging
 import math
+import os
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -41,6 +44,8 @@ from gnssguard.model.dataset import with_context
 from gnssguard.model.localize import aircraft_points, incidents, localize_incidents
 from gnssguard.model.train import Detectors
 from gnssguard.product import quality
+
+log = logging.getLogger(__name__)
 
 SCHEMA = "gnssguard-public/1"
 MIN_AIRCRAFT = 3
@@ -299,6 +304,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
                 advisories_csv: str | Path | None = "configs/advisories.csv") -> dict:
     """Publish one day. Returns the day summary (also written to summary.json)."""
     processed, out = Path(processed), Path(out)
+    recover(out)
     boxes = ({r.name: (r.lat_min, r.lat_max, r.lon_min, r.lon_max)
               for r in load_regions(config)} if config and Path(config).exists() else {})
     det = Detectors.load(model_dir)
@@ -307,8 +313,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
     manifest = (json.loads(manifest_path.read_text(encoding="utf-8"))
                 if manifest_path.exists() else {})
     history = [d for d in read_index(out) if d["date"] < date]
-    history = [read_summary(out, d["date"]) for d in reversed(history)]
-    history = [h for h in history if h]
+    history = [h for d in reversed(history) if (h := read_summary(out, d["date"]))]
 
     # Statistics first; raw points are loaded one region at a time, only for localization.
     tables, stats = {}, {}
@@ -327,13 +332,15 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
 
     status, day_reasons = quality.check_day(stats, history,
                                             bool(manifest.get("complete_day", False)))
-    day_dir = out / "data" / date
-    day_dir.mkdir(parents=True, exist_ok=True)
+    # The day is written to a staging folder and swapped in only when complete, so an
+    # interrupted run leaves the previously published version (or nothing) in place.
+    final_dir = out / "data" / date
+    day_dir = out / "data" / f"{STAGING}{date}"
+    shutil.rmtree(day_dir, ignore_errors=True)
+    day_dir.mkdir(parents=True)
     all_incidents = []
     for region in regions:
         t, st = tables[region], status[region]
-        for f in (day_dir / f"{region}.json", day_dir / f"{region}.csv.gz"):
-            f.unlink(missing_ok=True)  # a re-run that now withholds must not leave old files
         if st["status"] != "published":
             continue
         (day_dir / f"{region}.json").write_text(
@@ -380,8 +387,55 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
         "notice": NOTICE,
     }
     (day_dir / "summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
-    update_index(out, summary)
+    swap_in(day_dir, final_dir)
+    update_index(out, summary)  # last: the index lists a day only once its folder is complete
     return summary
+
+
+STAGING = ".staging-"  # data/.staging-<date>: a day being written
+OLD = ".old"           # data/<date>.old: the previous version, during the swap
+
+
+def write_atomic(path: Path, text: str) -> None:
+    """Write a whole file or nothing: a reader never sees a half-written file."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def swap_in(stage: Path, day_dir: Path) -> None:
+    """Replace day_dir by stage. Two renames, because a folder cannot be replaced in one
+    step on Windows; recover() repairs an interruption between them."""
+    old = day_dir.with_name(day_dir.name + OLD)
+    shutil.rmtree(old, ignore_errors=True)
+    if day_dir.exists():
+        os.replace(day_dir, old)
+    os.replace(stage, day_dir)
+    shutil.rmtree(old, ignore_errors=True)
+
+
+def recover(out: str | Path) -> list[str]:
+    """Undo what an interrupted publish left behind. Returns what was done."""
+    data, done = Path(out) / "data", list[str]()
+    if not data.exists():
+        return done
+    for old in sorted(data.glob(f"*{OLD}")):
+        day = old.with_name(old.name[: -len(OLD)])
+        if day.exists():
+            shutil.rmtree(old, ignore_errors=True)
+            done.append(f"removed {old.name}")
+        else:  # stopped between the two renames: the previous version comes back
+            os.replace(old, day)
+            done.append(f"restored {day.name}")
+    for stage in sorted(data.glob(f"{STAGING}*")):
+        shutil.rmtree(stage, ignore_errors=True)
+        done.append(f"removed {stage.name}")
+    for tmp in sorted(data.glob("*.tmp")):
+        tmp.unlink(missing_ok=True)
+        done.append(f"removed {tmp.name}")
+    for item in done:
+        log.warning("interrupted publish: %s", item)
+    return done
 
 
 def rule_disagreement(cells: pd.DataFrame, table: pd.DataFrame, det: Detectors) -> float | None:
@@ -483,8 +537,8 @@ def update_index(out: str | Path, summary: dict) -> None:
     latest = next((d["date"] for d in ordered if d["published"]), None)
     p = Path(out) / "data" / "index.json"
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({"schema": SCHEMA, "latest": latest, "days": ordered}, indent=1),
-                 encoding="utf-8")
+    write_atomic(p, json.dumps({"schema": SCHEMA, "latest": latest, "days": ordered},
+                               indent=1))
 
 
 def published_dates(out: str | Path) -> set[str]:
