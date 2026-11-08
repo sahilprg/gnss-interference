@@ -35,7 +35,8 @@ scored with release 0.2.0 (model, labels, baseline, questions).
 * Disagreement set 1 labeled: the model is not shown better than the rules where they
   disagree; its extra spoofing flags mostly not spoofing (4 of 19); it misses jamming
   edges with one degraded aircraft (Baltic, 17 of 18). Set 1b declared (outside the
-  Baltic); `disagreement-sample --only`.
+  Baltic); `disagreement-sample --only`. Set 1b: 9 of 12 decided cells jamming (47-91%),
+  short of the declared bar (lower bound above 50%); the sealed test decides.
 * Prepared, merged after the sealed test: bug 3 (an expired NACp kept with a fresh age),
   point format points/3.
 

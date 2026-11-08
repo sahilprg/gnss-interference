@@ -76,7 +76,8 @@ truth. No hand labels are used for training.
   flags were right 8 of 8, but its extra spoofing flags carried spoofing only 4 of 19
   times. Cells with one degraded aircraft out of 3-9 get no rule verdict and no training
   label; the model calls them normal, and in the Baltic the reviewer saw jamming in 17
-  of 18 (evaluation protocol, "Disagreement set 1"). Outside the Baltic: set 1b.
+  of 18 (evaluation protocol, "Disagreement set 1"); outside the Baltic 9 of 12 decided
+  (47-91%, set 1b), not enough to call it general; the sealed test decides.
 * Several jammers close together are fitted as one source.
 * One labeler, two labeled days (26 Oct, 1 Nov). Coverage changes over time (new receivers) shift flag
   rates without any change in interference (docs/data.md).

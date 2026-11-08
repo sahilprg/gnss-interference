@@ -54,7 +54,9 @@ hash of every input):
   spoofing flags carried spoofing 4 of 19 times. Where only one aircraft of 3-9 is
   degraded the rules give no verdict and the model says normal; in the Baltic the
   reviewer saw jamming in 17 of 18 such cells, so the map shows some jamming edges as
-  normal (about 2% of the Baltic's jammed area; elsewhere being checked). Evaluation
+  normal (about 2% of the Baltic's jammed area). Outside the Baltic the reviewer called
+  9 of 12 decided such cells jamming (75%, 47-91%): not enough to call the miss general;
+  the sealed test decides. Evaluation
   protocol, "Disagreement set 1".
 * **The model mostly agrees with its own rules** on real data; it has not yet been shown
   to beat them there.

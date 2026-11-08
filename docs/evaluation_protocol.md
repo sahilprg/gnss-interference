@@ -1172,3 +1172,45 @@ are interference (lower bound above 50%), the miss is general, not a Baltic effe
 fix (training labels for one-aircraft cells from their neighbours) is declared as the
 first change after the sealed test; if most are normal, the miss is specific to the
 Baltic's widespread jamming.
+
+### Set 1b: result (labeled 8 Nov 2026 by SP, scored once)
+
+20 cells from a pool of 2,026 (51 days, four regions), 5 per region on 20 different days.
+
+| Region | Jamming | Normal | Unsure |
+| --- | --- | --- | --- |
+| Black Sea | 4 | 0 | 1 |
+| East Med | 3 | 0 | 2 |
+| Central Europe | 2 | 3 | 0 |
+| Punjab | 0 | 0 | 5 |
+| **All** | **9** | **3** | **8** |
+
+Interference in **9 of 12 decided cells (75%, 95% interval 47-91%)**; 8 unsure.
+
+**Read as declared:** the lower bound (47%) is not above 50%, so **a general miss is not
+shown**, narrowly; nor are these cells mostly normal, so a Baltic-only effect is not
+shown either. The declared consequence (a fix as the first change after the sealed test)
+is therefore not triggered by this set.
+
+**Exploratory, not declared:** in the hotspot regions (Black Sea, East Med) the decided
+cells were jamming 7 of 7, as in the Baltic (17 of 18, set 1); in calm Central Europe 2 of
+5; in Punjab no cell could be decided (5 unsure: one degraded aircraft with too little
+around it to tell). The pattern suggests the miss follows the amount of jamming nearby,
+not the region, but these per-region counts are small and were not the declared test.
+
+**What decides it:** the sealed test's T_border group (borderline cells both call normal,
+which include these one-aircraft cells), drawn on new days and now spread over all five
+regions (Correction 2). If it shows these cells are mostly interference, the fix is the
+first change after the sealed test.
+
+## Sealed test, addendum 2: one-aircraft cells (declared 8 Nov 2026, before the draw)
+
+**Question 8.** Within the sealed group T_border, the cells where the rules give no
+verdict (rule label "unknown": one degraded aircraft and no other rule evidence) are
+reported separately: the share the labeler calls interference, with a Wilson interval,
+and the unsure count. Nothing about the draw changes; this only names a subset of a
+group already declared. **Read as:** a lower bound above 50% means the model's "normal"
+on these cells is mostly wrong on new days, and the fix (training labels for such cells
+from their neighbours) becomes the first change after the sealed test; otherwise it is
+reported as not shown. The groups file already records each cell's rule label, so the
+subset is fixed at the draw.
