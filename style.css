@@ -133,3 +133,6 @@ button { cursor: pointer; }
   .bars { height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.stale { background: color-mix(in srgb, var(--jam) 12%, var(--panel)); border-bottom: 2px solid var(--jam);
+  padding: 8px 18px; font-size: 14px; }
+.stale[hidden] { display: none; }
