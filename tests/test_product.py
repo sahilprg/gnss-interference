@@ -196,17 +196,48 @@ def test_health_ok_then_alarms(tmp_path):
 
     days = [f"2026-11-{i:02d}" for i in range(1, 15)]
     _write_days(tmp_path, [_summary(d, 0.006) for d in days])
-    res = assess(tmp_path)
-    assert res["status"] == "ok" and res["signals"]["model_age_days"] == 21
+    res = assess(tmp_path, today=dt.date(2026, 11, 15))
+    assert res["status"] == "ok" and res["signals"]["model_age_days"] == 22
+    assert res["freshness"]["status"] == "fresh" and res["freshness"]["days_behind"] == 1
     drift = tmp_path / "drift"
     _write_days(drift, [_summary(d, 0.006 if i < 7 else 0.03, disagree=0.005 if i < 7 else 0.05,
                                  judged=1000 if i < 7 else 300)
                         for i, d in enumerate(days)])
-    reasons = " ".join(assess(drift)["reasons"])
+    reasons = " ".join(assess(drift, today=dt.date(2026, 11, 15))["reasons"])
     assert "calm central_europe" in reasons and "disagree" in reasons and "judged cells" in reasons
     old = tmp_path / "old"
     _write_days(old, [_summary("2026-12-20", 0.006)])
-    assert "days older" in assess(old)["reasons"][0]
+    assert "days before today" in assess(old, today=dt.date(2026, 12, 21))["reasons"][0]
+
+
+def test_a_stopped_pipeline_is_stale_not_ok(tmp_path):
+    # review of 7 Nov 2026: health used to be measured against the newest published day,
+    # so a pipeline that stopped publishing still reported "ok"
+    from gnssguard.product.health import assess
+
+    _write_days(tmp_path, [_summary(f"2026-11-{i:02d}", 0.006) for i in range(1, 15)])
+    res = assess(tmp_path, today=dt.date(2026, 12, 1), backlog=16)
+    assert res["freshness"]["status"] == "stale" and res["freshness"]["days_behind"] == 17
+    assert res["signals"]["model_age_days"] == 38  # measured to today, not to Nov 14
+
+
+def test_backlog_persists_past_the_lookback(tmp_path):
+    # review of 7 Nov 2026: with a fixed 3-day look-back, an outage longer than that left
+    # permanent gaps; the backlog now keeps every missing day since the first published one
+    from gnssguard.product.daily import backlog
+
+    for d in ("2026-10-20", "2026-10-21"):
+        s = {"date": d, "published": True, "day_reasons": [],
+             "regions": {"baltic": {"status": "published"}}}
+        (tmp_path / "data" / d).mkdir(parents=True)
+        (tmp_path / "data" / d / "summary.json").write_text(json.dumps(s), encoding="utf-8")
+        update_index(tmp_path, s)
+    today = dt.date(2026, 11, 1)  # a ten-day outage after the 21st
+    assert len(backlog(tmp_path, today, lookback=3)) == 10  # 22 Oct to 31 Oct
+    todo = days_to_run(tmp_path, today, lookback=3, max_days=4)
+    # this run: the newest missing day first, then the oldest; the rest wait for later runs
+    assert todo == [dt.date(2026, 10, 22), dt.date(2026, 10, 23), dt.date(2026, 10, 24),
+                    dt.date(2026, 10, 31)]
 
 
 def test_outside_reports_daily_check(tmp_path):
@@ -240,6 +271,27 @@ def test_model_hash_and_run_config_are_stable(tmp_path):
     assert file_hash(tmp_path) != h
     a = run_config(["baltic", "punjab"], SPEC)
     assert a == run_config(["punjab", "baltic"], SPEC) and a["label_threshold"] == 0.5
+
+
+def test_provenance_same_model_same_hash_on_every_os(tmp_path):
+    # review of 7 Nov 2026: published files lacked the commit, region boxes and feature
+    # schema, and a Windows checkout reported a different model hash than the site
+    from gnssguard.product.publish import model_hash, run_config
+
+    lin, win = tmp_path / "lin", tmp_path / "win"
+    for d, nl in ((lin, b"\n"), (win, b"\r\n")):
+        d.mkdir()
+        for name in ("meta.json", "y_jam.txt", "y_spoof.txt"):
+            (d / name).write_bytes(b"line one" + nl + b"line two" + nl)
+    (win / "notes.txt").write_text("not part of the model", encoding="utf-8")
+    assert model_hash(lin) == model_hash(win)
+    boxes = {"baltic": (53.0, 60.5, 18.0, 28.5), "punjab": (29.0, 33.5, 72.0, 76.5)}
+    a = run_config(["baltic"], SPEC, boxes, ["f1", "f2"])
+    assert a["region_boxes"] == {"baltic": [53.0, 60.5, 18.0, 28.5]}
+    assert a["points_schema"].startswith("points/") and len(a["features_hash"]) == 12
+    assert "commit" in a and "dirty" in a
+    moved = run_config(["baltic"], SPEC, {"baltic": (53.0, 61.0, 18.0, 28.5)}, ["f1", "f2"])
+    assert moved["hash"] != a["hash"]  # a changed region box is a different computation
 
 
 def test_hourly_gap_marks_review_not_withhold():

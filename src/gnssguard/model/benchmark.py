@@ -58,7 +58,7 @@ def run(model_dir: str, cells_dir: str = "data/cells",
     from gnssguard.model import eventcheck, trust
     from gnssguard.model.evaluate import gold_eval, model_frame, rule_frame
     from gnssguard.model.train import Detectors
-    from gnssguard.product.publish import file_hash
+    from gnssguard.product.publish import model_hash
 
     det = Detectors.load(model_dir)
     outp = Path(out)
@@ -149,7 +149,7 @@ def run(model_dir: str, cells_dir: str = "data/cells",
         for f in (v if isinstance(v, tuple) else (v,)):
             inputs[Path(f).name] = file_sha(f)
     prov = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "code_version": __version__, "model_hash": file_hash(model_dir),
+            "code_version": __version__, "model_hash": model_hash(model_dir),
             "model_train_dates": [det.meta["train_dates"][0], det.meta["train_dates"][-1]],
             "model_fingerprints": det.meta.get("fingerprints"),
             "score_bands": file_sha(Path(model_dir).parent / "score_bands.json"),

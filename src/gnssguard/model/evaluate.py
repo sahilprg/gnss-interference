@@ -164,8 +164,8 @@ def synthetic_eval(runs_rows: pd.DataFrame, runs: list[dict], predictors: dict,
             summ, _ = S.evaluate(frame, run["truth"], spec)
             out["summary"].append({"predictor": name, "seed": run["seed"], **summ})
 
-            jam = (cw["inj_type"] == "jamming") & (cw["n_ac_affected"] >= 2)
-            share = cw["n_ac_affected"] / cw["n_aircraft"].clip(lower=1)
+            jam = cw["n_ac_jam"] >= 2
+            share = cw["n_ac_jam"] / cw["n_aircraft"].clip(lower=1)
             det = pred["p_jamming"].fillna(0) >= 0.5
             for zone, mask in (("edge (<50% affected)", jam & (share < 0.5)),
                                ("core (>=50% affected)", jam & (share >= 0.5))):

@@ -178,24 +178,23 @@ def synthetic_rows(processed: str | Path, region: str, dates: list[str], seeds: 
             for e in events:
                 if isinstance(e, S.Jamming) and p_mlat is not None:
                     e.p_mlat = p_mlat
-            inj, _ = S.inject(pts, events, seed=seed)
+            inj, injected = S.inject(pts, events, seed=seed)
             cw, _ = build_from_points(inj, spec)
             cw = cw.assign(region=region, date=date, cell_deg=spec.cell_deg,
                            window_min=spec.window_min)
             cw = add_context(cw)
-            truth = S.truth_cells(inj, spec)
+            truth = S.truth_cells(inj, spec, truth=injected)
             cw = cw.merge(truth, on=CELL_KEYS, how="left")
-            cw["n_ac_affected"] = cw["n_ac_affected"].fillna(0)
+            for c in ("n_ac_affected", "n_ac_jam", "n_ac_spoof"):
+                cw[c] = cw[c].fillna(0)
             cw["inj_type"] = cw["inj_type"].fillna("")
             near = _near_events(cw, truth, spec)
-            pos = cw["n_ac_affected"] >= 2
             neg = (cw["n_ac_affected"] == 0) & ~near
-            cw["y_jam"] = np.where(pos & (cw["inj_type"] == "jamming"), 1.0,
-                                   np.where(neg | (pos & (cw["inj_type"] != "jamming")), 0.0,
-                                            np.nan))
-            cw["y_spoof"] = np.where(pos & (cw["inj_type"] == "spoofing"), 1.0,
-                                     np.where(neg | (pos & (cw["inj_type"] != "spoofing")), 0.0,
-                                              np.nan))
+            # per type: a cell-window with both types is a positive for both detectors
+            for col, n in (("y_jam", "n_ac_jam"), ("y_spoof", "n_ac_spoof")):
+                pos = cw[n] >= 2
+                other = (cw["n_ac_affected"] >= 2) & (cw[n] == 0)
+                cw[col] = np.where(pos, 1.0, np.where(neg | other, 0.0, np.nan))
             if label_model is not None:
                 weak = real_targets(cw, label_model)
                 for col in ("y_jam", "y_spoof"):

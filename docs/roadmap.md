@@ -18,11 +18,11 @@ Code findings from the review of commit 05709be, checked against the code and da
 
 | # | Finding | Status |
 | --- | --- | --- |
-| 1 | Old NIC looks fresh after a NACp-only update | **Not an issue.** readsb's details are full state snapshots (NIC in 100%, NACp in 98%), and readsb drops expired fields itself (docs/data.md) |
+| 1 | Old NIC looks fresh after a NACp-only update | **Wrongly judged "not an issue" on 4 Nov.** The reverse case is real: when readsb drops an expired NACp, the old value was kept with a fresh age (review of 7 Nov, bug 3). Fixed as points/3, merged after the sealed test; effect on 1 Nov: 5 of 629 Baltic model jamming cells (evaluation protocol, Correction 1) |
 | 2 | `stale` and `new_leg` not loaded | Loaded now. `stale` marks the first position after a 20 s gap, not an old position. Leaving those pairs out of the motion checks was tested and **rejected** (evaluation protocol, round 3) |
 | 3 | Calibration on the early-stopping day, on weak labels | Wording fixed: scores are called model scores everywhere, with their meaning and the 0.5 label threshold in every published file. Separate calibration split: Phase 1 |
 | 4 | Features use the whole day | Fine for a next-day map; a causal feature path is needed only before any real-time claim |
-| 5, 6 | Synthetic truth rebuilt from surviving points; mixed events merged | Open (affects synthetic scores only); needs a protocol round |
+| 5, 6 | Synthetic truth rebuilt from surviving points; mixed events merged | **Fixed** 8 Nov with regression tests; no published synthetic number changes (Correction 1) |
 | 7 | Decode errors do not mark a day incomplete; changed regions reuse a day | **Fixed**: more than 0.1% unreadable trace files mark the day incomplete (0 on all days so far); a changed region box or stored point format needs a new run |
 | 8 | Control alarm hides a possible real event | **Fixed**: input failures withhold; the control alarm publishes the day marked "needs review" |
 | 9 | All regions' points in memory at once while publishing | **Fixed**: statistics first, then one region's points at a time, only where localization needs them |
@@ -164,3 +164,29 @@ circles are labelled experimental; "0 of 112 normal cells flagged" is shown with
   aircraft there) is no longer drawn; 13 of 87 published circles affected, 10 of them
   Baltic (evaluation protocol, "Jammer circles outside the observed area").
 * Next: the write-up after the sealed test.
+
+## Review of 7 Nov 2026 and the work before the sealed test
+
+An external review (two independent reviews of commit 249fccf, merged) confirmed the
+pipeline and evaluation discipline and named one central weakness: on real data the
+model reproduces the rules that made its labels (they differ on about 1% of cell-windows,
+none of them jamming). Done before the sealed test (Correction 1 in the evaluation
+protocol has the measurements):
+
+* bugs 1-2 (synthetic truth) fixed; bug 3 (stale NACp) fixed as points/3, merged after
+  the sealed test so its days are processed one way;
+* the published model re-measured on synthetic attacks; README figures replaced;
+* score bands and calm-region false alerts weighted to the population, with named
+  denominators;
+* monitoring against today's date: stale status and issue, a stale banner on the map,
+  a persistent backlog, a keep-alive for the nightly schedule;
+* provenance: commit, region boxes, point format and feature hash in every published day;
+* Central Europe follow-up with OpenSky declared (the calm region's flags confirmed only
+  30% by OpenSky).
+
+After the sealed test (19 Nov), from the review: the disagreement set and an honest
+benchmark (NIC-only baseline, a GPSJam-style NACp score, the full rules, the model);
+event checks split into area consistency and incident detection; a model that cannot
+see the integrity fields; a second attack generator; India as a full region; a causal
+real-time mode. A second human annotator is not available; the single-annotator limit
+stays stated.

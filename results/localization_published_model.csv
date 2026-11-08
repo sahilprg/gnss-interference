@@ -1,0 +1,5 @@
+profile,predictor,events,found,fit_median_km,fit_p90_km,centroid_median_km,centroid_p90_km,raw_uncertainty_coverage,confident,confident_median_km,confident_p90_km,calibrated_coverage_confident,calibrated_median_uncertainty_km,low_confidence_median_km
+hard,model_full,20,19,39.5,78.6,50.2,121.3,0.526,15,36.7,74.2,1.0,157.0,48.0
+standard,model_full,20,20,15.3,185.0,89.3,157.8,0.6,16,15.3,80.4,0.938,127.1,216.4
+standard,rules,20,20,15.3,185.0,89.3,157.8,0.6,16,15.3,80.4,0.938,123.4,216.4
+stress,model_full,32,32,52.3,176.9,81.8,157.5,0.25,10,31.7,121.2,0.9,106.4,77.9

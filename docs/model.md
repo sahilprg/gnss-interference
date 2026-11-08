@@ -104,8 +104,13 @@ are test-only:
 
 | Predictor | Standard: jamming | Standard: spoofing | Hard: jamming | Hard: spoofing | Stress: jamming | Stress: spoofing |
 | --- | --- | --- | --- | --- | --- | --- |
-| Rules | 0.82 | 0.82 | 0.51 | 0.74 | 0.74 | 0.84 |
-| **Model** | **1.00** | **0.94** | **0.95** | **0.96** | **0.96** | **0.96** |
+| Rules | 0.82 | 0.80 | 0.51 | 0.70 | 0.74 | 0.85 |
+| **Model** | **1.00** | **0.92** | **0.99** | **0.95** | **0.98** | **0.95** |
+
+Published model (hash 81062b5eb365), re-measured on 8 Nov 2026 with the corrected
+synthetic truth (evaluation protocol, "Correction 1";
+`results/synthetic_*_published_model.csv`). The earlier figures in this table (model
+0.94 / 0.95 / 0.96 / 0.96 / 0.96) came from an evaluation of an earlier model.
 
 False alarms away from events: rules 1.1% / 0.7% / 0.8%, model 0.9% / 0.7% / 0.7%
 (standard / hard / stress). They include real weak interference in the background

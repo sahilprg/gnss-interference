@@ -100,25 +100,92 @@ def sealed_test_sample(cells, score, rules, model, seed=20261119, sizes=None):
 BANDS = [(0.0, 0.1, "below 0.1"), (0.1, 0.9, "0.1 to 0.9"), (0.9, 1.0001, "0.9 or more")]
 
 
-def score_bands(gold: pd.DataFrame, groups: pd.DataFrame, source: str) -> dict:
+def band_pools(cells: pd.DataFrame, score: pd.Series) -> pd.DataFrame:
+    """Pool size per score band and region-day among judged cells: what each reviewed
+    cell stands for (the calibration sample was spread evenly over region-days within a
+    band, not in proportion to their cells)."""
+    dense = cells["n_ac_usable"].fillna(0) >= MIN_USABLE
+    names = {lo: name for lo, _, name in BANDS}
+    rows = []
+    for lo, hi, _ in BANDS:
+        m = dense & (score >= lo) & (score < hi)
+        for key, n in _key(cells[m]).value_counts().items():
+            rows.append({"band": names[lo], "key": key, "pool": int(n)})
+    return pd.DataFrame(rows, columns=["band", "key", "pool"])
+
+
+def score_bands(gold: pd.DataFrame, groups: pd.DataFrame, source: str,
+                pools: pd.DataFrame | None = None, boot: int = 2000, seed: int = 0) -> dict:
     """Reviewer share of interference per published-score band, from the calibration set.
 
     A three-band table rather than a fitted curve: the scores sit almost all at the ends,
     and a curve through about 120 decided cells overfits (docs/evaluation_protocol.md,
     result of the calibration set).
+
+    `interference_share` is the share among the reviewed cells (sample share, Wilson
+    interval). With `pools` (band_pools), `population_share` weights each reviewed cell
+    by the cells it stands for in its band and region-day, with an interval from
+    resampling whole region-days (cells on one day are not independent), and
+    `if_unsure_*` shows how far the excluded "unsure" labels could move it.
     """
     from gnssguard.labels.holdout import wilson
 
-    m = gold[["gold_id", "label"]].merge(groups, on="gold_id")
-    m = m[m["label"].fillna("").isin(["normal", *FLAGGED])]
+    cols = [c for c in ("gold_id", "region", "date", "label") if c in gold]
+    m = gold[cols].merge(groups, on="gold_id")
+    m["label"] = m["label"].fillna("")
+    m["key"] = (m["region"].astype(str) + "|" + m["date"].astype(str)
+                if {"region", "date"} <= set(m) else "")
+    names = {lo: name for lo, _, name in BANDS}
+    rng = np.random.default_rng(seed)
     out = []
     for lo, hi, name in BANDS:
         b = m[(m["score"] >= lo) & (m["score"] < hi)]
-        k = int(b["label"].isin(FLAGGED).sum())
-        ci = wilson(k, len(b))
-        out.append({"score_from": lo, "score_to": min(hi, 1.0), "band": name,
-                    "cells": len(b), "interference_share": round(k / len(b), 3)
-                    if len(b) else None, "ci95": [ci[0], ci[1]]})
-    return {"source": source, "bands": out,
-            "meaning": "Share of hand-reviewed cells in each score band that the reviewer "
-                       "called interference (jamming, spoofing or both)."}
+        dec = b[b["label"].isin(["normal", *FLAGGED])]
+        k = int(dec["label"].isin(FLAGGED).sum())
+        ci = wilson(k, len(dec))
+        row = {"score_from": lo, "score_to": min(hi, 1.0), "band": name,
+               "cells": len(dec), "unsure": int(len(b) - len(dec)),
+               "interference_share": round(k / len(dec), 3) if len(dec) else None,
+               "ci95": [ci[0], ci[1]]}
+        if pools is not None and len(b):
+            pk = pools[pools["band"] == names[lo]].set_index("key")["pool"]
+            sampled = b.groupby("key").size()
+            w_key = (pk.reindex(sampled.index).fillna(0) / sampled).rename("w")
+            bw = b.join(w_key, on="key")
+
+            def share(frame, unsure_as=None):
+                f = frame.copy()
+                y = f["label"].isin(FLAGGED).astype(float)
+                keep = f["label"].isin(["normal", *FLAGGED])
+                if unsure_as is not None:
+                    y = y.where(keep, float(unsure_as))
+                    keep = pd.Series(True, index=f.index)
+                w = f["w"].where(keep, 0.0)
+                return float((w * y).sum() / w.sum()) if w.sum() > 0 else None
+
+            keys = bw["key"].unique()
+            reps = []
+            for _ in range(boot):
+                pick = rng.choice(keys, len(keys), replace=True)
+                r = share(pd.concat([bw[bw["key"] == kk] for kk in pick]))
+                if r is not None:
+                    reps.append(r)
+            ps = share(bw)
+            row.update({
+                "population_share": None if ps is None else round(ps, 3),
+                "population_ci95": [round(float(np.quantile(reps, 0.025)), 3),
+                                    round(float(np.quantile(reps, 0.975)), 3)] if reps else None,
+                "if_unsure_normal": round(share(bw, 0), 3),
+                "if_unsure_interference": round(share(bw, 1), 3),
+                "cells_represented": int(pk.sum())})
+        out.append(row)
+    res = {"source": source, "bands": out,
+           "meaning": "Share of hand-reviewed cells in each score band that the reviewer "
+                      "called interference (jamming, spoofing or both)."}
+    if pools is not None:
+        res["population_meaning"] = (
+            "population_share: the same, weighted to all judged cells of the calibration "
+            "days by band and region-day; its interval resamples whole region-days. "
+            "if_unsure_*: the weighted share if the cells marked unsure had all been "
+            "normal or all interference.")
+    return res

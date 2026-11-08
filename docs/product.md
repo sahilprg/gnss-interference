@@ -108,6 +108,24 @@ No independent outside source is published in machine-readable form for free: GP
 (gpsjam.org) states no data licence or download, and NOTAM services need accounts. If
 GPSJam's author agrees to its data being used, a daily comparison with it can be added.
 
+## Is it still running? (freshness, backlog, keep-alive)
+
+Three separate signals, all measured against today's date (review of 7 Nov 2026: health
+used to be measured against the newest published day, so a stopped pipeline said "ok"):
+
+* **Freshness** in `data/health.json`: "stale" when the newest published day is more than
+  3 days before today. The nightly job then opens a "Published data is stale" issue
+  (which emails the owner). The map shows a banner computed in the reader's browser from
+  the reader's clock, so it appears even when the nightly job does not run at all.
+* **Backlog:** every day since the first published day that is not published (or was
+  withheld for an incomplete download) stays queued until done, at most 4 per run (the
+  newest first, then the oldest), so a long outage leaves no permanent gap.
+* **Model age** to today (the retrain alarm below).
+
+GitHub disables scheduled workflows in a public repository after 60 days without
+repository activity; the nightly job re-enables itself on every run, which resets that
+clock.
+
 ## Retrain alarm
 
 After each publish, `gnssguard health` (`product/health.py`) checks the published days and

@@ -449,11 +449,39 @@ def cmd_score_bands(args) -> int:
 
     gold = pd.read_csv(args.gold, dtype={"label": str})
     groups = pd.read_csv(args.groups)
-    res = score_bands(gold, groups, source=args.source or Path(args.gold).name)
+    pools = None
+    if args.dates:  # weight to all judged cells of the sample's days (recomputed scores)
+        import numpy as np
+
+        from gnssguard.features.cells import load_cells
+        from gnssguard.labels.sealed import band_pools
+        from gnssguard.model.dataset import with_context
+        from gnssguard.model.train import Detectors
+
+        det = Detectors.load(args.model or _default_model())
+        cells = with_context(load_cells(args.cells, _split(args.dates))).reset_index(drop=True)
+        p = det.predict(cells, calibrated=True)
+        score = pd.Series(np.maximum(p["p_jamming"], p["p_spoofing"]), index=cells.index)
+        g = groups.set_index("gold_id")["score"]
+        check = gold.merge(cells.assign(now=score)[["region", "date", "cell_lat", "cell_lon",
+                                                     "window", "now"]]
+                           .astype({"region": str, "date": str, "window": str}),
+                           on=["region", "date", "cell_lat", "cell_lon", "window"], how="left")
+        drift = (check.set_index("gold_id")["now"] - g).abs().max()
+        if not drift <= 1e-3:
+            print(f"recomputed scores differ from the drawn ones (max {drift}); not weighting",
+                  file=sys.stderr)
+        else:
+            pools = band_pools(cells, score)
+    res = score_bands(gold, groups, source=args.source or Path(args.gold).name, pools=pools)
     Path(args.out).write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
     for b in res["bands"]:
-        print(f"score {b['band']:>12}: {b['interference_share']:.0%} interference "
-              f"({b['ci95'][0]:.0%}-{b['ci95'][1]:.0%}), {b['cells']} decided cells")
+        line = (f"score {b['band']:>12}: {b['interference_share']:.0%} of reviewed "
+                f"({b['ci95'][0]:.0%}-{b['ci95'][1]:.0%}), {b['cells']} decided cells")
+        if b.get("population_share") is not None:
+            lo, hi = b["population_ci95"]
+            line += f"; weighted to all cells {b['population_share']:.0%} ({lo:.0%}-{hi:.0%})"
+        print(line)
     print(f"-> {args.out}")
     return 0
 
@@ -685,10 +713,16 @@ def cmd_daily(args) -> int:
 
 
 def cmd_health(args) -> int:
+    from gnssguard.product.daily import backlog
     from gnssguard.product.health import write_health
 
-    res = write_health(args.out)
-    print(f"status: {res['status']}")
+    today = dt.datetime.now(dt.timezone.utc).date()
+    waiting = len(backlog(args.out, today, lookback=3))
+    res = write_health(args.out, today, waiting)
+    f = res["freshness"]
+    print(f"data: {f['status']} (newest published day {f['newest_published_day']}, "
+          f"{f['days_behind']} days behind, {f['backlog_days']} days waiting)")
+    print(f"model: {res['status']}")
     for r in res["reasons"]:
         print(f"  - {r}")
     for n in res["notes"]:
@@ -929,6 +963,9 @@ def main(argv: list[str] | None = None) -> int:
     pb.add_argument("--groups", default="labels/calibration_1_groups.csv")
     pb.add_argument("--source", help="text recorded as the source")
     pb.add_argument("--out", default="models/score_bands.json")
+    pb.add_argument("--dates", help="the sample's days: also weight to all their judged cells")
+    pb.add_argument("--cells", default="data/cells")
+    pb.add_argument("--model", help="model folder (default: models/detector if present)")
     pb.set_defaults(func=cmd_score_bands)
 
     px = sub.add_parser("sealed-sample", help="blind sample for the calibration or sealed test set")

@@ -1,0 +1,3 @@
+predictor,recall_jamming,recall_spoofing,false_positive_rate_away_from_events
+model_full,0.978,0.952,0.007
+rules,0.741,0.845,0.008

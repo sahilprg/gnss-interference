@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased: correction after the review of 7 Nov 2026
+
+Measured effects in docs/evaluation_protocol.md, "Correction 1". The sealed test is still
+scored with release 0.2.0 (model, labels, baseline, questions).
+
+* Synthetic truth keeps dropped points and counts jamming and spoofing per type (bugs 1-2);
+  recall reported end to end and on observable truth. No published synthetic number changes.
+* Published model re-measured on synthetic attacks (hard jamming 99%, edges 98%, spoofing
+  95%, stress 98%; jammer location 15 km); the README's earlier figures came from an
+  earlier model.
+* Score bands and calm-region false alerts weighted to the population, with named
+  denominators (score below 0.1: about 4% interference; 0.9 or more: about 99%).
+* Health against today's date: stale status and issue, stale banner on the map,
+  persistent backlog, keep-alive for the nightly schedule.
+* Provenance in every published day: commit, region boxes, point format, feature hash;
+  model hash independent of line endings.
+* Prepared, merged after the sealed test: bug 3 (an expired NACp kept with a fresh age),
+  point format points/3.
+
 ## 0.2.0 (6 Nov 2026): archived before the sealed test
 
 DOI [10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201), tag `v0.2.0`

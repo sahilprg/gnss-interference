@@ -28,7 +28,7 @@ from pathlib import Path
 import pandas as pd
 
 from gnssguard.model.eventcheck import FLAGGED, MATCH, MIN_USABLE, _in_event, verdict
-from gnssguard.product.publish import NOTICE, cell_table, file_hash
+from gnssguard.product.publish import NOTICE, cell_table, file_hash, model_hash
 
 EVIDENCE = (  # cell column, what it counts (per cell-window: aircraft with ...)
     ("n_ac_degraded", "degraded position integrity (low NIC)"),
@@ -291,7 +291,7 @@ def incident(scored: Scored, ev, events: pd.DataFrame) -> dict:
     ]
     out["reading"] = reading(out)
     out["provenance"] = {
-        "model_hash": file_hash(scored.model_dir),
+        "model_hash": model_hash(scored.model_dir),
         "model_train_dates": scored.det.meta.get("train_dates"),
         "cell_files": {d: scored.cell_hash(region, d) for d in have},
     }

@@ -1,0 +1,7 @@
+profile,predictor,recall_jamming_before,recall_spoofing_before,false_positive_rate_away_from_events_before,recall_jamming_after,recall_spoofing_after,false_positive_rate_away_from_events_after
+standard,model_full,1.0,0.92,0.01,1.0,0.92,0.01
+standard,rules,0.816,0.797,0.011,0.816,0.797,0.011
+hard,model_full,0.979,0.941,0.006,0.979,0.941,0.006
+hard,rules,0.515,0.701,0.007,0.515,0.701,0.007
+stress,model_full,0.967,0.954,0.007,0.967,0.954,0.007
+stress,rules,0.741,0.845,0.008,0.741,0.845,0.008

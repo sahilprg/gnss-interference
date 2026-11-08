@@ -39,8 +39,9 @@ hash of every input):
   aircraft in both, the Baltic reaches 73% (evaluation protocol, second network check 1).
 * **Incident pages** for every catalogued event: the map, the evidence and whether the
   day stands out against ordinary days ([site](https://sahilprg.github.io/gnss-interference/incidents/index.html)).
-* **Scores, as checked by a reviewer:** cells scored below 0.1 were interference 10% of
-  the time, 0.1-0.9 60%, 0.9 or more 92% (shown on the map).
+* **Scores, as checked by a reviewer** (150 cells, weighted to all cells of the review
+  days): below 0.1 about 4% interference (0-9%), 0.1-0.9 about 58% (44-86%), 0.9 or more
+  about 99% (95-100%), shown on the map. Raw sample shares: 10%, 60%, 92%.
 
 **Limits to keep in mind:**
 
@@ -68,8 +69,9 @@ hash of every input):
 | 4. Evaluation: gold labels, rolling 7-day test, stress attacks, ablations, calibration, pre-declared protocol | done |
 | 5. Product: nightly pipeline, live map website, open data files, outside-report checks, retrain alarm | **live** since 1 Nov 2026 ([site](https://sahilprg.github.io/gnss-interference/), [docs/product.md](docs/product.md)) |
 
-Since then: a correctness pass, independent evidence, a ground-station check and
-incident pages ([docs/roadmap.md](docs/roadmap.md), with the status of each item).
+Since then: a correctness pass, independent evidence, a ground-station check,
+incident pages, and a correction after an external review (8 Nov 2026: three bugs fixed,
+figures re-measured; evaluation protocol, "Correction 1") ([docs/roadmap.md](docs/roadmap.md), with the status of each item).
 Release 0.2.0 is archived before the sealed test (19 Nov 2026; [doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)), which decides whether
 the model beats the integrity-only baseline ([CHANGELOG.md](CHANGELOG.md)).
 
@@ -153,14 +155,14 @@ gnssguard rolling    # retrain and test separately on each of the last 7 days
 | 300 hand-labeled cells: interference vs normal (253 decided) | 96.8% | 96.8% |
 | Same, weighted to all cells of the day | 94.7% | 94.7% |
 | Hand-labeled normal cells wrongly flagged (of 112; 95% upper bound 2.7%) | 0 | 0 |
-| Hard synthetic attacks: jamming caught | 51% | **95%** |
-| Hard synthetic attacks: footprint edges caught | 14% | **92%** |
-| Hard synthetic attacks: spoofing caught | 74% | **96%** |
-| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **96%** |
+| Hard synthetic attacks: jamming caught | 51% | **99%** |
+| Hard synthetic attacks: footprint edges caught | 13% | **98%** |
+| Hard synthetic attacks: spoofing caught | 70% | **95%** |
+| Stress attacks (intermittent, moving, paired jammers): jamming caught | 74% | **98%** |
 | Hard spoofing over the Black Sea (7 test days) | 33% | 47% |
 | Flagged share, calm Central Europe (real data) | 0.65% | 0.65% |
-| ... of which false alarms on hand review (46 cells, 27 Oct-3 Nov) | | 13% (6-26%), about 0.1% of cells |
-| Jammer location error, median (synthetic) | | **13 km** (centroid baseline: 84 km) |
+| ... share of those alerts judged false on hand review (46 cells, 27 Oct-3 Nov) | | about 10% weighted by day (2-25%; 13% unweighted); about 0.1% of all judged cells |
+| Jammer location error, median (synthetic) | | **15 km** (centroid baseline: 89 km) |
 | Stated location uncertainty that contains the truth (confident estimates) | | **90-100%** |
 
 **Holdout day (1 Nov)**, 150 hand labels drawn and committed with the frozen predictions

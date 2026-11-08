@@ -6,34 +6,62 @@
    "score_to": 0.1,
    "band": "below 0.1",
    "cells": 31,
+   "unsure": 9,
    "interference_share": 0.097,
    "ci95": [
     0.033,
     0.249
-   ]
+   ],
+   "population_share": 0.035,
+   "population_ci95": [
+    0.0,
+    0.09
+   ],
+   "if_unsure_normal": 0.031,
+   "if_unsure_interference": 0.153,
+   "cells_represented": 39329
   },
   {
    "score_from": 0.1,
    "score_to": 0.9,
    "band": "0.1 to 0.9",
    "cells": 53,
+   "unsure": 17,
    "interference_share": 0.604,
    "ci95": [
     0.469,
     0.724
-   ]
+   ],
+   "population_share": 0.581,
+   "population_ci95": [
+    0.435,
+    0.86
+   ],
+   "if_unsure_normal": 0.428,
+   "if_unsure_interference": 0.692,
+   "cells_represented": 92
   },
   {
    "score_from": 0.9,
    "score_to": 1.0,
    "band": "0.9 or more",
    "cells": 37,
+   "unsure": 3,
    "interference_share": 0.919,
    "ci95": [
     0.787,
     0.972
-   ]
+   ],
+   "population_share": 0.986,
+   "population_ci95": [
+    0.953,
+    1.0
+   ],
+   "if_unsure_normal": 0.969,
+   "if_unsure_interference": 0.986,
+   "cells_represented": 8459
   }
  ],
- "meaning": "Share of hand-reviewed cells in each score band that the reviewer called interference (jamming, spoofing or both)."
+ "meaning": "Share of hand-reviewed cells in each score band that the reviewer called interference (jamming, spoofing or both).",
+ "population_meaning": "population_share: the same, weighted to all judged cells of the calibration days by band and region-day; its interval resamples whole region-days. if_unsure_*: the weighted share if the cells marked unsure had all been normal or all interference."
 }

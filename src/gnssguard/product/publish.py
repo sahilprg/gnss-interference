@@ -80,14 +80,71 @@ def file_hash(folder: str | Path, pattern: str = "*") -> str:
     return h.hexdigest()[:12]
 
 
-def run_config(regions: list[str], spec: GridSpec) -> dict:
-    """What decides the published numbers besides the model, with a short hash."""
+MODEL_FILES = ("meta.json", "y_jam.txt", "y_spoof.txt")
+
+
+def model_hash(folder: str | Path) -> str:
+    """Short SHA-256 of a model folder: only the model's own files, with line endings
+    normalized, so the same model gives the same hash on Windows and Linux and an extra
+    file in the folder does not change it."""
+    h = hashlib.sha256()
+    for name in MODEL_FILES:
+        f = Path(folder) / name
+        if f.is_file():
+            h.update(name.encode())
+            h.update(f.read_bytes().replace(b"\r\n", b"\n"))
+    return h.hexdigest()[:12]
+
+
+def git_commit() -> dict:
+    """The code's commit: GitHub Actions' GITHUB_SHA, else `git`; `dirty` when the
+    working tree has uncommitted changes (the numbers then come from code no commit holds)."""
+    import os
+    import subprocess
+
+    sha = os.environ.get("GITHUB_SHA")
+    dirty = None
+    try:
+        if not sha:
+            sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                                 text=True, encoding="utf-8", timeout=10,
+                                 check=True).stdout.strip()
+        st = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+                            capture_output=True, text=True, encoding="utf-8", timeout=10,
+                            check=True).stdout
+        dirty = bool(st.strip())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return {"commit": sha or None, "dirty": dirty}
+
+
+def _text_hash(path: str | Path) -> str | None:
+    p = Path(path)
+    if not p.is_file():
+        return None
+    return hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:12]
+
+
+def run_config(regions: list[str], spec: GridSpec, boxes: dict | None = None,
+               features: list[str] | None = None) -> dict:
+    """What decides the published numbers besides the model, with a short hash over the
+    settings (the commit is reported beside them, outside the hash, so the hash says
+    whether two days were computed the same way)."""
     from gnssguard import __version__
+    from gnssguard.ingest.pipeline import POINTS_SCHEMA
+
     cfg = {"code_version": __version__, "schema": SCHEMA, "regions": sorted(regions),
            "cell_deg": spec.cell_deg, "window_min": spec.window_min,
-           "min_aircraft": MIN_AIRCRAFT, "label_threshold": LABEL_THRESHOLD}
+           "min_aircraft": MIN_AIRCRAFT, "label_threshold": LABEL_THRESHOLD,
+           "points_schema": POINTS_SCHEMA}
+    if boxes:
+        cfg["region_boxes"] = {r: list(boxes[r]) for r in sorted(boxes) if r in regions}
+    if features:
+        cfg["features_hash"] = hashlib.sha256(
+            json.dumps(list(features)).encode()).hexdigest()[:12]
     blob = json.dumps(cfg, sort_keys=True).encode()
-    return {**cfg, "hash": hashlib.sha256(blob).hexdigest()[:12]}
+    return {**cfg, "hash": hashlib.sha256(blob).hexdigest()[:12], **git_commit(),
+            "constraints_hash": _text_hash("constraints.txt")}
 
 
 def cell_table(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
@@ -310,12 +367,12 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
         "model": {"train_dates": [det.meta.get("train_dates", [None])[0],
                                   det.meta.get("train_dates", [None])[-1]],
                   "versions": det.meta.get("versions", {}),
-                  "hash": file_hash(model_dir),
+                  "hash": model_hash(model_dir),
                   "label_threshold": LABEL_THRESHOLD,
                   "score_meaning": SCORE_MEANING,
                   "reviewed_score_bands": bands,
                   "card": MODEL_CARD},
-        "config": run_config(regions, spec),
+        "config": run_config(regions, spec, boxes, det.features),
         "regions": {r: {**stats[r], **status[r]} for r in regions},
         "incidents": len(all_incidents),
         "outside_reports": {"checked": len(reports),

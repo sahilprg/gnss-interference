@@ -2,7 +2,8 @@
 is run): recount our cells with only aircraft that broadcast their own position, as
 OpenSky's position table does, and compare again.
 
-Usage: python scripts/opensky_investigate.py 2026-10-26,...,2026-11-04
+Usage: python scripts/opensky_investigate.py 2026-10-26,...,2026-11-04 [regions]
+(regions: comma-separated, default the four hotspots; follow-up 2 adds central_europe)
 """
 
 import sys
@@ -17,9 +18,9 @@ from gnssguard.network.opensky import FLAG_SHARE, MIN_AIRCRAFT, load
 REGIONS = ["baltic", "black_sea", "east_med", "punjab"]
 
 
-def main(days):
+def main(days, regions=REGIONS):
     det = Detectors.load("models/detector")
-    c = with_context(load_cells("data/cells", days, REGIONS)).reset_index(drop=True)
+    c = with_context(load_cells("data/cells", days, regions)).reset_index(drop=True)
     c["model"] = det.predict(c)["label"].astype(str).to_numpy()
     c["window"] = pd.to_datetime(c["window"], utc=True)
     c["region"] = c["region"].astype(str)
@@ -33,7 +34,7 @@ def main(days):
     m["own_flag"] = m["own_degraded"] / m["own_usable"] >= FLAG_SHARE
     m["os_flag"] = m["os_degraded"] / m["os_ac"] >= FLAG_SHARE
     rows = []
-    for name, g in [(r, m[m["region"] == r]) for r in REGIONS] + [("pooled", m)]:
+    for name, g in [(r, m[m["region"] == r]) for r in regions] + [("pooled", m)]:
         f, nf = g[g["own_flag"]], g[~g["own_flag"]]
         jam = g[g["model"].isin(["jamming", "both"])]
         rows.append({
@@ -50,10 +51,20 @@ def main(days):
     out = pd.DataFrame(rows)
     pd.set_option("display.width", 200)
     print(out.to_string(index=False))
-    b = out[out["region"] == "baltic"].iloc[0]["p_os_flag_given_own_flag"]
-    print(f"\nBaltic P(OpenSky flag | recount flag) = {b}: explanation "
-          f"{'supported' if b is not None and b >= 0.70 else 'not supported'} (declared: >= 0.70)")
+    for region in ("baltic", "central_europe"):
+        if region in regions:
+            b = out[out["region"] == region].iloc[0]["p_os_flag_given_own_flag"]
+            print(f"\n{region} P(OpenSky flag | recount flag) = {b}: explanation "
+                  f"{'supported' if b is not None and b >= 0.70 else 'not supported'} "
+                  "(declared: >= 0.70)")
+    if "central_europe" in regions:
+        ce = m[(m["region"] == "central_europe") & m["model"].isin(["jamming", "both"])]
+        small = ce["n_ac_degraded"] <= 2
+        flag_small, flag_rest = ce.loc[small, "os_flag"].mean(), ce.loc[~small, "os_flag"].mean()
+        print(f"central_europe model jamming cells: {len(ce)}; with 2 or fewer degraded "
+              f"aircraft: {int(small.sum())}; OpenSky flags those {flag_small:.2f} "
+              f"and the rest {flag_rest:.2f}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1].split(","))
+    main(sys.argv[1].split(","), sys.argv[2].split(",") if len(sys.argv) > 2 else REGIONS)

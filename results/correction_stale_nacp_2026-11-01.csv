@@ -1,0 +1,6 @@
+region,points,points_new,nac_p_missing_before,nac_p_missing_after,cells,cells_nacp_low_changed,model_label_changed,rules_label_changed
+baltic,430158,430158,0.012,0.1119,3702,559,5,16
+black_sea,225447,225447,0.0013,0.0141,1462,9,1,0
+east_med,417666,417666,0.001,0.011,3124,2,0,0
+punjab,48831,48831,0.0009,0.01,907,0,0,0
+central_europe,2046311,2046311,0.026,0.038,2835,61,0,2

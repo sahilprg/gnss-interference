@@ -883,3 +883,90 @@ jamming flags rest largely on aircraft that a second network's position data can
 confirm or refute; other evidence for them (event catalog, Lithuanian and Estonian
 spectrum monitoring) is unaffected. A second network check with OpenSky's
 multilateration or state-vector data would be needed to compare those aircraft.
+
+### Second network check 1: follow-up 2, Central Europe (declared 8 Nov 2026, before it is run)
+
+**Why.** In the calm control region, OpenSky confirms only 30% (24-37%) of the model's
+201 jamming cell-windows, against a hand-review false-alert share of 13% (about 10%
+weighted, below). Raised by the review of 7 Nov 2026. A look at our own cells only (no
+OpenSky data) shows two likely causes: 58% of the degraded aircraft in those cells are
+MLAT-only (as in the Baltic), and about half of the cells have only 2 degraded aircraft
+among about 10, close to the 0.30 share threshold.
+
+**Test** (`scripts/opensky_investigate.py <days> central_europe`, the 240 hours already
+fetched, no new queries): the same recount as follow-up 1, counting only aircraft that
+broadcast their own position. The MLAT explanation is **supported** if P(OpenSky flag |
+recount flag) in central_europe is at least 0.70. Reported beside it, descriptive: the
+OpenSky flag rate in model jamming cells with 2 or fewer degraded aircraft and in the
+rest. If not supported, the remaining Central Europe flags are treated as possible false
+alarms in the next review set.
+
+## Correction 1 (8 Nov 2026): review of 7 Nov, fixes and their effect
+
+An external review of commit 249fccf found three correctness bugs and several reporting
+problems. Each fix below has a regression test; each effect was measured, not assumed.
+Nothing here changes the sealed test: its model, labels, baseline and questions stay
+those archived in release 0.2.0, and the sealed-test days are processed by the same
+ingest code throughout (bug 3's fix waits until the test is scored).
+
+**Bug 1, dropped points vanished from synthetic truth** (`dataset.py`, `synthetic.py`).
+Truth was rebuilt from the points that survived the attack, so an aircraft whose points
+were all dropped did not count as affected. Fixed: truth includes dropped points, and
+evaluation reports recall end to end (unobservable truth counted as missed) and on
+observable truth, with the unobservable count. **Bug 2, mixed jamming and spoofing in one
+cell collapsed to one type.** Fixed: affected aircraft counted per type; a cell with both
+is a positive for both detectors.
+*Effect,* measured by running `gnssguard evaluate` with the old and the new code on the
+same data and model (`results/correction_synthetic_truth.csv`): **no published synthetic
+number changes** (standard, hard and stress recall and false alarms identical to 3
+decimals); the stress edge breakdown moves by 7 of 791 cells. Why: the generator drops
+points one at a time (probability 0.15), so an aircraft almost never loses all its points
+in a cell, and separate events rarely overlap. The fixes matter for harsher generators
+(planned: a second attack generator).
+
+**Bug 3, an expired NACp looked fresh** (`ingest/trace.py`). When readsb dropped NACp from
+a snapshot (it expires; NIC still reported), the old value was kept and its age reset.
+The roadmap's Phase 0 verdict "not an issue" on this point was **wrong**. Fixed in a
+separate change, point format points/3, merged after the sealed test is scored.
+*Effect,* measured by re-ingesting 1 Nov 2026 with the fix (`results/correction_stale_nacp_2026-11-01.csv`):
+in the Baltic, points without NACp rise from 1.2% to 11.2% and 559 of 3,702 cell-windows
+lose low-NACp aircraft (only in cells that already have degraded NIC: jammed aircraft
+kept an expired low NACp). Labels move only towards normal: model 5 of 629 jamming
+cell-windows (0.8%), rules 1 of 619 jamming and 15 unknown. Other regions: 0-1 model
+labels. So the published Baltic jamming was slightly overstated by stale NACp.
+
+**Model hash.** The laptop's `results/` showed a different hash (a1d3d152259c) for the
+published model than the site (81062b5eb365). The hash now covers only the model's own
+files with line endings normalized; on the published model it is unchanged
+(81062b5eb365). Also found: `gnssguard evaluate` defaults to `data/models/detector`,
+which need not be the published model; the README's synthetic figures came from an
+earlier evaluation and are replaced by an evaluation of the published model.
+
+**Score bands, weighted.** The calibration sample was spread evenly over region-days
+within each score band, but the map showed the raw sample share. Weighted to all judged
+cells of 15-21 Sep by band and region-day (scores recomputed: all 150 sampled cells
+reproduce exactly), with intervals from resampling region-days:
+
+| Score | Sample share (was shown) | Weighted to all cells (now shown) | Unsure all normal / all interference |
+| --- | --- | --- | --- |
+| below 0.1 | 10% (3-25%), 31 decided | **3.5%** (0-9%) | 3% / 15% |
+| 0.1 to 0.9 | 60% (47-72%), 53 decided | **58%** (44-86%) | 43% / 69% |
+| 0.9 or more | 92% (79-97%), 37 decided | **98.6%** (95-100%) | 97% / 99% |
+
+**False alerts in the calm region, weighted and named.** Review set 1 spread calm-region
+flags evenly over days; weighted by each day's flags, the share of calm-region alerts the
+reviewer judged false is about 10% (2-25%, resampling days) against 13% unweighted
+(6 of 46). Named denominators from now on: *share of alerts that were false* (10-13%),
+*false alerts among all judged calm cells* (about 0.1%), and the false-positive rate among
+truly normal cells, which is about the same 0.1% because almost all calm cells are normal.
+
+**Monitoring.** Health is now measured against today: a "stale" status when the newest
+published day is more than 3 days old (with a GitHub issue), the model's age to today, a
+stale banner on the map computed in the reader's browser, a persistent backlog of missing
+days (at most 4 per run) instead of a 3-day look-back, and a step that re-enables the
+nightly workflow on every run (GitHub disables scheduled workflows after 60 days without
+repository activity).
+
+**Provenance.** Every published day records the git commit (and whether the working tree
+was modified), the region boxes, the point format, a hash of the feature list and of
+`constraints.txt`, besides the model hash and settings hash.

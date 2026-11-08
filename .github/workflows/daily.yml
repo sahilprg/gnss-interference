@@ -10,13 +10,14 @@ on:
   workflow_dispatch:
     inputs:
       dates:
-        description: "Days to (re)do, e.g. 2026-10-27,2026-10-28. Empty: recent days not yet published."
+        description: "Days to (re)do, e.g. 2026-10-27,2026-10-28. Empty: the backlog of days not yet published."
         required: false
         default: ""
 
 permissions:
   contents: write   # push to the gh-pages branch
-  issues: write     # open a "Retrain recommended" issue when the health check says so
+  issues: write     # open an issue when the data is stale or retraining is recommended
+  actions: write    # re-enable this workflow on every run (see "Keep the schedule alive")
 
 concurrency:
   group: daily
@@ -66,19 +67,29 @@ jobs:
           fi
           gnssguard daily "${args[@]}"
 
-      - name: Retrain alarm
+      - name: Health (stale data, retrain alarm)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gnssguard health --out public
-          status=$(python -c "import json; print(json.load(open('public/data/health.json'))['status'])")
-          if [ "$status" = "retrain_recommended" ]; then
-            open=$(gh issue list --state open --label retrain --json number --jq 'length' 2>/dev/null || echo 0)
+          issue() {  # label, title: open one issue per label, not one per night
+            open=$(gh issue list --state open --label "$1" --json number --jq 'length' 2>/dev/null || echo 0)
             if [ "$open" = "0" ]; then
-              gh label create retrain --color B60205 --description "Model retraining recommended" 2>/dev/null || true
-              gh issue create --title "Retrain recommended" --label retrain --body-file public/data/health.md
+              gh label create "$1" --color B60205 --description "$2" 2>/dev/null || true
+              gh issue create --title "$2" --label "$1" --body-file public/data/health.md
             fi
-          fi
+          }
+          read -r fresh status < <(python -c "import json; h=json.load(open('public/data/health.json')); print(h['freshness']['status'], h['status'])")
+          [ "$fresh" = "stale" ] && issue stale "Published data is stale"
+          [ "$status" = "retrain_recommended" ] && issue retrain "Retrain recommended"
+          true
+
+      - name: Keep the schedule alive
+        # GitHub disables scheduled workflows in a public repository after 60 days without
+        # repository activity; re-enabling the workflow on every run resets that clock
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/daily.yml/enable" || echo "::warning::could not re-enable the workflow"
 
       - name: Commit to gh-pages
         run: |

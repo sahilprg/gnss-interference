@@ -32,7 +32,21 @@
   const incLayer = L.layerGroup().addTo(map);
   let rects = [];
 
-  async function getJSON(url) {
+  // Stale data: computed here from the reader's clock, so it shows even when the nightly
+// job has stopped and nothing else is updated (a day's archive normally arrives within
+// a day; health.py uses the same limit).
+const STALE_DAYS = 3;
+function staleBanner(latest) {
+  if (!latest) return;
+  const behind = Math.floor((Date.now() - Date.parse(latest + 'T00:00:00Z')) / 864e5);
+  if (behind <= STALE_DAYS) return;
+  const el = $('stale');
+  el.textContent = `The newest published day is ${latest}, ${behind} days ago. The nightly ` +
+    'update may have stopped: treat the map as out of date.';
+  el.hidden = false;
+}
+
+async function getJSON(url) {
     const r = await fetch(url, {cache: 'no-cache'});
     if (!r.ok) throw new Error(url + ': ' + r.status);
     return r.json();
@@ -66,6 +80,7 @@
       map.setView([45, 25], 4);
       return;
     }
+    staleBanner(state.index.latest);
     const want = readHash();
     const days = state.index.days || [];
     const sel = $('date');
@@ -220,7 +235,11 @@
     const score = Math.max(c.p_jamming[i] ?? 0, c.p_spoofing[i] ?? 0);
     const band = ((state.day.reviewed_score_bands || {}).bands || [])
       .find(b => score >= b.score_from && (score < b.score_to || b.score_to >= 1));
-    const reviewed = band && band.interference_share != null
+    // weighted to all cells of the review days when available (review of 7 Nov 2026:
+    // the sample was spread evenly over region-days, so its raw share over-weights quiet days)
+    const reviewed = !band ? '' : band.population_share != null
+      ? `<br>On hand review, cells scored like this were interference about ${pct(band.population_share, 0)} of the time (${pct(band.population_ci95[0], 0)}-${pct(band.population_ci95[1], 0)}, weighted to all cells; ${pct(band.interference_share, 0)} of the ${band.cells} reviewed)`
+      : band.interference_share != null
       ? `<br>On hand review, cells scored like this were interference ${pct(band.interference_share, 0)} of the time (${pct(band.ci95[0], 0)}-${pct(band.ci95[1], 0)})`
       : '';
     return `<b>${where}</b><br>${LABELS[v][0].toUpperCase() + LABELS[v].slice(1)}<br>${ac}` +

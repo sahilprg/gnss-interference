@@ -66,6 +66,45 @@ def test_truth_cells_and_evaluation_end_to_end():
     assert summary["recall_jamming"] == 1.0 and per["recall"].iloc[0] == 1.0
 
 
+def test_truth_keeps_aircraft_whose_points_were_all_dropped():
+    # review bug 1: an aircraft that lost every position is the most affected, not absent
+    fl = [flight(f"a{i}", 50.1 + i / 10, 10.1, dlon=0.002) for i in range(6)]
+    ev = S.Jamming("J1", 50.4, 10.2, START, END, range_km=200, p_drop=1.0, core_frac=1.0)
+    out, injected = S.inject(points(*fl), [ev], seed=0)
+    assert out.empty and injected["dropped"].all()
+    old_way = S.truth_cells(out, SPEC)
+    assert old_way.empty  # what the code used to do: the event disappears from truth
+    truth = S.truth_cells(out, SPEC, truth=injected)
+    row = truth.iloc[0]
+    assert row["n_ac_jam"] == 6 and row["n_ac_jam_observed"] == 0
+    pred = pd.DataFrame(columns=["cell_lat", "cell_lon", "window", "p_jamming",
+                                 "majority_vote_jamming", "spoof_votes", "label"])
+    summary, _ = S.evaluate(pred, truth, SPEC)
+    assert summary["recall_jamming"] == 0.0  # counted, and missed: nothing was observable
+    assert summary["unobservable_jamming"] == len(truth)
+    assert summary["recall_jamming_observable"] is None
+
+
+def test_mixed_cell_is_positive_for_both_types():
+    # review bug 2: one jammed and one spoofed group in the same cell-window
+    jam = [flight(f"j{i}", 50.1 + i / 20, 10.1, dlon=0.0) for i in range(3)]
+    spf = [flight(f"s{i}", 50.6 + i / 20, 10.6, dlon=0.0) for i in range(3)]
+    ev_j = S.Jamming("J1", 50.15, 10.1, START, END, range_km=30, height_m=500, p_drop=0.0,
+                     core_frac=1.0)
+    ev_s = S.Spoofing("S1", 50.65, 10.6, 20.0, START, END, target_lat=50.65,
+                      target_lon=10.65, mode="jump", p_nic_kept=1.0)
+    out, injected = S.inject(points(*jam, *spf), [ev_j, ev_s], seed=0)
+    truth = S.truth_cells(out, SPEC, truth=injected)
+    cell = truth[(truth["cell_lat"] == 50) & (truth["cell_lon"] == 10)].iloc[0]
+    assert cell["n_ac_jam"] == 3 and cell["n_ac_spoof"] == 3 and cell["inj_type"] == "both"
+    cw, _ = build_from_points(out, SPEC)
+    pred = cw.assign(p_jamming=0.99, majority_vote_jamming=1.0, spoof_votes=0, label="jamming")
+    summary, per = S.evaluate(pred, truth, SPEC)
+    assert summary["truth_cell_windows_jamming"] > 0 and summary["truth_cell_windows_spoofing"] > 0
+    assert summary["recall_jamming"] == 1.0 and summary["recall_spoofing"] == 0.0
+    assert set(per["inj_type"]) == {"jamming", "spoofing"}
+
+
 def test_map_html_embeds_data_safely():
     fl = [flight(f"a{i}", 50.1 + i / 10, 10.1) for i in range(4)]
     cw, _ = build_from_points(points(*fl), SPEC)

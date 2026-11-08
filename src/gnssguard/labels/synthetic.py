@@ -283,41 +283,101 @@ def random_events(points: pd.DataFrame, n_jamming: int, n_spoofing: int, seed: i
     return events
 
 
-def truth_cells(points: pd.DataFrame, spec: GridSpec, min_share: float = 0.5) -> pd.DataFrame:
-    """Affected aircraft per cell-window.
+TRUTH_COLUMNS = [*CELL_KEYS, "n_ac_affected", "n_ac_jam", "n_ac_spoof", "n_ac_jam_observed",
+                 "n_ac_spoof_observed", "inj_type", "inj_event_jam", "inj_event_spoof"]
 
-    points: the output of `inject` (all points, with inj_type / true_lat / true_lon).
-    An aircraft counts as affected in a cell-window when at least `min_share` of its
-    points there were affected. Jamming is placed by true position. Spoofing is placed
-    by true position AND by reported position, because its evidence (impossible motion)
-    appears where the fake positions are.
-    """
-    p = points[~points["on_ground"].astype(bool)]
+
+def with_dropped(points: pd.DataFrame, truth: pd.DataFrame | None) -> pd.DataFrame:
+    """The injected points plus the points the attack removed (from `inject`'s truth
+    table), so truth is counted where aircraft really were, not only where they were
+    still seen. Dropped points come only from jamming, so their reported position is
+    their true position."""
+    if truth is None or "dropped" not in truth or not truth["dropped"].any():
+        return points
+    d = truth[truth["dropped"]]
+    extra = pd.DataFrame({"icao": d["icao"].astype(str).to_numpy(), "ts": d["ts"].to_numpy(),
+                          "lat": d["true_lat"].to_numpy(), "lon": d["true_lon"].to_numpy(),
+                          "true_lat": d["true_lat"].to_numpy(),
+                          "true_lon": d["true_lon"].to_numpy(),
+                          "inj_type": d["inj_type"].to_numpy(),
+                          "inj_event": d["inj_event"].to_numpy(), "on_ground": False,
+                          "observed": False})
+    cols = ["icao", "ts", "lat", "lon", "true_lat", "true_lon", "inj_type", "inj_event",
+            "on_ground"]
+    base = points[cols].assign(icao=points["icao"].astype(str), observed=True)
+    out = pd.concat([base, extra], ignore_index=True)
+    out["ts"] = pd.to_datetime(out["ts"], utc=True)
+    return out
+
+
+def _affected(p: pd.DataFrame, spec: GridSpec, min_share: float) -> pd.DataFrame:
+    """(cell-window, icao, type) for aircraft affected by that type in at least
+    `min_share` of their points there. Jamming is placed by true position; spoofing by
+    true AND reported position (its evidence appears where the fake positions are)."""
     win = p["ts"].dt.floor(f"{spec.window_min}min")
     frames = []
     for lat_col, lon_col, only_spoof in (("true_lat", "true_lon", False), ("lat", "lon", True)):
         t = pd.DataFrame({
             "cell_lat": spec.cell_floor(p[lat_col]), "cell_lon": spec.cell_floor(p[lon_col]),
             "window": win, "icao": p["icao"].astype(str), "inj_type": p["inj_type"],
-            "inj_event": p["inj_event"], "aff": p["inj_type"] != ""})
+            "inj_event": p["inj_event"]})
         keys = [*CELL_KEYS, "icao"]
         size = t.groupby(keys, observed=True).size().rename("n")
-        hit = t[t["aff"]]
+        hit = t[t["inj_type"] != ""]
         if only_spoof:
             hit = hit[hit["inj_type"] == "spoofing"]
         if hit.empty:
             continue
-        a = hit.groupby(keys, observed=True).agg(
-            k=("aff", "size"), inj_type=("inj_type", "first"), inj_event=("inj_event", "first"))
-        a = a.join(size)
-        a = a[a["k"] >= min_share * a["n"]].reset_index()
-        frames.append(a)
+        a = hit.groupby([*keys, "inj_type"], observed=True).agg(
+            k=("inj_event", "size"), inj_event=("inj_event", "first"))
+        a = a.reset_index().join(size, on=keys)
+        frames.append(a[a["k"] >= min_share * a["n"]])
     if not frames:
-        return pd.DataFrame(columns=[*CELL_KEYS, "n_ac_affected", "inj_type", "inj_event"])
-    a = pd.concat(frames, ignore_index=True).drop_duplicates([*CELL_KEYS, "icao"])
-    return (a.groupby(CELL_KEYS).agg(n_ac_affected=("icao", "nunique"),
-                                      inj_type=("inj_type", "first"),
-                                      inj_event=("inj_event", "first")).reset_index())
+        return pd.DataFrame(columns=[*CELL_KEYS, "icao", "inj_type", "inj_event"])
+    return (pd.concat(frames, ignore_index=True)
+            .drop_duplicates([*CELL_KEYS, "icao", "inj_type"])[[*CELL_KEYS, "icao", "inj_type",
+                                                                 "inj_event"]])
+
+
+def truth_cells(points: pd.DataFrame, spec: GridSpec, min_share: float = 0.5,
+                truth: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Affected aircraft per cell-window, counted per interference type.
+
+    points: the output of `inject` (with inj_type / true_lat / true_lon). Pass `inject`'s
+    truth table as `truth` so that points the attack removed still count (aircraft that
+    lost their position entirely are the most affected, not unaffected). `*_observed`
+    counts only aircraft with surviving points, so recall can be reported both end to
+    end and on what was observable. A cell-window with both types affected has
+    `inj_type` "both" and is a positive for both detectors.
+    """
+    p = with_dropped(points, truth)
+    p = p[~p["on_ground"].astype(bool)]
+    if "observed" not in p:
+        p = p.assign(observed=True)
+    all_ = _affected(p, spec, min_share)
+    seen = _affected(p[p["observed"].astype(bool)], spec, min_share)
+    if all_.empty:
+        return pd.DataFrame(columns=TRUTH_COLUMNS)
+
+    def count(df, kind, name):
+        d = df[df["inj_type"] == kind]
+        return d.groupby(CELL_KEYS)["icao"].nunique().rename(name)
+
+    def event(kind, name):
+        d = all_[all_["inj_type"] == kind]
+        return d.groupby(CELL_KEYS)["inj_event"].first().rename(name)
+
+    out = pd.concat([all_.groupby(CELL_KEYS)["icao"].nunique().rename("n_ac_affected"),
+                     count(all_, "jamming", "n_ac_jam"), count(all_, "spoofing", "n_ac_spoof"),
+                     count(seen, "jamming", "n_ac_jam_observed"),
+                     count(seen, "spoofing", "n_ac_spoof_observed"),
+                     event("jamming", "inj_event_jam"), event("spoofing", "inj_event_spoof")],
+                    axis=1).reset_index()
+    for c in ("n_ac_jam", "n_ac_spoof", "n_ac_jam_observed", "n_ac_spoof_observed"):
+        out[c] = out[c].fillna(0).astype(int)
+    out["inj_type"] = np.select([(out["n_ac_jam"] > 0) & (out["n_ac_spoof"] > 0),
+                                 out["n_ac_jam"] > 0], ["both", "jamming"], "spoofing")
+    return out[TRUTH_COLUMNS]
 
 
 INTERFERENCE_LABELS = ("jamming", "spoofing", "both")
@@ -334,15 +394,22 @@ def evaluate(pred: pd.DataFrame, truth_cw: pd.DataFrame, spec: GridSpec,
     around any affected cell-window) and only where some rule could judge.
     """
     m = pred.merge(truth_cw, on=CELL_KEYS, how="outer")
-    m["n_ac_affected"] = m["n_ac_affected"].fillna(0)
+    for c in ("n_ac_affected", "n_ac_jam", "n_ac_spoof", "n_ac_jam_observed",
+              "n_ac_spoof_observed"):
+        m[c] = m[c].fillna(0) if c in m else 0
     m["inj_type"] = m["inj_type"].fillna("")
     jam_det = m["p_jamming"].fillna(0) >= 0.5
     jam_mv = m["majority_vote_jamming"].fillna(0) >= 0.5
     spoof_det = m["spoof_votes"].fillna(0) >= 1
-    m["det"] = np.where(m["inj_type"] == "spoofing", spoof_det, jam_det)
-    m["det_mv"] = np.where(m["inj_type"] == "spoofing", spoof_det, jam_mv)
     m["det_any"] = m["label"].isin(INTERFERENCE_LABELS)
-    pos = m["n_ac_affected"] >= min_affected
+    pos_jam = m["n_ac_jam"] >= min_affected
+    pos_spoof = m["n_ac_spoof"] >= min_affected
+    pos = pos_jam | pos_spoof
+    # observable: the cell-window exists in the predictions and enough affected aircraft
+    # still have points there; the rest can only be missed (counted, never hidden)
+    exists = m["label"].notna()
+    obs_jam = pos_jam & exists & (m["n_ac_jam_observed"] >= min_affected)
+    obs_spoof = pos_spoof & exists & (m["n_ac_spoof_observed"] >= min_affected)
 
     # Buffer: one cell around each affected cell-window, and one window before and after
     # (spoofed tracks snap back to the true position when an event ends, which shows up
@@ -360,19 +427,34 @@ def evaluate(pred: pd.DataFrame, truth_cw: pd.DataFrame, spec: GridSpec,
     away = ~pd.Series([k in near for k in keys], index=m.index)
     judged = m["label"].notna() & (m["label"] != "unknown")
 
-    per_event = (m[pos].groupby(["inj_event", "inj_type"])
+    per = []
+    for kind, mask, det, det_mv, ev in (("jamming", pos_jam, jam_det, jam_mv, "inj_event_jam"),
+                                        ("spoofing", pos_spoof, spoof_det, spoof_det,
+                                         "inj_event_spoof")):
+        if mask.any() and ev in m:
+            per.append(pd.DataFrame({"inj_event": m.loc[mask, ev], "inj_type": kind,
+                                     "det": det[mask], "det_mv": det_mv[mask],
+                                     "det_any": m.loc[mask, "det_any"]}))
+    per_event = (pd.concat(per).groupby(["inj_event", "inj_type"])
                  .agg(truth_cell_windows=("det", "size"), recall=("det", "mean"),
-                      recall_majority_vote=("det_mv", "mean"), recall_any_label=("det_any", "mean"))
-                 .round(3).reset_index())
+                      recall_majority_vote=("det_mv", "mean"),
+                      recall_any_label=("det_any", "mean")).round(3).reset_index()
+                 if per else pd.DataFrame(columns=["inj_event", "inj_type"]))
 
-    def rate(mask, col="det"):
-        return round(float(m.loc[mask, col].mean()), 3) if mask.any() else None
+    def rate(mask, det):
+        return round(float(det[mask].mean()), 3) if mask.any() else None
 
     summary = {
         "truth_cell_windows": int(pos.sum()),
-        "recall_jamming": rate(pos & (m["inj_type"] == "jamming")),
-        "recall_spoofing": rate(pos & (m["inj_type"] == "spoofing")),
-        "false_positive_rate_away_from_events": rate(away & judged, "det_any"),
+        "truth_cell_windows_jamming": int(pos_jam.sum()),
+        "truth_cell_windows_spoofing": int(pos_spoof.sum()),
+        "unobservable_jamming": int((pos_jam & ~obs_jam).sum()),
+        "unobservable_spoofing": int((pos_spoof & ~obs_spoof).sum()),
+        "recall_jamming": rate(pos_jam, jam_det),
+        "recall_jamming_observable": rate(obs_jam, jam_det),
+        "recall_spoofing": rate(pos_spoof, spoof_det),
+        "recall_spoofing_observable": rate(obs_spoof, spoof_det),
+        "false_positive_rate_away_from_events": rate(away & judged, m["det_any"]),
         "judged_cell_windows_away_from_events": int((away & judged).sum()),
     }
     return summary, per_event
@@ -420,7 +502,7 @@ def run_experiment(processed: str | Path, region: str, date: str, *, n_jamming: 
         fit_on = pd.concat([real, cw], ignore_index=True) if not real.empty else cw
         model = DawidSkene().fit(apply_rules(fit_on)[INTEGRITY_RULES])
         cw = pd.concat([cw, score(apply_rules(cw), model)], axis=1)
-        truth_cw = truth_cells(inj, spec)
+        truth_cw = truth_cells(inj, spec, truth=truth)
         summary, per = evaluate(cw, truth_cw, spec)
         summaries.append({"seed": seed, **summary})
         per_events.append(per.assign(seed=seed))

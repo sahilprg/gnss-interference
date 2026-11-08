@@ -1,0 +1,5 @@
+predictor,zone,cells,detected,recall
+model_full,core (>=50% affected),1256,1256,1.0
+model_full,edge (<50% affected),460,460,1.0
+rules,core (>=50% affected),1256,1253,0.998
+rules,edge (<50% affected),460,149,0.324
