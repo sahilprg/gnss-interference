@@ -109,7 +109,7 @@ def cmd_review_sample(args) -> int:
     cells = cells.reset_index(drop=True)
     rules = rule_frame(cells, det)["label"].astype(str)
     model = det.predict(cells)["label"].astype(str)
-    gold, groups = review_sample(cells, rules, model, seed=args.seed)
+    gold, groups = review_sample(cells, rules, model, seed=args.seed, key_order=args.key_order)
     out.parent.mkdir(parents=True, exist_ok=True)
     gold.to_csv(out, index=False)
     groups.to_csv(groups_out, index=False)
@@ -220,7 +220,13 @@ def cmd_sealed_sample(args) -> int:
     score = pd_series(np.maximum(p["p_jamming"], p["p_spoofing"]), cells.index)
     model = p["label"].astype(str)
     fn = sealed.calibration_sample if args.kind == "calibration" else sealed.sealed_test_sample
-    kw = {"seed": args.seed} if args.seed is not None else {}
+    kw: dict = {"seed": args.seed} if args.seed is not None else {}
+    if args.kind == "calibration":
+        kw["key_order"] = args.key_order
+    elif args.key_order != "shuffled":
+        print("refused: the sealed test sample is always drawn with shuffled region-days",
+              file=sys.stderr)
+        return 1
     gold, groups = fn(cells, score, rules, model, **kw)
     out.parent.mkdir(parents=True, exist_ok=True)
     gold.to_csv(out, index=False)
@@ -296,6 +302,16 @@ def cmd_disagreement_sample(args) -> int:
         if f.exists() and not args.force:
             print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
             return 1
+    sizes = None
+    if args.only:
+        from gnssguard.labels.disagreement import SIZES
+
+        keep = split(args.only)
+        unknown = set(keep) - set(SIZES)
+        if unknown:
+            print(f"unknown group(s) {sorted(unknown)}; groups: {list(SIZES)}", file=sys.stderr)
+            return 1
+        sizes = {g: (n if g in keep else 0) for g, n in SIZES.items()}
     sealed = {f"2026-11-{d:02d}" for d in range(5, 19)}
     dates = split(args.dates)
     if sealed & set(dates):
@@ -308,7 +324,8 @@ def cmd_disagreement_sample(args) -> int:
     model = det.predict(cells)["label"].astype(str)
     p = det.predict(cells, calibrated=True)
     score = pd_series(np.maximum(p["p_jamming"], p["p_spoofing"]), cells.index)
-    gold, groups = disagreement_sample(cells, score, rules, model, seed=args.seed)
+    gold, groups = disagreement_sample(cells, score, rules, model, seed=args.seed,
+                                       sizes=sizes, key_order=args.key_order)
     out.parent.mkdir(parents=True, exist_ok=True)
     gold.to_csv(out, index=False)
     groups.to_csv(groups_out, index=False)
@@ -356,6 +373,9 @@ def register(sub) -> None:
     pd2.add_argument("--out", default="labels/disagreement_1.csv")
     pd2.add_argument("--groups", default="labels/disagreement_1_groups.csv")
     pd2.add_argument("--seed", type=int, default=20261108)
+    pd2.add_argument("--key-order", choices=("shuffled", "alphabetical"), default="shuffled",
+                     help="region-day order; alphabetical only to redraw sets from before 8 Nov")
+    pd2.add_argument("--only", help="draw only these groups, e.g. D4_rules_unsure")
     pd2.add_argument("--force", action="store_true")
     pd2.set_defaults(func=cmd_disagreement_sample)
 
@@ -382,6 +402,8 @@ def register(sub) -> None:
     pq.add_argument("--model", help="frozen model (default: models/detector if present)")
     pq.add_argument("--regions", default=PRODUCT_REGIONS)
     pq.add_argument("--seed", type=int, default=20261104)
+    pq.add_argument("--key-order", choices=("shuffled", "alphabetical"), default="shuffled",
+                     help="region-day order; alphabetical only to redraw sets from before 8 Nov")
     pq.add_argument("--out", required=True)
     pq.add_argument("--groups", required=True, help="groups file kept apart from the labeler")
     pq.add_argument("--force", action="store_true")
@@ -412,6 +434,8 @@ def register(sub) -> None:
     px.add_argument("--model", help="frozen model (default: models/detector if present)")
     px.add_argument("--regions", default=PRODUCT_REGIONS)
     px.add_argument("--seed", type=int, help="default: 20261104 (calibration), 20261119 (test)")
+    px.add_argument("--key-order", choices=("shuffled", "alphabetical"), default="shuffled",
+                     help="region-day order; alphabetical only to redraw sets from before 8 Nov")
     px.add_argument("--out", required=True)
     px.add_argument("--groups", required=True)
     px.add_argument("--force", action="store_true")

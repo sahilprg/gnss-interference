@@ -45,7 +45,9 @@ def _key(cells: pd.DataFrame) -> pd.Series:
     return cells["region"].astype(str) + "|" + cells["date"].astype(str)
 
 
-def calibration_sample(cells, score, rules, model, seed=20261104, sizes=None):
+def calibration_sample(cells, score, rules, model, seed=20261104, sizes=None,
+                       key_order="shuffled"):
+    """calibration_1 (15-21 Sep) was drawn with key_order="alphabetical"."""
     sizes = {**CAL_SIZES, **(sizes or {})}
     rng = np.random.default_rng(seed)
     dense = cells["n_ac_usable"].fillna(0) >= MIN_USABLE
@@ -53,13 +55,13 @@ def calibration_sample(cells, score, rules, model, seed=20261104, sizes=None):
              "C_mid": cells.index[dense & (score >= 0.1) & (score < 0.9)],
              "C_high": cells.index[dense & (score >= 0.9)]}
     key = _key(cells)
-    mid = _spread(pools["C_mid"], key, sizes["C_mid"], rng)
+    mid = _spread(pools["C_mid"], key, sizes["C_mid"], rng, key_order)
     extra = sizes["C_mid"] - len(mid)
     want = {"C_low": sizes["C_low"] + extra // 2, "C_high": sizes["C_high"] + extra - extra // 2}
     picks, meta = list(mid), [("C_mid", len(pools["C_mid"]) / max(len(mid), 1),
                                len(pools["C_mid"]))] * len(mid)
     for name in ("C_low", "C_high"):
-        ch = _spread(pools[name], key, want[name], rng)
+        ch = _spread(pools[name], key, want[name], rng, key_order)
         picks += ch
         meta += [(name, len(pools[name]) / max(len(ch), 1), len(pools[name]))] * len(ch)
     return _write(cells, picks, meta, "K", rng, score, rules, model)
@@ -77,7 +79,7 @@ def sealed_test_sample(cells, score, rules, model, seed=20261119, sizes=None):
 
     def take(name, mask, k, by):
         pool = cells.index[mask & ~cells.index.isin(list(taken))]
-        ch = _spread(pool, by, k, rng)
+        ch = _spread(pool, by, k, rng)  # shuffled region-days (Correction 2)
         taken.update(ch)
         if name == "T_random":  # weight per region: its judged cells over its sample
             reg = cells.loc[ch, "region"].astype(str)

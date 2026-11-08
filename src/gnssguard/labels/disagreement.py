@@ -30,7 +30,10 @@ SIZES = {"D1_model_flags": 30, "D2_rules_flag": 15, "D3_type": 15, "D4_rules_uns
 
 def disagreement_sample(cells: pd.DataFrame, score: pd.Series, rules: pd.Series,
                         model: pd.Series, seed: int = 20261108,
-                        sizes: dict | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+                        sizes: dict | None = None, key_order: str = "shuffled"
+                        ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Set 1 (8 Nov 2026) was drawn with key_order="alphabetical": its D4 group reached
+    only the Baltic, 15 Sep-4 Oct (evaluation protocol, Correction 2)."""
     sizes = {**SIZES, **(sizes or {})}
     rng = np.random.default_rng(seed)
     dense = cells["n_ac_usable"].fillna(0) >= MIN_USABLE
@@ -43,7 +46,7 @@ def disagreement_sample(cells: pd.DataFrame, score: pd.Series, rules: pd.Series,
     picks, meta = [], []
     for name, mask in pools.items():
         pool = cells.index[mask]
-        ch = _spread(pool, key, sizes[name], rng)
+        ch = _spread(pool, key, sizes[name], rng, key_order)
         picks += ch
         meta += [(name, len(pool) / max(len(ch), 1), len(pool))] * len(ch)
     return _write(cells, picks, meta, "D", rng, score, rules, model)

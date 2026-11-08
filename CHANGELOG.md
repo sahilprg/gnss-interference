@@ -28,6 +28,14 @@ scored with release 0.2.0 (model, labels, baseline, questions).
   72%, now 74%) in CI; an interrupted publish keeps the previous day and index (staging
   folder and atomic swap, recovered on the next run); `gold-sample` refuses to overwrite
   before reading any data.
+* Correction 2, before the sealed draw: samplers visited region-days alphabetically
+  and, when a group had more region-days than cells, reached only the first ones
+  (disagreement set 1, D4: Baltic only). Now region by region in turn with random days;
+  `--key-order alphabetical` reproduces the earlier sets.
+* Disagreement set 1 labeled: the model is not shown better than the rules where they
+  disagree; its extra spoofing flags mostly not spoofing (4 of 19); it misses jamming
+  edges with one degraded aircraft (Baltic, 17 of 18). Set 1b declared (outside the
+  Baltic); `disagreement-sample --only`.
 * Prepared, merged after the sealed test: bug 3 (an expired NACp kept with a fresh age),
   point format points/3.
 

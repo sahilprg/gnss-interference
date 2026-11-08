@@ -35,7 +35,9 @@ window, jamming, spoofing, normal, or not enough aircraft to say.
 
 **The honest caveat:** the model is trained on labels made by readable rules, and on real
 data it reproduces them (on 1 Nov they disagreed on 1 of 6,542 judged cells). Its
-advantage so far is on simulated attacks the rules miss. The strength of the project is
+advantage so far is on simulated attacks the rules miss; on real cells where the two
+disagree, a blind review found it no better, with a known miss at jamming edges where
+only one aircraft is degraded. The strength of the project is
 the pipeline and the evaluation discipline: every check is declared before its data is
 seen, failed checks are published, and every number is regenerated with hashes by
 `gnssguard benchmark`. Full results and limits: [docs/evidence.md](docs/evidence.md).

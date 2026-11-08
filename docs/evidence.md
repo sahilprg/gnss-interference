@@ -48,6 +48,14 @@ hash of every input):
 * **Spoofing is the weak part:** 45% of hard simulated spoofing over the Black Sea is
   caught (35-56%).
 * **Jammer locations are experimental:** tested on simulated jammers only.
+* **Where the model and the rules disagree, the model is not shown to be better**
+  (blind review of 69 such cells, 8 Nov): on its extra flags the reviewer sided with it
+  15 of 27 times (56%, 37-72%); its extra jamming flags were right 8 of 8, its extra
+  spoofing flags carried spoofing 4 of 19 times. Where only one aircraft of 3-9 is
+  degraded the rules give no verdict and the model says normal; in the Baltic the
+  reviewer saw jamming in 17 of 18 such cells, so the map shows some jamming edges as
+  normal (about 2% of the Baltic's jammed area; elsewhere being checked). Evaluation
+  protocol, "Disagreement set 1".
 * **The model mostly agrees with its own rules** on real data; it has not yet been shown
   to beat them there.
 

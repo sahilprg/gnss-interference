@@ -382,3 +382,17 @@ gnssguard disagreement-eval
 
 Commit the labeling file and the groups file before labeling; do not open the groups
 file until the labels are committed.
+
+Set 1b (declared 8 Nov, after set 1): only the D4 group, outside the Baltic:
+
+```
+gnssguard disagreement-sample --only D4_rules_unsure \
+    --regions east_med,black_sea,punjab,central_europe --dates <15 Sep to 4 Nov 2026> \
+    --seed 20261109 --out labels/disagreement_1b.csv --groups labels/disagreement_1b_groups.csv
+gnssguard gold-tool --gold labels/disagreement_1b.csv --out reports/disagreement_1b_tool.html
+gnssguard disagreement-eval --gold labels/disagreement_1b.csv --groups labels/disagreement_1b_groups.csv
+```
+
+Samplers spread each group over region-days, region by region in turn with random days
+(since 8 Nov 2026; evaluation protocol, Correction 2). `--key-order alphabetical`
+reproduces the sets drawn before then (calibration_1, review_1, disagreement_1).

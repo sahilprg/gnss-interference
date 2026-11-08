@@ -72,6 +72,11 @@ truth. No hand labels are used for training.
 * Both the model and the rules miss weak interference at hotspot edges (an estimated
   4-13% of judged cells on 1 Nov, mostly Black Sea): affected shares are lower bounds.
 * Spoofing is never independently confirmed (no usable MLAT cross-check in this data).
+* Where the model and the rules disagree (blind review, 8 Nov 2026): its extra jamming
+  flags were right 8 of 8, but its extra spoofing flags carried spoofing only 4 of 19
+  times. Cells with one degraded aircraft out of 3-9 get no rule verdict and no training
+  label; the model calls them normal, and in the Baltic the reviewer saw jamming in 17
+  of 18 (evaluation protocol, "Disagreement set 1"). Outside the Baltic: set 1b.
 * Several jammers close together are fitted as one source.
 * One labeler, two labeled days (26 Oct, 1 Nov). Coverage changes over time (new receivers) shift flag
   rates without any change in interference (docs/data.md).

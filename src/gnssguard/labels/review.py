@@ -23,20 +23,53 @@ SIZES = {"R1_calm_flag": 50, "R2_hotspot_flag": 30, "R3_calm_normal": 20}
 GROUP_COLUMNS = ["gold_id", "group", "weight", "pool", "rule_label", "model_label"]
 
 
-def _spread(idx: pd.Index, by: pd.Series, k: int, rng) -> list:
-    """k of idx, spread as evenly as possible over the values of `by`."""
+KEY_ORDERS = ("shuffled", "alphabetical")
+
+
+def _interleave(keys: list, rng) -> list:
+    """Random order of keys that takes the strata ("region" in "region|date") in turn."""
+    strata: dict = {}
+    for k in keys:
+        strata.setdefault(str(k).split("|", 1)[0], []).append(k)
+    names = sorted(strata)
+    names = [names[i] for i in rng.permutation(len(names))]
+    lists = [[strata[n][i] for i in rng.permutation(len(strata[n]))] for n in names]
+    out = []
+    for r in range(max(len(x) for x in lists)):
+        out += [x[r] for x in lists if r < len(x)]
+    return out
+
+
+def _spread(idx: pd.Index, by: pd.Series, k: int, rng, key_order: str = "shuffled") -> list:
+    """k of idx, spread as evenly as possible over the values of `by`: one per value per
+    round. With "region|date" keys the values are visited region by region in turn (a
+    random day of each region, then the next random day of each, ...), so every region
+    gets its share even when there are more region-days than k; other keys are visited
+    in a random order. The order is seeded and fixed for all rounds.
+
+    key_order="alphabetical" is the order used before 8 Nov 2026, kept only to reproduce
+    the samples drawn with it. It is biased when there are more values than k: only the
+    first k values in alphabetical order (with region|date keys: the first region and
+    its earliest days) are ever reached (evaluation protocol, Correction 2).
+    """
+    if key_order not in KEY_ORDERS:
+        raise ValueError(f"key_order must be one of {KEY_ORDERS}")
     groups = {v: list(rng.permutation(np.asarray(g))) for v, g in idx.groupby(by.loc[idx]).items()}
+    keys = sorted(groups)
+    if key_order == "shuffled":
+        keys = _interleave(keys, rng)
     out: list = []
     while len(out) < k and any(groups.values()):
-        for v in sorted(groups):
+        for v in keys:
             if groups[v] and len(out) < k:
                 out.append(groups[v].pop())
     return out
 
 
 def review_sample(cells: pd.DataFrame, rule_label: pd.Series, model_label: pd.Series,
-                  seed: int = 20261104, sizes: dict | None = None
-                  ) -> tuple[pd.DataFrame, pd.DataFrame]:
+                  seed: int = 20261104, sizes: dict | None = None,
+                  key_order: str = "shuffled") -> tuple[pd.DataFrame, pd.DataFrame]:
+    """review_1 (27 Oct-3 Nov) was drawn with key_order="alphabetical"."""
     sizes = {**SIZES, **(sizes or {})}
     rng = np.random.default_rng(seed)
     dense = cells["n_ac_usable"].fillna(0) >= MIN_USABLE
@@ -52,7 +85,7 @@ def review_sample(cells: pd.DataFrame, rule_label: pd.Series, model_label: pd.Se
     short = 0
     for name in ("R1_calm_flag", "R2_hotspot_flag", "R3_calm_normal"):
         want = sizes[name] + (short if name == "R3_calm_normal" else 0)
-        chosen = _spread(pools[name], spread_by[name], want, rng)
+        chosen = _spread(pools[name], spread_by[name], want, rng, key_order)
         short += sizes[name] - len(chosen) if name != "R3_calm_normal" else 0
         if name == "R2_hotspot_flag":
             # weight by region: each region's pool size over its sampled count

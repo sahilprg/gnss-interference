@@ -1052,3 +1052,123 @@ days of event EV16 (15 Jan, 1 Feb, 15 Feb 2026; region delhi; never training day
 where the model flags 135 spoofing cell-windows and the rules 92, the largest real-data
 disagreement so far. Same groups and sizes (`--out labels/disagreement_2.csv`, seed
 20261108), labeled blind after set 1, reported separately.
+
+## Correction 2 (8 Nov 2026, before the sealed test is drawn): samplers reached only the first region-days in alphabetical order
+
+**Found** while reading disagreement set 1: all 20 cells of its group D4 came from the
+Baltic, on 20 consecutive days (15 Sep-4 Oct), though the group was declared "spread
+over regions and days".
+
+**The bug.** The function that spreads a sample (`_spread` in `labels/review.py`) takes
+one cell per region-day per round, but visited the region-days in alphabetical order
+("baltic|2026-09-15" first) and stopped when the sample was full. When a group has more
+region-days than cells to take, only the first ones in that order were ever reached: the
+first region, its earliest days.
+
+**Effect on the sets already drawn** (all labeled; kept as they are, results stand with
+the limits below):
+
+| Set | Group: cells / region-days available | Effect |
+| --- | --- | --- |
+| Calibration 1 (15-21 Sep) | 40-70 per band / 35 | every region-day reached; the 5 extra cells per band went to the Baltic. The weighted score bands (Correction 1) weight by region-day pool, so they are unaffected in expectation |
+| Review set 1 (27 Oct-3 Nov) | spread by day (7) or by region (4) | every day or region reached; the remainder went to the earliest days |
+| Disagreement set 1 | D1 30 of 113 cells, one from each of 30 region-days; D2, D3 all or most cells taken | D1 reached all five regions; if its pool had more than 30 region-days, the last ones alphabetically (Punjab, then late East Med days) were missed: a small effect |
+| Disagreement set 1 | **D4 20 / about 240** (204 on the 43 days checked here) | **Baltic only, 15 Sep-4 Oct**: its result describes the Baltic, not the pool |
+
+The 26 Oct gold set and the 1 Nov holdout use other samplers and are unaffected.
+
+**Effect on the sealed test, had it been drawn with this code:** 70 region-days (14 days,
+5 regions); the groups of 60, 50 and 40 cells would have reached only the first 60, 50
+and 40 region-days: Punjab and most of the East Med would have had no borderline or
+sparse cells at all, against the declaration ("each spread over regions and days").
+
+**Fix.** Region-days are now visited region by region in turn, a random day of each
+region in each round (seeded with the sample's seed; other keys in a random order), so
+every region gets its share and the days are random. The old order is kept as
+`--key-order alphabetical`, only to reproduce the three sets above; the sealed test
+refuses it. Tests: the old order is shown biased, the new one gives 4 cells to each of 5
+regions for 20 seeds, the sealed sampler reaches all five regions in every group, and the
+old order reproduces the earlier draws exactly.
+
+**The sealed test** is drawn with the fixed sampler; nothing else about it changes
+(seed 20261119, groups, sizes, questions, the frozen model of release 0.2.0). The commit
+of the sampler is recorded with the draw.
+
+## Disagreement set 1: result (labeled 8 Nov 2026 by SP, scored once)
+
+| Group | Pool | Sampled | Decided | Unsure | Labeler sides with model | with rules | Model right (95% CI) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| D1 model flags, rules do not | 113 | 30 | 27 | 3 | 15 | 12 | 56% (37-72%) |
+| D2 rules flag, model normal | 4 | 4 | 4 | 0 | 0 | 4 | (count) |
+| D3 both flag, different type | 20 | 15 | 15 | 0 | 7 | 8 | (count) |
+| D4 rules no verdict, model normal (**Baltic only**, Correction 2) | 3,375 | 20 | 18 | 2 | 1 | 1* | 6% (1-26%) |
+
+\* In D4 the rules give no verdict; scored as "not interference", they side with the
+labeler as often as the model does (1). What counts is that the labeler called 17 of
+the 18 decided cells jamming.
+
+**Read as declared** ("the model adds something over the rules if it is right on most of
+D1 and on most of D4"): **not shown.** On its extra flags the labeler sides with the
+model about as often as not (D1, 56%, interval includes 50%); where the rules abstain it
+says normal and the labeler disagrees (D4, Baltic).
+
+**What is behind each group:**
+
+* **D1, by type.** The model's 8 extra jamming flags: all 8 jamming. Its 22 extra
+  spoofing flags: 12 normal, 3 unsure, 3 jamming, 1 both, 3 spoofing; so 4 of 19 decided
+  carry spoofing. The model's spoofing flags that no rule supports are mostly not
+  spoofing on real data. The pool is small (113 cells in 51 days; the model flags about
+  47,000 judged cells in the 43 days checked here) but this is where the model's real-data spoofing calls differ from the
+  rules, and it does not support them.
+* **D2:** the four cells where the rules flag and the model does not (all Black Sea) are
+  all jamming: four model misses.
+* **D3:** the type, where both flag: model 7, rules 8. No difference.
+* **D4: single degraded aircraft.** Every D4 cell that could be checked here (13 of 20;
+  the other 7 are on days not in this workspace) has exactly 3 usable aircraft with one
+  degraded (NIC 0, low NACp). With one degraded aircraft out of 3-9 every integrity rule
+  abstains (the cluster rules need 2, "normal" needs none), so the label model has no
+  verdict, these cells get no training label, and the model, which learned from busier
+  cells where one degraded aircraft is noise, says normal with scores of 0.0001-0.004.
+  The labeler called them jamming from the neighbouring cells and windows. On 43 of the
+  51 days (those in this workspace), these cells and how often they touch a rule-jamming
+  cell (adjacent cell or window):
+
+  | Region | D4 cells | of them one degraded | touching rule jamming | normal cells touching rule jamming (control) | rule jamming cells |
+  | --- | --- | --- | --- | --- | --- |
+  | Baltic | 1,126 | 1,106 | 89% | 73% | 52,521 |
+  | East Med | 734 | 688 | 58% | - | 3,063 |
+  | Black Sea | 521 | 368 | 67% | - | 5,122 |
+  | Punjab | 269 | 252 | 39% | - | 446 |
+  | Central Europe | 197 | 88 | 53% | 5% | 697 |
+
+  In the Baltic, where jamming is widespread, such cells are very likely jamming edges
+  and the map shows them as normal: about 2% of the Baltic's jammed area. Elsewhere the
+  same cells are a larger share of the flagged area (East Med 734 against 3,063), but no
+  labels exist there yet (set 1b below).
+
+**Limits.** One labeler, who also wrote the code. The labeler judges from the context
+(neighbours, windows before and after), which the model also sees as features. These are
+partly the model's training days: a model loss here means it did not learn something,
+not a measured error rate on new days. D4 covers the Baltic only.
+
+**Not changed now.** The model stays frozen until the sealed test. The sealed test's
+group T_border (borderline cells both call normal, which include these cells) measures
+the miss on new days, now spread over all regions (Correction 2).
+
+## Disagreement set 1b: one-aircraft cells outside the Baltic (declared 8 Nov 2026, before it is drawn)
+
+**Question.** Does the model's "normal" on cells where the rules abstain (D4) also fail
+outside the Baltic?
+
+**Sample.** `gnssguard disagreement-sample --only D4_rules_unsure`, regions east_med,
+black_sea, punjab and central_europe, days 15 Sep-4 Nov 2026 (never the sealed days),
+seed 20261109, shuffled region-days (Correction 2), 20 cells (4-5 per region). Labeled
+blind once, as set 1 (`labels/disagreement_1b.csv`, groups file committed with the
+sample).
+
+**Reported:** the share of decided cells the labeler calls interference, with a Wilson
+interval, overall and per region (counts), and the unsure count. **Read as:** if most
+are interference (lower bound above 50%), the miss is general, not a Baltic effect, and a
+fix (training labels for one-aircraft cells from their neighbours) is declared as the
+first change after the sealed test; if most are normal, the miss is specific to the
+Baltic's widespread jamming.
