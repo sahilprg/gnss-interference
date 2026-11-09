@@ -1299,6 +1299,15 @@ Zenodo (a GitHub release, archived automatically with a date) before the draw, a
 draw, the labels and the score are each pushed to GitHub before the next step (GitHub
 records push times).
 
+**Archived 9 Nov 2026:** release v0.2.1-protocol, commit 1be0fa1, Zenodo
+[doi:10.5281/zenodo.24073541](https://doi.org/10.5281/zenodo.24073541), ten days before
+the earliest allowed draw. The sealed test is drawn and scored with the sampling and
+scoring code of that commit (`labels/sealed.py`, `labels/review.py`,
+`labels/sealed_score.py`, `model/baselines.py`); a later change to any of them before
+the draw would be recorded here as a correction, with its reason. The detector (`models/detector`) is unchanged since release 0.2.0
+(doi:10.5281/zenodo.24015201); only `models/score_bands.json` changed since, when
+Correction 1 added the population-weighted shares.
+
 **Event test from now on.** "Found" (3 or more matching cells) does not show that a day
 was unusual. For new events the test is whether the event day **stands out**: its
 matching share is reached or beaten on at most 10% of ordinary days in the same box,
