@@ -37,13 +37,24 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Install gitleaks 8.21.2 (checksum-verified)
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+          cache: false
+      - name: Install gitleaks 8.21.2 (verified)
+        # The release file, checked against its SHA-256. GitHub's release downloads failed
+        # for long stretches on 8 and 9 Nov 2026 (HTTP 504, five retries in a row), so if
+        # they fail, the same version is built from the Go module mirror instead, which Go
+        # checks against its public checksum database (sum.golang.org).
         run: |
-          # --fail: an HTTP error is an error, not a saved error page; --retry: GitHub's
-          # release downloads fail now and then (8 and 9 Nov 2026). The checksum stays.
-          curl -sSL --fail --retry 5 --retry-all-errors --retry-delay 10 -o gitleaks.tgz \
-            https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
-          echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  gitleaks.tgz" | sha256sum -c -
-          tar -xzf gitleaks.tgz gitleaks
+          url=https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
+          if curl -sSL --fail --retry 2 --retry-all-errors --retry-delay 5 -o gitleaks.tgz "$url" \
+             && echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  gitleaks.tgz" | sha256sum -c -; then
+            tar -xzf gitleaks.tgz gitleaks
+          else
+            echo "::warning::release download failed; building gitleaks 8.21.2 from the Go module mirror"
+            GOBIN="$PWD" go install github.com/zricethezav/gitleaks/v8@v8.21.2
+          fi
+          ./gitleaks version
       - name: Scan the full history for secrets
         run: ./gitleaks git --redact --verbose .
