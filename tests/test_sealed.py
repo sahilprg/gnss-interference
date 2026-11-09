@@ -36,15 +36,19 @@ def test_calibration_fills_bands_and_moves_short_mid_band():
 
 def test_test_sample_groups_are_disjoint_and_blind():
     cells, score, rules, model = day()
-    gold, g = sealed_test_sample(cells, score, rules, model)
+    gold, g, frames = sealed_test_sample(cells, score, rules, model, n_sim=500)
     assert gold["gold_id"].is_unique and "group" not in gold
     assert set(g["group"]) <= {"T_random", "T_flag", "T_border", "T_sparse"}
     keyed = gold.merge(g, on="gold_id")
     assert keyed[["cell_lat", "cell_lon", "window"]].drop_duplicates().shape[0] == len(gold)
     sp = keyed[keyed["group"] == "T_sparse"]
     assert (sp["model_label"] == "jamming").all()
-    g2 = sealed_test_sample(cells, score, rules, model)[0]
+    g2 = sealed_test_sample(cells, score, rules, model, n_sim=500)[0]
     pd.testing.assert_frame_equal(gold, g2)
+    # every drawn cell knows its chance of being drawn; frames add up to the draw
+    assert g["pi"].between(0, 1, inclusive="right").all()
+    drawn = frames[frames["group"] != "judged"].groupby("group")["drawn"].sum()
+    assert drawn.to_dict() == g["group"].value_counts().to_dict()
 
 
 def test_score_bands_table():

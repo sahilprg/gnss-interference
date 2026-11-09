@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import sys
 from pathlib import Path
 
 from gnssguard.cli._common import (
     dates,
+    default_model,
     grid,
     grid_args,
     model_args,
@@ -135,16 +137,22 @@ def cmd_train(args) -> int:
     table.to_parquet(args.table, index=False)
     det = train(table, label_model=lm)
     det.meta["test_dates"] = te
+    from gnssguard.model.splits import manifest
+
+    det.meta["split"] = manifest(tr, va, te, args.purpose)
     det.meta["training_options"] = {"synth_train_regions": split(args.synth_train_regions),
                                     "unlabel_borderline": args.unlabel_borderline}
-    det.save(args.model)
+    target = args.model or "data/models/detector"
+    det.save(target)
+    (Path(target) / "split.json").write_text(json.dumps(det.meta["split"], indent=1),
+                                                 encoding="utf-8")
     rep = Path(args.report)
     rep.mkdir(parents=True, exist_ok=True)
     importance(det).to_csv(rep / "importance.csv", index=False)
     for t, info in det.meta["targets"].items():
         print(f"{t}: {info['train_rows']:,} rows, {info['train_positives']:,} positives, "
               f"{info['best_iteration']} trees, validation logloss {info['val_logloss']}")
-    print(f"model: {args.model}   table: {args.table}")
+    print(f"model: {target}   table: {args.table}")
     return 0
 
 
@@ -154,11 +162,17 @@ def cmd_evaluate(args) -> int:
     from gnssguard.model.evaluate import run
     from gnssguard.model.train import Detectors
 
-    det = Detectors.load(args.model)
+    det = Detectors.load(args.model or default_model())
     table = pd.read_parquet(args.table)
     test = split(args.test_dates) or det.meta.get("test_dates")
     if not test:
         raise SystemExit("give --test-dates: the model does not record its test days")
+    from gnssguard.model.splits import SplitError, refuse_sealed
+
+    try:
+        refuse_sealed(test, "evaluation")
+    except SplitError as e:
+        raise SystemExit(f"refused: {e}") from None
     res = run(args.data, args.cells, table, det, test, args.gold, args.advisories, args.report,
               synth_region=args.synth_region, ablations=not args.no_ablations, spec=grid(args))
     with pd.option_context("display.width", 160, "display.max_columns", 20):
@@ -181,7 +195,15 @@ def cmd_rolling(args) -> int:
 
     table = pd.read_parquet(args.table)
     stored = sorted({d for _, d, _ in partitions(args.cells)})
-    days = split(args.test_dates) or stored[-args.days:]
+    from gnssguard.model.splits import SEALED_DAYS, SplitError, refuse_sealed
+
+    scored = Path("results/sealed_test.json").exists()
+    days = split(args.test_dates) or [d for d in stored
+                                      if scored or d not in SEALED_DAYS][-args.days:]
+    try:
+        refuse_sealed(days, "rolling evaluation", scored)
+    except SplitError as e:
+        raise SystemExit(f"refused: {e}") from None
     print(f"rolling test days: {', '.join(days)}")
     res = run(args.data, args.cells, table, days, args.report,
               synth_region=split(args.test_regions), n_seeds=args.seeds, spec=grid(args),
@@ -266,6 +288,9 @@ def register(sub) -> None:
 
     pr = sub.add_parser("train", help="train the jamming and spoofing detectors")
     model_args(pr)
+    pr.add_argument("--purpose", choices=("benchmark", "deployment"), default="benchmark",
+                    help="benchmark: train/validation strictly before the test days; "
+                         "deployment: retrain on later days too (not a benchmark)")
     pr.add_argument("--train-dates")
     pr.add_argument("--val-dates")
     pr.add_argument("--synth-seeds", default="0,1")

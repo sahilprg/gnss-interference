@@ -5,7 +5,9 @@ equally often (96.8%; 94.7% weighted to the whole day), and neither ever flagged
 the human called normal. On synthetic attacks with exact truth the model is far
 stronger: it catches the edges of jamming footprints and slow spoofing that the rules
 miss, on attack types it never trained on and on each of seven separate test days. It
-places synthetic jammers to a median of 13 km. Two things are **not** shown yet: that
+places synthetic jammers to a median of 15 km (standard), 40 km (hard) and 52 km (stress)
+(published model, `results/localization_published_model.csv`; the 13 km in section 5
+is the development model). Two things are **not** shown yet: that
 its edge advantage carries over to real data, and that spoofing detection holds up over
 a busy hotspot such as the Black Sea (section 7).
 

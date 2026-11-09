@@ -116,3 +116,25 @@ def test_failed_index_write_keeps_the_old_index(tmp_path, monkeypatch):
     monkeypatch.undo()
     P.recover(tmp_path)
     assert not list((tmp_path / "data").glob("*.tmp"))
+
+
+def test_stop_between_swap_and_index_is_redone_by_the_next_run(stub, monkeypatch):
+    # review of 9 Nov 2026: the boundary between the folder swap and the index update
+    data = stub / "public" / "data"
+
+    def die(*a, **k):
+        raise MemoryError("killed after the swap")
+    monkeypatch.setattr(P, "update_index", die)
+    with pytest.raises(MemoryError):
+        _publish(stub)
+    assert (data / DATE / "summary.json").exists()  # the new folder is complete
+    assert P.read_index(stub / "public") == []  # but not listed: the day is not "done"
+    import datetime as dt
+
+    from gnssguard.product.daily import backlog
+    assert dt.date.fromisoformat(DATE) in backlog(stub / "public", dt.date(2026, 11, 8), 3)
+    monkeypatch.undo()
+    monkeypatch.setattr(P, "Detectors", _StubDetectors)
+    monkeypatch.setattr(P, "load_cells", lambda *a, **k: pd.DataFrame())
+    _publish(stub)
+    assert [d["date"] for d in P.read_index(stub / "public")] == [DATE]

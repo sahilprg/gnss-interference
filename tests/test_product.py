@@ -147,8 +147,10 @@ def test_index_and_days_to_run(tmp_path):
         update_index(tmp_path, s)
     assert [d["date"] for d in read_index(tmp_path)] == ["2026-10-30", "2026-10-29", "2026-10-28"]
     todo = days_to_run(tmp_path, dt.date(2026, 11, 1), lookback=5)
-    # 27 and 31 are new; 30 is retried (incomplete download); 28 done; 29 would fail again
-    assert todo == [dt.date(2026, 10, 27), dt.date(2026, 10, 30), dt.date(2026, 10, 31)]
+    # 27 and 31 are new; 29 and 30 were withheld and are retried (a bounded number of
+    # times); 28 is complete. The newest day runs first.
+    assert todo == [dt.date(2026, 10, 31), dt.date(2026, 10, 27), dt.date(2026, 10, 29),
+                    dt.date(2026, 10, 30)]
     idx = json.loads((tmp_path / "data" / "index.json").read_text(encoding="utf-8"))
     assert idx["latest"] == "2026-10-28"
 
@@ -235,9 +237,10 @@ def test_backlog_persists_past_the_lookback(tmp_path):
     today = dt.date(2026, 11, 1)  # a ten-day outage after the 21st
     assert len(backlog(tmp_path, today, lookback=3)) == 10  # 22 Oct to 31 Oct
     todo = days_to_run(tmp_path, today, lookback=3, max_days=4)
-    # this run: the newest missing day first, then the oldest; the rest wait for later runs
-    assert todo == [dt.date(2026, 10, 22), dt.date(2026, 10, 23), dt.date(2026, 10, 24),
-                    dt.date(2026, 10, 31)]
+    # this run: the newest missing day first (a timeout then loses an old day, not
+    # yesterday), then the oldest; the rest wait for later runs
+    assert todo == [dt.date(2026, 10, 31), dt.date(2026, 10, 22), dt.date(2026, 10, 23),
+                    dt.date(2026, 10, 24)]
 
 
 def test_outside_reports_daily_check(tmp_path):
@@ -306,3 +309,70 @@ def test_hourly_gap_marks_review_not_withhold():
     assert st["baltic"]["status"] == "published" and not day
     assert "hours 03, 04 UTC" in st["baltic"]["review"][0]
     assert quality.hourly_gaps({"hourly_cells": [50] * 24}, hist, "baltic") == []
+
+
+def _fake_daily(monkeypatch, fail_on=(), withhold=()):
+    from gnssguard.product import daily
+
+    def publish(iso, regions, *a, **k):
+        if iso in fail_on:
+            raise RuntimeError("model file corrupt")
+        st = {r: {"status": "withheld" if (iso, r) in withhold else "published"}
+              for r in regions}
+        s = {"date": iso, "published": True, "day_reasons": [], "regions": st}
+        update_index(k.get("out") or a[3], s)
+        return s
+    monkeypatch.setattr(daily, "ingest_day", lambda *a, **k: None)
+    monkeypatch.setattr(daily, "build_all", lambda *a, **k: None)
+    monkeypatch.setattr(daily, "publish_day", publish)
+    monkeypatch.setattr(daily, "build_site", lambda *a, **k: None)
+    monkeypatch.setattr(daily, "load_regions", lambda *a, **k: [])
+    return daily
+
+
+def test_a_failing_day_does_not_stop_the_others_and_is_retried_at_most_3_times(
+        tmp_path, monkeypatch):
+    daily = _fake_daily(monkeypatch, fail_on={"2026-10-30"})
+    kw = dict(processed="p", cells_dir="c", model_dir="m", config="x", regions=["baltic"],
+              lookback=3, today=dt.date(2026, 11, 1))
+    done = daily.run(tmp_path, **kw)
+    assert [s["date"] for s in done] == ["2026-10-31", "2026-10-29"]  # 30 failed, others went on
+    q = daily.read_queue(tmp_path)
+    assert q["2026-10-30"]["state"] == "failed" and q["2026-10-30"]["attempts"] == 1
+    assert "RuntimeError" in q["2026-10-30"]["last_error"]
+    for _ in range(4):
+        daily.run(tmp_path, **kw)
+    assert daily.read_queue(tmp_path)["2026-10-30"]["attempts"] == 3  # then given up
+    assert "2026-10-30" in daily.given_up(tmp_path)
+    assert dt.date(2026, 10, 30) not in daily.backlog(tmp_path, dt.date(2026, 11, 1), 3)
+
+
+def test_withheld_regions_are_retried(tmp_path, monkeypatch):
+    daily = _fake_daily(monkeypatch, withhold={("2026-10-31", "punjab")})
+    kw = dict(processed="p", cells_dir="c", model_dir="m", config="x",
+              regions=["baltic", "punjab"], lookback=1, today=dt.date(2026, 11, 1))
+    daily.run(tmp_path, **kw)
+    assert daily.read_queue(tmp_path)["2026-10-31"]["regions_withheld"] == ["punjab"]
+    assert daily.backlog(tmp_path, dt.date(2026, 11, 1), 1) == [dt.date(2026, 10, 31)]
+    daily = _fake_daily(monkeypatch)  # the problem passed: next run publishes punjab
+    daily.run(tmp_path, **kw)
+    assert daily.read_queue(tmp_path)["2026-10-31"]["state"] == "complete"
+    assert daily.backlog(tmp_path, dt.date(2026, 11, 1), 1) == []
+
+
+def test_health_reports_failed_and_given_up_days(tmp_path, monkeypatch):
+    from gnssguard.product.health import write_health
+
+    daily = _fake_daily(monkeypatch, fail_on={"2026-10-30"})
+    kw = dict(processed="p", cells_dir="c", model_dir="m", config="x", regions=["baltic"],
+              lookback=3, today=dt.date(2026, 11, 1))
+    daily.run(tmp_path, **kw)
+    res = write_health(tmp_path, today=dt.date(2026, 11, 1))
+    assert res["processing"]["status"] == "attention"
+    assert "2026-10-30" in res["processing"]["failing"]
+    for _ in range(3):
+        daily.run(tmp_path, **kw)
+    res = write_health(tmp_path, today=dt.date(2026, 11, 1))
+    assert list(res["processing"]["given_up"]) == ["2026-10-30"]
+    md = (tmp_path / "data" / "health.md").read_text(encoding="utf-8")
+    assert "given up after 3 attempts" in md

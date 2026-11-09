@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import sys
 from pathlib import Path
 from typing import overload
 
@@ -36,9 +37,11 @@ def grid(args):
 
 
 def split_days(args) -> tuple[list[str], list[str], list[str]]:
-    """Train / validation / test days. Default: test = the gold-set days, validation =
-    the last stored day that is not a test day, train = every other stored day (also days
-    after the test day, so retraining uses new data; the test days never enter)."""
+    """Train / validation / test days, checked (model/splits.py). Default: test = the
+    gold-set days; validation = the last usable stored day; train = the other usable
+    days. Usable: before the first test day (--purpose benchmark, the default), or any
+    day but the test days (--purpose deployment); never the sealed days before the
+    sealed test is scored."""
     import pandas as pd
 
     from gnssguard.analysis.coverage import partitions
@@ -51,11 +54,21 @@ def split_days(args) -> tuple[list[str], list[str], list[str]]:
         test = sorted(pd.read_csv(args.gold, dtype=str)["date"].unique())
     else:
         raise SystemExit("give --test-dates, or a gold set (--gold) to take them from")
-    before = [d for d in stored if d not in test]
-    val = split(args.val_dates) or before[-1:]
-    train = split(args.train_dates) or [d for d in before if d not in val]
+    from gnssguard.model.splits import SEALED_DAYS, SplitError, check_split
+
+    purpose = getattr(args, "purpose", "benchmark")
+    sealed_scored = Path("results/sealed_test.json").exists()
+    usable = [d for d in stored if d not in test and (sealed_scored or d not in SEALED_DAYS)]
+    if purpose == "benchmark":  # only days before the first test day
+        usable = [d for d in usable if d < min(test)]
+    val = split(args.val_dates) or usable[-1:]
+    train = split(args.train_dates) or [d for d in usable if d not in val]
     if not train or not val:
         raise SystemExit(f"need stored days before the test day {test}: have {stored}")
+    try:
+        check_split(train, val, test, purpose, sealed_scored)
+    except SplitError as e:
+        raise SystemExit(f"refused: {e}") from None
     return train, val, test
 
 
@@ -101,7 +114,9 @@ def model_args(p) -> None:
     p.add_argument("--data", default="data/processed")
     p.add_argument("--cells", default="data/cells")
     p.add_argument("--gold", default="labels/gold.csv")
-    p.add_argument("--model", default="data/models/detector")
+    p.add_argument("--model", help="train: where to write (default data/models/detector, "
+                   "never the published model); evaluate: what to load (default "
+                   "models/detector, the published model, if present)")
     p.add_argument("--table", default="data/model/table.parquet")
     p.add_argument("--report", default="reports/model")
     p.add_argument("--synth-region", default="central_europe")
@@ -111,3 +126,15 @@ def model_args(p) -> None:
 def grid_args(p) -> None:
     p.add_argument("--cell-deg", type=float, default=1.0, help="grid cell size in degrees")
     p.add_argument("--window-min", type=int, default=15, help="time window in minutes")
+
+
+def sealed_refused(days, what: str) -> bool:
+    """Print why and return True if `what` would touch the sealed test days too early."""
+    from gnssguard.model.splits import SplitError, refuse_sealed
+
+    try:
+        refuse_sealed(days, what)
+    except SplitError as e:
+        print(f"refused: {e}", file=sys.stderr)
+        return True
+    return False

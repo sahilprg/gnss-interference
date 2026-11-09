@@ -88,3 +88,46 @@ def test_changed_point_format_needs_a_new_run(tmp_path, split_archive, monkeypat
     assert is_done(out, DAY, REGIONS)
     monkeypatch.setattr(pipeline, "POINTS_SCHEMA", "points/99")
     assert not pipeline.is_done(out, DAY, REGIONS)
+
+
+def test_deleted_or_changed_files_mean_the_day_is_redone(tmp_path, split_archive):
+    # review of 9 Nov 2026: `daily --cleanup` deletes the files but keeps the manifest,
+    # and a rerun used to skip the day and publish from nothing
+    import shutil
+
+    out = tmp_path / "processed"
+    ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
+    assert is_done(out, DAY, REGIONS)
+    shutil.rmtree(out / "region=north" / f"date={DAY.isoformat()}")
+    assert not is_done(out, DAY, REGIONS)  # files gone: redo
+    ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
+    assert is_done(out, DAY, REGIONS)
+    m = json.loads(manifest_path(out, DAY).read_text(encoding="utf-8"))
+    m["rows_per_region"]["overlap"] += 1  # files that do not hold what the manifest says
+    manifest_path(out, DAY).write_text(json.dumps(m), encoding="utf-8")
+    assert not is_done(out, DAY, REGIONS)
+
+
+def test_interrupted_ingest_leaves_no_manifest(tmp_path, split_archive, monkeypatch):
+    import shutil
+
+    from gnssguard.ingest import pipeline
+
+    out = tmp_path / "processed"
+    ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5)
+    calls = {"n": 0}
+    real_move = shutil.move
+
+    def move_then_die(src, dst):  # killed after moving the first region
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise KeyboardInterrupt
+        return real_move(src, dst)
+    monkeypatch.setattr(pipeline.shutil, "move", move_then_die)
+    try:
+        ingest_day(DAY, REGIONS, out, sources=split_archive, max_decode_error_share=0.5,
+                   force=True)
+    except KeyboardInterrupt:
+        pass
+    # half old, half new on disk: no manifest, so nothing treats the day as done
+    assert not manifest_path(out, DAY).exists() and not is_done(out, DAY)

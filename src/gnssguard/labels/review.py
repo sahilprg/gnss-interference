@@ -28,6 +28,8 @@ KEY_ORDERS = ("shuffled", "alphabetical")
 
 def _interleave(keys: list, rng) -> list:
     """Random order of keys that takes the strata ("region" in "region|date") in turn."""
+    if not keys:
+        return []
     strata: dict = {}
     for k in keys:
         strata.setdefault(str(k).split("|", 1)[0], []).append(k)
@@ -54,6 +56,8 @@ def _spread(idx: pd.Index, by: pd.Series, k: int, rng, key_order: str = "shuffle
     """
     if key_order not in KEY_ORDERS:
         raise ValueError(f"key_order must be one of {KEY_ORDERS}")
+    if k <= 0 or len(idx) == 0:
+        return []  # an empty pool gives an empty pick; the caller reports the shortfall
     groups = {v: list(rng.permutation(np.asarray(g))) for v, g in idx.groupby(by.loc[idx]).items()}
     keys = sorted(groups)
     if key_order == "shuffled":
@@ -64,6 +68,44 @@ def _spread(idx: pd.Index, by: pd.Series, k: int, rng, key_order: str = "shuffle
             if groups[v] and len(out) < k:
                 out.append(groups[v].pop())
     return out
+
+
+def _picks_per_key(counts: dict, k: int, rng) -> dict:
+    """How many cells _spread takes from each key, from the pool sizes alone. The same
+    rule as _spread (same key order, one per key per round), so its distribution of
+    picks per key is the sampler's."""
+    left = {v: int(n) for v, n in counts.items() if n > 0}
+    order = _interleave(sorted(left), rng)
+    out = dict.fromkeys(order, 0)
+    total = 0
+    while total < k and any(left.values()):
+        for v in order:
+            if left[v] and total < k:
+                left[v] -= 1
+                out[v] += 1
+                total += 1
+    return out
+
+
+def inclusion(counts: dict, k: int, n_sim: int = 20000, seed: int = 0) -> dict:
+    """Probability that a given cell of each key is drawn by _spread (shuffled order).
+
+    Within a key the cells are a simple random sample, so a cell's probability is the
+    key's expected number of picks over its pool size. The expectation is simulated
+    (n_sim draws; relative error about 1% for keys reached half the time). Keys whose
+    every cell is always taken get exactly 1.
+    """
+    counts = {v: int(n) for v, n in counts.items() if n > 0}
+    if not counts or k <= 0:
+        return {}
+    if sum(counts.values()) <= k:
+        return dict.fromkeys(counts, 1.0)
+    rng = np.random.default_rng(seed)
+    acc = dict.fromkeys(counts, 0)
+    for _ in range(n_sim):
+        for v, n in _picks_per_key(counts, k, rng).items():
+            acc[v] += n
+    return {v: acc[v] / n_sim / counts[v] for v in counts}
 
 
 def review_sample(cells: pd.DataFrame, rule_label: pd.Series, model_label: pd.Series,

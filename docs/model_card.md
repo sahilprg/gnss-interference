@@ -20,10 +20,11 @@ In practice 99.9% of judged cells score below 0.1 or at least 0.9, so the score 
 little to the label. Against hand labels, scores of 0.9 or more were interference 97% of
 the time, scores below 0.1 7% of the time (Black Sea 35%, on stratified samples).
 
-On the calibration set (150 hand-reviewed cells, 15-21 Sep 2026) the reviewer called
-interference 10% of cells scored below 0.1 (3-25%), 60% between 0.1 and 0.9 (47-72%) and
-92% at 0.9 or more (79-97%). This table is published with every file and shown on the
-map; the score itself is unchanged.
+On the calibration set (150 hand-reviewed cells, 15-21 Sep 2026), weighted to all
+cells of the week (what the map shows), the reviewer called interference 3.5% of cells
+scored below 0.1 (0-9%), 58% between 0.1 and 0.9 (44-86%) and 98.6% at 0.9 or more
+(95-100%); unweighted, on the sample as drawn, 10%, 60% and 92%. Both are published with
+every file (`models/score_bands.json`); the score itself is unchanged.
 
 The label is decided on the uncalibrated score at 0.5. Every published summary and map
 file states the threshold, what the scores mean, the model's hash and the run settings.
@@ -51,13 +52,13 @@ truth. No hand labels are used for training.
 | Hand-labeled normal cells flagged | 0 of 112 (95% upper bound about 2.7%, rule of three) |
 | Holdout day 1 Nov (150 hand labels, never used for any decision), 3+ aircraft | 92.0% weighted to the whole day (roughly 87-96%); same as the rules |
 | Holdout 1 Nov, flags on cells with 1-2 aircraft | 47 of 47 right [92-100%] |
-| Synthetic jamming caught, calm background (standard / hard / stress) | 1.00 / 0.95 / 0.96 (rules 0.82 / 0.51 / 0.74) |
-| Synthetic spoofing caught, calm background | 0.94 / 0.96 / 0.96 (rules 0.82 / 0.74 / 0.84) |
+| Synthetic jamming caught, calm background (standard / hard / stress) | 1.00 / 0.986 / 0.978 (rules 0.82 / 0.52 / 0.74); `results/synthetic_*_published_model.csv` |
+| Synthetic spoofing caught, calm background | 0.92 / 0.945 / 0.952 (rules 0.80 / 0.70 / 0.85); same files |
 | Synthetic spoofing caught, Black Sea background, 7 days | 0.84 / 0.47 / 0.64 (rules 0.70 / 0.33 / 0.51) |
 | Real flagged share, calm Central Europe, 7 days | 0.45-1.27% (rules 0.41-1.24%) |
 | Calm-region flags a hand reviewer called normal (review set 1, 46 decided) | 13% [6-26%]: real false-alarm rate about 0.11% [0.05-0.21%] of judged cells |
 | Hotspot flags a hand reviewer confirmed (review set 1, 26 decided) | 26 of 26 [87-100%] |
-| Jammer location error, synthetic, median | 13 km (standard), 29 km (hard), 44 km (stress) |
+| Jammer location error, synthetic, median | 15 km (standard), 40 km (hard), 52 km (stress); `results/localization_published_model.csv` |
 | Stated location uncertainty contains the truth (confident estimates) | 90-100% |
 
 ## Known limitations

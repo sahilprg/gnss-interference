@@ -47,8 +47,30 @@ def fold_table(table: pd.DataFrame, test_day: str, unlabel_borderline: bool = Fa
     if real.any():
         lm = DawidSkene().fit(apply_rules(t[real & t["date"].isin(train_days)])[INTEGRITY_RULES])
         t.loc[real, TARGET_COLS] = real_targets(t[real], lm, unlabel_borderline)[TARGET_COLS]
+        _relabel_synthetic_background(t, lm)
     t["split"] = (t["date"] == val_day).map({True: "val", False: "train"})
     return t, lm
+
+
+def _relabel_synthetic_background(t: pd.DataFrame, lm: DawidSkene) -> None:
+    """Synthetic rows keep exact targets where attacks were injected, but their clean
+    background takes the weak label where the rules flag real interference (see
+    dataset.synthetic_rows). The training table set that with the label model of the
+    whole table, fitted on days a fold must not see; redo it with the fold's own.
+
+    Background = no affected aircraft and a target (rows near an event have none). A
+    background cell the old label model flagged gets 1; here it gets the fold's verdict.
+    """
+    syn = t["source"].eq("synthetic")
+    if "n_ac_affected" not in t or not syn.any():
+        return
+    bg = syn & t["n_ac_affected"].fillna(0).eq(0)
+    if not bg.any():
+        return
+    weak = real_targets(t[bg], lm)
+    for col in ("y_jam", "y_spoof"):
+        has = bg & t[col].notna()
+        t.loc[has, col] = (weak.loc[has[has].index, col] == 1).astype(float)
 
 
 def run(processed: str | Path, cells_dir: str | Path, table: pd.DataFrame,

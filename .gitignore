@@ -1,4 +1,4 @@
-# data and outputs never go into git (versioned with DVC / published on Hugging Face)
+# data and outputs never go into git (published results go in results/ and on Zenodo)
 /data/
 /reports/
 mlruns/

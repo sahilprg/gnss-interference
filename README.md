@@ -9,7 +9,7 @@ and an honest statement of how far to trust it.
 **Live map, incident pages and open data: https://sahilprg.github.io/gnss-interference/**
 (updated every night).
 
-![The Baltic on 7 Nov 2026: cells where aircraft reported degraded GPS around Kaliningrad, Lithuania and Latvia, with a timeline of the day](docs/img/map_baltic_2026-11-07.png)
+![The Baltic on 3 Nov 2026, the day of a reported Kaliningrad and Lithuania event: cells where aircraft reported degraded GPS, with a timeline of the day](docs/img/map_baltic_2026-11-03.png)
 
 > Research project. Not for navigation or operational decisions. A flag means aircraft
 > reported degraded or inconsistent positions there, not who or what caused it.
@@ -21,7 +21,7 @@ Mediterranean, the India-Pakistan border) now affects thousands of flights a day
 aviation authorities, India's DGCA among them, have issued advisories. Every aircraft
 with ADS-B broadcasts how much it trusts its own GPS position (NIC, NACp). When many
 aircraft in one place report low integrity, or impossible motion, at the same time,
-something on the ground is interfering. gnssguard turns one day of the open
+that is a navigation anomaly consistent with interference. gnssguard turns one day of the open
 [adsb.lol](https://www.adsb.lol) archive into that picture: per 1° cell and 15-minute
 window, jamming, spoofing, normal, or not enough aircraft to say.
 
@@ -29,8 +29,8 @@ window, jamming, spoofing, normal, or not enough aircraft to say.
 
 | Result | What it shows | What it does not show |
 | --- | --- | --- |
-| **14 of 15** checkable public interference events found (95% interval 70-99%), all 4 backed by ground radio measurements | The map's flags fall where and when incidents were reported | That the day was unusual: near Kaliningrad jamming is routine. One miss (Kaliningrad, Nov 2024) |
-| A **second receiver network** (OpenSky) confirms **70-84%** of jamming cells outside the Baltic and flags 2-5% of normal ones; the Baltic reaches 73% once both count the same aircraft | The data handling holds up against independent receivers and decoding | The physics: both networks hear the same aircraft. The declared check failed (60% pooled) and is published as failed |
+| Of the public interference events, the event day **stands out against the same area on ordinary days for 2** (Kaliningrad spoofing, Mar 2025; Gdansk Bay jamming, May 2025), plus the two Delhi spoofing events (against only 7 ordinary days) and one partly (western Black Sea, Nov 2026); 14 of 15 are "found" (3 or more matching cells) | Where the map's flags rise on a reported day | That most events were unusual: near Kaliningrad jamming is routine, so "found" there means little. One miss (Kaliningrad, Nov 2024) |
+| A **second receiver network** (OpenSky) confirms **70-84%** of jamming cells outside the Baltic, and flags 0.2% (calm Central Europe) to 9.3% (Black Sea) of the cells the model calls normal; the Baltic reaches 73% once both count the same aircraft | The data handling holds up against independent receivers and decoding | The physics: both networks hear the same aircraft. The declared check failed (60% pooled) and is published as failed |
 | On hand-labeled cells, the model finds **86%** of interference, a NIC-share baseline 76%, a **GPSJam-style** NACp score **45%** | NIC and motion checks catch what a NACp-only map misses, spoofing included | A real-world rate: development samples, one labeler. The sealed test (19 Nov 2026) decides |
 
 **The honest caveat:** the model is trained on labels made by readable rules, and on real
@@ -39,8 +39,10 @@ advantage so far is on simulated attacks the rules miss; on real cells where the
 disagree, a blind review found it no better, with a known miss at jamming edges where
 only one aircraft is degraded. The strength of the project is
 the pipeline and the evaluation discipline: every check is declared before its data is
-seen, failed checks are published, and every number is regenerated with hashes by
-`gnssguard benchmark`. Full results and limits: [docs/evidence.md](docs/evidence.md).
+seen, failed checks are published, and `gnssguard benchmark` regenerates the main
+tables with hashes (not yet every number; see the roadmap). The sealed test (drawn on or
+after 19 Nov 2026) has its scoring code and one primary endpoint fixed in advance. Full
+results and limits: [docs/evidence.md](docs/evidence.md).
 
 ## How it works
 

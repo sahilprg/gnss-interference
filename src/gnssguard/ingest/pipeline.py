@@ -12,6 +12,7 @@ import gzip
 import io
 import json
 import logging
+import os
 import shutil
 import tarfile
 import time
@@ -82,8 +83,28 @@ def is_done(out_root: Path, day: dt.date, regions: Sequence[Region] | None = Non
     if m.get("points_schema", "points/1") != POINTS_SCHEMA:
         return False
     stored = m.get("regions", {})
-    return all(stored.get(r.name) == [r.lat_min, r.lat_max, r.lon_min, r.lon_max]
-               for r in regions or [])
+    if not all(stored.get(r.name) == [r.lat_min, r.lat_max, r.lon_min, r.lon_max]
+               for r in regions or []):
+        return False
+    return _files_match(out_root, day, m.get("rows_per_region", {}))
+
+
+def _files_match(out_root: Path, day: dt.date, rows: dict) -> bool:
+    """The stored files hold the rows the manifest says (a deleted or partly replaced
+    region means the day must be redone, e.g. after `daily --cleanup`)."""
+    import pyarrow.parquet as pq
+
+    for region, n in rows.items():
+        folder = Path(out_root) / f"region={region}" / f"date={day.isoformat()}"
+        files = sorted(folder.glob("*.parquet"))
+        if not files:
+            return False
+        try:
+            if sum(pq.ParquetFile(f).metadata.num_rows for f in files) != n:
+                return False
+        except Exception:  # noqa: BLE001 - an unreadable file means: redo
+            return False
+    return True
 
 
 def _decode(raw: bytes) -> dict:
@@ -177,7 +198,11 @@ def ingest_day(
         **stats,
     }
 
-    # Move finished files into place, replacing any previous version of this day.
+    # Move finished files into place, replacing any previous version of this day. The
+    # manifest goes first and comes back last, in one step: an interruption in between
+    # leaves no manifest, so the day is redone rather than half old and half new.
+    mpath = manifest_path(out_root, day)
+    mpath.unlink(missing_ok=True)
     for region in rows:
         final_dir = out_root / f"region={region}" / f"date={day.isoformat()}"
         shutil.rmtree(final_dir, ignore_errors=True)
@@ -188,8 +213,9 @@ def ingest_day(
         region: field_presence(out_root / f"region={region}" / f"date={day.isoformat()}")
         for region in rows}
 
-    mpath = manifest_path(out_root, day)
     mpath.parent.mkdir(parents=True, exist_ok=True)
-    mpath.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    tmp = mpath.with_name(mpath.name + ".tmp")
+    tmp.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    os.replace(tmp, mpath)
     log.info("%s done: %s rows in %.0fs", day, sum(rows.values()), manifest["seconds"])
     return manifest

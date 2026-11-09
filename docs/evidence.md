@@ -9,9 +9,15 @@ each check declared before it was run; all of them regenerated in about a minute
 `gnssguard benchmark` into [results/](../results/README.md), with the model hash and the
 hash of every input):
 
-* **Public reports:** 14 of 15 checkable events found (95% interval 70-99%), including
-  all 4 backed by ground radio measurements and Delhi spoofing in 2025-2026; the first
+* **Public reports:** "found" (3 or more matching cells) is a weak test where jamming is
+  routine: 14 of 15 checkable events are found (95% interval 70-99%), but against the
+  same area on ordinary days only Kaliningrad spoofing (Mar 2025, 0 of 56 ordinary days
+  as high) and Gdansk Bay jamming (May 2025, 4 of 56) stand out; the two Delhi spoofing
+  events do too but against only 7 ordinary days; the western Black Sea (Nov 2026)
+  partly (12 of 67); the rest are matched or beaten on most ordinary days. The first
   Kaliningrad spoofing (Nov 2024) was missed ([configs/events.csv](../configs/events.csv)).
+  From now on an event counts as detected only if it stands out (evaluation protocol,
+  addendum 3).
 * **False alarms:** on hand review, 13% of flags in calm Central Europe were false, about
   0.1% of judged cells; flags in the hotspot regions were right 26 of 26 times.
 * **Hand-labeled test days never used for any decision:** 92% agreement over the whole
@@ -22,8 +28,10 @@ hash of every input):
 * **Ground stations:** six EUREF stations around Kaliningrad show no agreement with the
   map beyond a shifted-days control (expected and stated before the data: they are
   outside the jammers' line of sight).
-* **Second receiver network (OpenSky):** where the map says normal, OpenSky agrees
-  (about 2-5% flagged). Where it says jamming, OpenSky confirms 70-84% outside the
+* **Second receiver network (OpenSky):** where the map says normal, OpenSky mostly
+  agrees: it flags 0.2% of those cells in calm Central Europe, 2.3% in the East Med,
+  4.8% in the Baltic, 7.3% in Punjab and 9.3% in the Black Sea (misses, not false
+  alarms, are the main error). Where it says jamming, OpenSky confirms 70-84% outside the
   Baltic but 45% in the Baltic, short of the declared 70%: there most jammed aircraft
   have no GNSS position at all and are seen only by multilateration. Counting the same
   aircraft in both, the Baltic reaches 73% (evaluation protocol, second network check 1).
@@ -45,8 +53,9 @@ hash of every input):
   hear them, not on the ground or at sea, and nothing where coverage is thin.
 * **It misses weak interference** at the edges of hotspots (an estimated 4-13% of judged
   cells on 1 Nov, mostly over the Black Sea): published shares are lower bounds.
-* **Spoofing is the weak part:** 45% of hard simulated spoofing over the Black Sea is
-  caught (35-56%).
+* **Spoofing is the weak part:** hard simulated spoofing over the Black Sea is caught
+  45% of the time across six rolling folds (35-56%), 47% on the seven test days of the
+  table below (two measurements of the same thing).
 * **Jammer locations are experimental:** tested on simulated jammers only.
 * **Where the model and the rules disagree, the model is not shown to be better**
   (blind review of 69 such cells, 8 Nov): on its extra flags the reviewer sided with it

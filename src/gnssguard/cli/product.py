@@ -58,6 +58,9 @@ def cmd_health(args) -> int:
     print(f"data: {f['status']} (newest published day {f['newest_published_day']}, "
           f"{f['days_behind']} days behind, {f['backlog_days']} days waiting)")
     print(f"model: {res['status']}")
+    pr = res["processing"]
+    print(f"processing: {pr['status']} ({len(pr['failing'])} failing, "
+          f"{len(pr['given_up'])} given up)")
     for r in res["reasons"]:
         print(f"  - {r}")
     for n in res["notes"]:

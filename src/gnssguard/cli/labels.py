@@ -10,6 +10,7 @@ from gnssguard.cli._common import (
     default_model,
     pd_options,
     pd_series,
+    sealed_refused,
     split,
 )
 
@@ -24,7 +25,12 @@ def cmd_gold(args) -> int:
         print(f"{out} exists; it may hold your hand labels. Use --force to overwrite.",
               file=sys.stderr)
         return 1
+    if sealed_refused(split(args.dates), "a gold sample"):
+        return 1
     labels = pd.read_parquet(args.labels)
+    if args.dates is None and sealed_refused(labels["date"].astype(str).unique(),
+                                             "a gold sample over all labeled days"):
+        return 1
     gold = sample_gold(labels, n=args.n, seed=args.seed, dates=split(args.dates))
     out.parent.mkdir(parents=True, exist_ok=True)
     gold.to_csv(out, index=False)
@@ -58,6 +64,8 @@ def cmd_holdout_sample(args) -> int:
         if f.exists() and not args.force:
             print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
             return 1
+    if sealed_refused([args.date], "a holdout sample"):
+        return 1
     det = Detectors.load(args.model or default_model())
     cells = with_context(load_cells(args.cells, [args.date], split(args.regions)))
     rules = rule_frame(cells, det)["label"].astype(str)
@@ -104,6 +112,8 @@ def cmd_review_sample(args) -> int:
         if f.exists() and not args.force:
             print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
             return 1
+    if sealed_refused(split(args.dates), "a review sample"):
+        return 1
     det = Detectors.load(args.model or default_model())
     cells = with_context(load_cells(args.cells, split(args.dates), split(args.regions)))
     cells = cells.reset_index(drop=True)
@@ -196,6 +206,7 @@ def cmd_score_bands(args) -> int:
 
 def cmd_sealed_sample(args) -> int:
     import numpy as np
+    import pandas as pd
 
     from gnssguard.features.cells import load_cells
     from gnssguard.labels import sealed
@@ -204,10 +215,17 @@ def cmd_sealed_sample(args) -> int:
     from gnssguard.model.train import Detectors
 
     out, groups_out = Path(args.out), Path(args.groups)
-    for f in (out, groups_out):
+    frames_out = Path(args.frames) if args.frames else groups_out.with_name(
+        groups_out.name.replace("_groups.csv", ".csv").replace(".csv", "_frames.csv"))
+    files = [out, groups_out] + ([frames_out] if args.kind == "test" else [])
+    for f in files:
         if f.exists() and not args.force:
             print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
             return 1
+    if args.kind != "calibration" and args.key_order != "shuffled":
+        print("refused: the sealed test sample is always drawn with shuffled region-days",
+              file=sys.stderr)
+        return 1
     det = Detectors.load(args.model or default_model())
     cells = with_context(load_cells(args.cells, split(args.dates), split(args.regions)))
     cells = cells.reset_index(drop=True)
@@ -219,22 +237,73 @@ def cmd_sealed_sample(args) -> int:
     p = det.predict(cells, calibrated=True)
     score = pd_series(np.maximum(p["p_jamming"], p["p_spoofing"]), cells.index)
     model = p["label"].astype(str)
-    fn = sealed.calibration_sample if args.kind == "calibration" else sealed.sealed_test_sample
     kw: dict = {"seed": args.seed} if args.seed is not None else {}
     if args.kind == "calibration":
-        kw["key_order"] = args.key_order
-    elif args.key_order != "shuffled":
-        print("refused: the sealed test sample is always drawn with shuffled region-days",
-              file=sys.stderr)
-        return 1
-    gold, groups = fn(cells, score, rules, model, **kw)
+        gold, groups = sealed.calibration_sample(cells, score, rules, model,
+                                                 key_order=args.key_order, **kw)
+    else:
+        from gnssguard.model.baselines import baseline_values
+
+        extra = baseline_values(cells).join(pd.DataFrame(
+            {"n_ac_usable": cells["n_ac_usable"].to_numpy(),
+             "p_jamming": np.asarray(p["p_jamming"]), "p_spoofing": np.asarray(p["p_spoofing"])},
+            index=cells.index)).round(4)
+        gold, groups, frames = sealed.sealed_test_sample(cells, score, rules, model,
+                                                         extra=extra, **kw)
     out.parent.mkdir(parents=True, exist_ok=True)
     gold.to_csv(out, index=False)
     groups.to_csv(groups_out, index=False)
     print(groups.groupby("group").agg(cells=("gold_id", "size"), pool=("pool", "first"))
           .to_string())
+    if args.kind == "test":
+        frames.to_csv(frames_out, index=False)
+        drawn = groups["group"].value_counts()
+        short = {g: (int(drawn.get(g, 0)), n) for g, n in sealed.TEST_SIZES.items()
+                 if drawn.get(g, 0) < n}
+        if short:
+            print(f"short groups (drawn, wanted): {short}; reported short, not refilled")
+        print(f"pools per group and region-day -> {frames_out}")
     print(f"{len(gold)} cell-windows -> {out}  (labeling file)")
     print(f"groups and frozen predictions -> {groups_out}  (do not open before labeling)")
+    return 0
+
+
+def cmd_sealed_score(args) -> int:
+    """Score the sealed test once (questions 1-8, primary endpoint)."""
+    import hashlib
+    import json
+
+    import pandas as pd
+
+    from gnssguard.labels.sealed_score import score
+    from gnssguard.product.publish import git_commit
+
+    out = Path(args.out)
+    if out.exists() and not args.force:
+        print(f"{out} exists: the sealed test is scored once. --force only to redo a run "
+              "that failed, never to rescore after changing anything.", file=sys.stderr)
+        return 1
+    files = {"gold": Path(args.gold), "groups": Path(args.groups), "frames": Path(args.frames)}
+    gold = pd.read_csv(files["gold"], dtype={"label": str})
+    blank = gold["label"].fillna("").str.strip().eq("")
+    if blank.any():
+        print(f"{int(blank.sum())} cells have no label (use 'unsure' where you cannot "
+              "decide); the sealed test is scored only when every cell is labeled",
+              file=sys.stderr)
+        return 1
+    res = score(gold, pd.read_csv(files["groups"]), pd.read_csv(files["frames"]))
+    res["provenance"] = {
+        "scored_utc": pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds"),
+        **git_commit(),
+        "inputs_sha256": {k: hashlib.sha256(f.read_bytes()).hexdigest()[:16]
+                          for k, f in files.items()}}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(res, indent=1), encoding="utf-8")
+    pe = res["primary_endpoint"]
+    print(f"primary endpoint (question 6): {'PASSES' if pe['passes'] else 'does not pass'}")
+    print(f"  recall difference, model - NIC 0.25: {pe['recall_difference']}")
+    print(f"  false-alarm difference: {pe['false_alarm_difference']}")
+    print(f"all questions -> {out}")
     return 0
 
 
@@ -434,12 +503,23 @@ def register(sub) -> None:
     px.add_argument("--model", help="frozen model (default: models/detector if present)")
     px.add_argument("--regions", default=PRODUCT_REGIONS)
     px.add_argument("--seed", type=int, help="default: 20261104 (calibration), 20261119 (test)")
+    px.add_argument("--frames", help="test only: pools per group and region-day "
+                    "(default: next to --groups, as *_frames.csv)")
     px.add_argument("--key-order", choices=("shuffled", "alphabetical"), default="shuffled",
                      help="region-day order; alphabetical only to redraw sets from before 8 Nov")
     px.add_argument("--out", required=True)
     px.add_argument("--groups", required=True)
     px.add_argument("--force", action="store_true")
     px.set_defaults(func=cmd_sealed_sample)
+
+    pz = sub.add_parser("sealed-score", help="score the sealed test once (questions 1-8)")
+    pz.add_argument("--gold", default="labels/sealed_test.csv")
+    pz.add_argument("--groups", default="labels/sealed_test_groups.csv")
+    pz.add_argument("--frames", default="labels/sealed_test_frames.csv")
+    pz.add_argument("--out", default="results/sealed_test.json")
+    pz.add_argument("--force", action="store_true",
+                    help="only to redo a run that failed; never to rescore")
+    pz.set_defaults(func=cmd_sealed_score)
 
     pz = sub.add_parser("trust-report", help="day intervals, calibration vs hand labels, "
                         "aircraft overlap")

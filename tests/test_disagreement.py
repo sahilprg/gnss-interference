@@ -88,7 +88,7 @@ def test_sealed_sample_spreads_every_group_over_regions():
     model = pd.Series(np.where(i % 4 == 0, "jamming", "normal"), index=df.index)
     rules = pd.Series(np.where(i % 4 == 0, "jamming", "unknown"), index=df.index)
     score = pd.Series(rng.random(n), index=df.index)
-    gold, groups = sealed_test_sample(df, score, rules, model)
+    gold, groups, _ = sealed_test_sample(df, score, rules, model, n_sim=500)
     m = gold.merge(groups, on="gold_id")
     for name, g in m.groupby("group"):
         assert g["region"].nunique() == 5, (name, g["region"].value_counts().to_dict())

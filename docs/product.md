@@ -117,9 +117,20 @@ used to be measured against the newest published day, so a stopped pipeline said
   3 days before today. The nightly job then opens a "Published data is stale" issue
   (which emails the owner). The map shows a banner computed in the reader's browser from
   the reader's clock, so it appears even when the nightly job does not run at all.
-* **Backlog:** every day since the first published day that is not published (or was
-  withheld for an incomplete download) stays queued until done, at most 4 per run (the
-  newest first, then the oldest), so a long outage leaves no permanent gap.
+* **Backlog:** every day since the first published day that is not complete stays
+  queued, at most 4 per run: the newest first (a timeout then loses an old day, not
+  yesterday), then the oldest. Each day's state is kept in `data/queue.json`:
+  unavailable (not on adsb.lol yet; tried every run), failed (an error; retried), withheld
+  (some regions withheld; retried, as a withholding can come from a passing problem) or
+  complete. A failing or withheld day gets at most 3 attempts; one broken day never stops
+  the others. Days that used up their attempts are "given up": `health.json` lists them
+  under `processing`, and the nightly job opens a "Days the nightly job could not finish"
+  issue. The health step runs even when processing failed, since that is when it is
+  needed.
+* **Ingest** writes each region to a temporary folder, removes the day's manifest before
+  moving anything into place and writes it last, in one step; a day counts as ingested
+  only if its files exist and hold the rows the manifest records. An interrupted ingest,
+  or files deleted by `--cleanup`, means the day is ingested again.
 * **Model age** to today (the retrain alarm below).
 
 GitHub disables scheduled workflows in a public repository after 60 days without

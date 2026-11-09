@@ -116,8 +116,24 @@ def assess(out: str | Path, today: dt.date | None = None, backlog: int = 0) -> d
             "signals": signals}
 
 
+def processing(out: str | Path) -> dict:
+    """Days the nightly job could not finish: given up (attempts used up) or failing."""
+    from gnssguard.product.daily import MAX_ATTEMPTS, read_queue
+
+    q = read_queue(out)
+    gave_up = {d: e for d, e in q.items() if e.get("state") in ("failed", "withheld")
+               and e.get("attempts", 0) >= MAX_ATTEMPTS}
+    failing = {d: e for d, e in q.items() if e.get("state") == "failed" and d not in gave_up}
+    return {"status": "attention" if gave_up or failing else "ok",
+            "given_up": {d: {k: e.get(k) for k in ("state", "attempts", "last_error",
+                                                    "regions_withheld")}
+                         for d, e in sorted(gave_up.items())},
+            "failing": {d: e.get("last_error") for d, e in sorted(failing.items())}}
+
+
 def write_health(out: str | Path, today: dt.date | None = None, backlog: int = 0) -> dict:
     res = assess(out, today, backlog)
+    res["processing"] = processing(out)
     data = Path(out) / "data"
     data.mkdir(parents=True, exist_ok=True)
     write_atomic(data / "health.json", json.dumps(res, indent=1))
@@ -127,6 +143,12 @@ def write_health(out: str | Path, today: dt.date | None = None, backlog: int = 0
              f"{f['backlog_days']} days waiting)", "",
              f"Model: **{res['status']}** after {res.get('checked_through', 'no day')}", ""]
     lines += [f"- {r}" for r in res["reasons"]] or ["- no retraining signal"]
+    pr = res["processing"]
+    lines += ["", f"Processing: **{pr['status']}**"]
+    lines += [f"- {d}: failing ({err})" for d, err in pr["failing"].items()]
+    lines += [f"- {d}: given up after {e['attempts']} attempts ({e['state']}; "
+              f"{e.get('last_error') or e.get('regions_withheld')})"
+              for d, e in pr["given_up"].items()]
     lines += ["", "How to retrain: docs/product.md, section \"Retraining\"."]
     write_atomic(data / "health.md", "\n".join(lines) + "\n")
     return res

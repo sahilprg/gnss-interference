@@ -192,3 +192,48 @@ event checks split into area consistency and incident detection; a model that ca
 see the integrity fields; a second attack generator; India as a full region; a causal
 real-time mode. A second human annotator is not available; the single-annotator limit
 stays stated.
+
+## Review of 9 Nov 2026 (combined review of commit b303e3f)
+
+Every finding was checked against the code and held. Done before the sealed draw
+(evaluation protocol, addendum 3):
+
+* scoring code for questions 1-8 written and tested on fake labels before any label
+  exists; estimands fixed per question; inclusion probabilities stored at the draw;
+  one primary endpoint (question 6) with a paired test; the likely failure on false
+  alarms stated in advance;
+* samplers safe on empty and small pools; the split guard (no overlap; benchmark
+  training strictly before the test days; sealed days refused for training,
+  evaluation and other samples until scored); rule "unknown" never a correct "normal";
+* sealed-window exposure disclosed (public nightly map; README screenshot replaced by
+  3 Nov); the declaration to be archived on Zenodo before the draw;
+* correctness: map request race (with a reversed-timing browser test), health runs on
+  failure, newest-day-first backlog with bounded retries and per-day state, ingest
+  verified against its files and swapped transactionally, a test at the
+  swap-and-index boundary, `evaluate` loads the published model, rolling folds relabel
+  synthetic backgrounds with their own label model, mypy checks untyped functions;
+* documents: numbers brought in line with `results/`, the README's causal wording and
+  ground-source claim removed, events judged by whether they stand out.
+
+Open, in this order:
+
+* **Reproducibility:** a benchmark manifest covering every headline number with model,
+  data, split, code and scoring ids; weighted and unweighted outputs named apart; a
+  strict mode that fails on missing inputs; `results/` regenerated (the committed
+  benchmark carries the old model hash); cell tables (aggregates only) on Zenodo so an
+  outsider need not re-ingest about 196 GB; a small end-to-end fixture in CI; document
+  tables rendered from `results/` and checked in CI.
+* **Research:** an abstain state ("possible, unreviewed") for cells with one degraded
+  aircraft of 3-9, instead of "normal"; independent labels for them (OpenSky
+  multilateration, not neighbour heuristics); rule-supported and model-only alerts
+  reported apart (model-only spoofing flags were right 4 of 19); a simple contextual
+  baseline before keeping LightGBM; label-model dependence between NIC-based rules; a
+  second, independently written attack generator; MLAT share tracked per region-day
+  before any trend claim (the Baltic's ordinary-day flagged share rose from 0.10-0.26 to
+  0.70-0.85, partly MLAT coverage); the frozen points/2 against corrected points/3 on all
+  days.
+* **Product:** one outside analyst completes an incident investigation using only the
+  incident pages.
+
+The rules are treated as the product until the model earns its place; the model stays
+an experimental layer.

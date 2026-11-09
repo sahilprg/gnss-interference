@@ -21,8 +21,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-LABEL_SETS = {
-    "gold_2026-10-26": "labels/gold.csv",
+GOLD_SET = "labels/gold.csv"  # the 26 Oct gold set: labels only
+# label file and its groups (or strata) file
+LABEL_SETS: dict[str, tuple[str, str]] = {
     "holdout_2026-11-01": ("labels/gold_2026-11-01.csv", "labels/holdout_2026-11-01_strata.csv"),
     "review_1": ("labels/review_1.csv", "labels/review_1_groups.csv"),
     "calibration_1": ("labels/calibration_1.csv", "labels/calibration_1_groups.csv"),
@@ -77,7 +78,7 @@ def run(model_dir: str, cells_dir: str = "data/cells",
             return {"status": "not run", "reason": "no cells for 2026-10-26"}
         pop = pd.read_parquet(labels_table) if Path(labels_table).exists() else None
         preds = {"rules": lambda x: rule_frame(x, det), "model": lambda x: model_frame(x, det)}
-        t = gold_eval(LABEL_SETS["gold_2026-10-26"], c, preds, population=pop)
+        t = gold_eval(GOLD_SET, c, preds, population=pop)
         t.to_csv(outp / "gold_2026-10-26.csv", index=False)
         return {"status": "ok", "rows": t.to_dict(orient="records")}
 
@@ -119,7 +120,7 @@ def run(model_dir: str, cells_dir: str = "data/cells",
                     aggfunc="first").to_dict(orient="index")}
 
     def scores_vs_labels():
-        files = [LABEL_SETS["gold_2026-10-26"], LABEL_SETS["holdout_2026-11-01"][0],
+        files = [GOLD_SET, LABEL_SETS["holdout_2026-11-01"][0],
                  LABEL_SETS["review_1"][0]]
         days = sorted({str(d) for f in files for d in pd.read_csv(f)["date"].unique()})
         c = _cells(cells_dir, days)
@@ -144,9 +145,9 @@ def run(model_dir: str, cells_dir: str = "data/cells",
 
     from gnssguard import __version__
 
-    inputs = {"events.csv": file_sha(events_csv)}
-    for v in LABEL_SETS.values():
-        for f in (v if isinstance(v, tuple) else (v,)):
+    inputs = {"events.csv": file_sha(events_csv), Path(GOLD_SET).name: file_sha(GOLD_SET)}
+    for pair in LABEL_SETS.values():
+        for f in pair:
             inputs[Path(f).name] = file_sha(f)
     prov = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "code_version": __version__, "model_hash": model_hash(model_dir),

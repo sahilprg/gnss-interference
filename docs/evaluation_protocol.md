@@ -1098,14 +1098,15 @@ of the sampler is recorded with the draw.
 
 | Group | Pool | Sampled | Decided | Unsure | Labeler sides with model | with rules | Model right (95% CI) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| D1 model flags, rules do not | 113 | 30 | 27 | 3 | 15 | 12 | 56% (37-72%) |
+| D1 model flags, rules do not | 113 | 30 | 27 | 3 | 15 | 11 (+4 no verdict)* | 56% (37-72%) |
 | D2 rules flag, model normal | 4 | 4 | 4 | 0 | 0 | 4 | (count) |
 | D3 both flag, different type | 20 | 15 | 15 | 0 | 7 | 8 | (count) |
-| D4 rules no verdict, model normal (**Baltic only**, Correction 2) | 3,375 | 20 | 18 | 2 | 1 | 1* | 6% (1-26%) |
+| D4 rules no verdict, model normal (**Baltic only**, Correction 2) | 3,375 | 20 | 18 | 2 | 1 | 0 (18 no verdict)* | 6% (1-26%) |
 
-\* In D4 the rules give no verdict; scored as "not interference", they side with the
-labeler as often as the model does (1). What counts is that the labeler called 17 of
-the 18 decided cells jamming.
+\* A rule "unknown" is no verdict and never counts as a correct "normal" (corrected 9
+Nov 2026 after a review: first reported as D1 12 and D4 1, which scored "unknown" as
+"not interference"; the conclusions do not change). In D4 the rules decide no cell; what
+counts is that the labeler called 17 of the 18 decided cells jamming.
 
 **Read as declared** ("the model adds something over the rules if it is right on most of
 D1 and on most of D4"): **not shown.** On its extra flags the labeler sides with the
@@ -1214,3 +1215,95 @@ on these cells is mostly wrong on new days, and the fix (training labels for suc
 from their neighbours) becomes the first change after the sealed test; otherwise it is
 reported as not shown. The groups file already records each cell's rule label, so the
 subset is fixed at the draw.
+
+## Sealed test, addendum 3: scoring code, estimands and one primary endpoint (declared 9 Nov 2026, before the draw)
+
+Raised by the review of 9 Nov 2026: until now only the sample had code; how the labels
+become numbers (weights, intervals, unsure cells, rule "unknown") was still open, and
+those choices must not be made after the labels exist. This addendum fixes them. The
+model (release 0.2.0), the seed (20261119), the groups, their sizes and questions 1-8
+are unchanged.
+
+**Scoring code:** `gnssguard sealed-score` (`src/gnssguard/labels/sealed_score.py`), in the
+commit that adds this addendum; its run records its own commit and the SHA-256 of the
+three input files. It refuses to run while any cell is unlabeled, and refuses to
+overwrite its result (the test is scored once). Tested before any label exists on fake
+populations with known truth (`tests/test_sealed_score.py`): over 40 draws the estimates
+match the true population values within 3 points, and break by 6-7 points when the
+weights are removed.
+
+**Primary endpoint (the only pass/fail): question 6, the Phase 2 gate.** The model
+passes if its day-weighted recall is higher than the NIC-share baseline's (s = 0.25)
+**with the paired 95% interval of the difference above 0** (the declared "higher",
+tested on the same cells rather than compared as two numbers), and its false-alarm rate
+is not higher by more than 2 points (as declared). Questions 1-5, 7 and 8 are reported,
+not gates; with that many numbers some will look good by chance.
+
+**The likely outcome, stated now.** On the development sets (6 Nov, stratified, not
+day-weighted) the model raised false alarms on 12 of 238 normal cells (5.0%) against the
+baseline's 4 of 238 (1.7%): 3.4 points more, over the 2-point allowance. If the sealed
+test looks like that, the model fails the gate, and it is reported as failing. The gate
+is not changed.
+
+**Who counts as what.** Interference: the labeler's jamming, spoofing or both; normal:
+normal. Unsure: left out of every share and counted; for the primary endpoint the result
+is also given with all unsure cells as interference and all as normal. A rule
+"unknown" is no flag for recall and false alarms, and is never a correct "normal": in
+question 1 it counts as disagreement, and the rules' agreement where they decide and
+their no-verdict share are reported beside it.
+
+**Estimands.** Over the cell-windows of 5-18 Nov 2026 in the five regions:
+
+| Question | Estimand | Population | Weighting |
+| --- | --- | --- | --- |
+| 1 | agreement (interference or not) with the labeler, model and rules | judged cells (3+ usable aircraft) | day-weighted |
+| 2a | share of model flags the labeler calls normal | judged cells the model flags | all cell-windows |
+| 2b | share of borderline normal cells the labeler calls interference | judged cells both leave unflagged, with jamming evidence | all cell-windows |
+| 3 | share of 1-2 aircraft flags that are interference | cells the model flags from 1-2 aircraft | all cell-windows |
+| 4 | interference share per published score band, and the Brier score of the raw score | judged cells, by band | all cell-windows |
+| 5 | agreement at threshold 0.1 against 0.5, paired | judged cells | day-weighted |
+| 6, 7 | recall, false-alarm rate (share of normal cells flagged), spoofing found, for model, rules, NIC 0.25 and 0.30, GPSJam-style per window and per day | judged cells | day-weighted |
+| 8 | share of the T_border cells with rule "unknown" that are interference | the sample itself (as declared) | none |
+
+Day-weighted: each of the 14 days counts the same (weights divided by the day's judged
+cells). Intervals: 95%, 2000 bootstrap resamples of days; paired differences use the same
+resamples for both predictors, and the discordant cell counts (McNemar) are reported.
+
+**Weights.** At the draw, each cell's inclusion probability within its group is
+simulated from the sampler's own rule (`inclusion`, 20,000 runs) and frozen in the groups
+file, with the predictors' values (model, rules, NIC share, GPSJam-style scores) so that
+scoring needs only the three committed files. A third file, `labels/sealed_test_frames.csv`,
+holds each group's pool per region-day. A cell stands for 1/pi cells of its group's
+pool. T_random cells that lie in the flag or border populations stand for themselves
+(weight 1), because they were removed from the later groups' pools; T_flag and T_border
+estimate the rest of those populations. This replaces the earlier per-region and
+per-group ratios, which over-weighted small region-days.
+
+**Short groups.** A group whose pool is smaller than its size takes every cell (pi = 1)
+and is reported short; the shortfall is not moved to another group.
+
+**Disclosures, before the draw:**
+
+* The nightly map publishes every sealed day as it happens; anyone, the labeler
+  included, can see the model's verdicts for 5-18 Nov. The labeling tool shows no model
+  output, but the labeler has seen the map: the README screenshot was of 7 Nov (now
+  replaced by 3 Nov), and on 9 Nov the published flagged shares per region for 7 Nov
+  were reported to the labeler in a status check. The labeler will not open the map
+  for 5-18 Nov until the labels are committed.
+* The sealed days are also refused, by code, for training, evaluation and every other
+  sample until the sealed test is scored (`model/splits.py`, `refuse_sealed`).
+
+**Verifiable timing.** Commit dates can be set freely, so each declaration is pinned by
+something outside the repository: this addendum and the scoring code are archived on
+Zenodo (a GitHub release, archived automatically with a date) before the draw, and the
+draw, the labels and the score are each pushed to GitHub before the next step (GitHub
+records push times).
+
+**Event test from now on.** "Found" (3 or more matching cells) does not show that a day
+was unusual. For new events the test is whether the event day **stands out**: its
+matching share is reached or beaten on at most 10% of ordinary days in the same box,
+with at least 20 ordinary days (fewer: "too few ordinary days"). For the 14 events found
+so far, as a description (not a re-scoring): EV09 (0 of 56 ordinary days) and EV10 (4 of
+56) stand out; EV13 and EV16 (0 of 7) have too few ordinary days; EV18 (12 of 67) partly;
+the others are matched or beaten on most ordinary days (Kaliningrad-area jamming is
+routine).

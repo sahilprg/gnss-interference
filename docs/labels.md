@@ -358,7 +358,18 @@ gnssguard gold-tool --gold labels/calibration_1.csv --out reports/calibration_to
 ```
 
 As with the other sets, the groups files are committed with the samples, before any
-label, and the labeler does not open them.
+label, and the labeler does not open them. The sealed test also writes
+`labels/sealed_test_frames.csv` (pools per group and region-day; commit it with the
+groups file) and freezes each cell's inclusion probability and every predictor's value
+in the groups file. When every cell is labeled (use "unsure" where you cannot decide):
+
+```bash
+gnssguard sealed-score   # once; reads the three files, writes results/sealed_test.json
+```
+
+It refuses blank labels and refuses to overwrite its result. Until it has run, the
+sealed days are refused for training, evaluation and every other sample; do not open
+the map for 5-18 Nov before the labels are committed (evaluation protocol, addendum 3).
 
 ## 8. Not done yet
 

@@ -66,12 +66,15 @@ def disagreement_eval(gold: pd.DataFrame, groups: pd.DataFrame) -> pd.DataFrame:
             rules_right = int((dec["label"] == dec["rule_label"]).sum())
         else:
             model_right = int((h == dec["model_label"].isin(FLAGGED)).sum())
-            rules_right = int((h == dec["rule_label"].isin(FLAGGED)).sum())
+            # a rule "unknown" is no verdict: never a correct "normal" (review, 9 Nov 2026)
+            decides = dec["rule_label"] != "unknown"
+            rules_right = int(((h == dec["rule_label"].isin(FLAGGED)) & decides).sum())
         n = len(dec)
         lo, hi = wilson(model_right, n)
         rows.append({"group": name, "sampled": len(g), "decided": n,
                      "unsure": int(len(g) - n), "pool": int(g["pool"].iloc[0]),
                      "model_right": model_right, "rules_right": rules_right,
+                     "rules_no_verdict": int((dec["rule_label"] == "unknown").sum()),
                      "model_right_share": round(model_right / n, 3) if n else None,
                      "model_right_ci95": [lo, hi] if n else None})
     return pd.DataFrame(rows)

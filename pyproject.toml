@@ -65,6 +65,7 @@ filterwarnings = [
 files = ["src"]
 python_version = "3.12"
 ignore_missing_imports = true
+check_untyped_defs = true  # bodies of unannotated functions too
 warn_unused_ignores = true
 warn_redundant_casts = true
 

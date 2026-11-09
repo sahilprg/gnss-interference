@@ -23,28 +23,13 @@ import pandas as pd
 
 from gnssguard.features.cells import CELL_KEYS, load_cells
 from gnssguard.labels.holdout import FLAGGED, wilson
+from gnssguard.model.baselines import gpsjam_day, gpsjam_score
 from gnssguard.model.dataset import with_context
 from gnssguard.model.evaluate import rule_frame
 from gnssguard.model.train import Detectors
 
 SETS = ["labels/gold.csv", "labels/gold_2026-11-01.csv", "labels/review_1.csv",
         "labels/calibration_1.csv"]
-
-
-def gpsjam_score(c: pd.DataFrame) -> pd.Series:
-    """GPSJam's published formula per cell-window: (bad - 1) / all, bad = low NACp."""
-    return ((c["n_ac_nacp_low"].fillna(0) - 1).clip(lower=0)
-            / c["n_ac_usable"].fillna(0).clip(lower=1))
-
-
-def gpsjam_day(c: pd.DataFrame) -> pd.Series:
-    """The same score over the cell's whole day, as GPSJam aggregates it. Aircraft are
-    counted once per window, so an aircraft seen in several windows counts several
-    times (the cells keep no aircraft identities)."""
-    key = [c["region"].astype(str), c["date"].astype(str), c["cell_lat"], c["cell_lon"]]
-    bad = c.groupby(key)["n_ac_nacp_low"].transform("sum").fillna(0)
-    alln = c.groupby(key)["n_ac_usable"].transform("sum").fillna(0)
-    return (bad - 1).clip(lower=0) / alln.clip(lower=1)
 
 
 def main(model_dir="models/detector"):

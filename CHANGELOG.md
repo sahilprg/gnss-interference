@@ -1,6 +1,29 @@
 # Changelog
 
-## Unreleased: correction after the review of 7 Nov 2026
+## Unreleased: before the sealed draw, after the review of 9 Nov 2026
+
+* Sealed test: `gnssguard sealed-score` written and tested before any label (estimands,
+  inclusion probabilities, day-clustered and paired intervals, unsure bounds); one
+  primary endpoint; inclusion probabilities, predictor values and a frames file frozen
+  at the draw; empty and short groups handled (protocol, addendum 3).
+* Split guard (`model/splits.py`): no train/validation/test overlap; benchmark training
+  strictly before the test days; sealed days refused for training, evaluation and other
+  samples until the sealed test is scored; `split.json` with each model.
+* Nightly job: newest day first; `data/queue.json` with per-day state and at most 3
+  attempts; one failing day no longer stops the run; given-up days in health and an
+  issue; health and keep-alive run even on failure.
+* Ingest: a day counts as done only if its files hold the manifest's rows; the manifest
+  is removed before and written after the files move.
+* Map: answers that arrive after a newer choice are dropped (request race).
+* `evaluate` and `rolling` load the published model by default; rolling folds relabel
+  synthetic backgrounds with their own label model; `disagreement-eval` no longer counts
+  a rule "unknown" as a correct "normal" (set 1: D1 rules 12 -> 11, D4 1 -> 0;
+  conclusions unchanged); mypy checks untyped functions.
+* Documents: model-card synthetic and score-band numbers from `results/` and the
+  weighted bands; OpenSky normal-cell share 0.2-9.3%; events judged by whether they
+  stand out; README picture of 3 Nov (outside the sealed window), causal wording removed.
+
+## Earlier: correction after the review of 7 Nov 2026
 
 Measured effects in docs/evaluation_protocol.md, "Correction 1". The sealed test is still
 scored with release 0.2.0 (model, labels, baseline, questions).

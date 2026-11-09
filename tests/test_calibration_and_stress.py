@@ -113,6 +113,36 @@ def test_rolling_fold_uses_only_the_past():
     assert fold_table(t, "2026-10-21") is None  # fewer than two earlier days
 
 
+def test_rolling_fold_relabels_synthetic_background_with_its_own_label_model(monkeypatch):
+    from gnssguard.model import rolling
+
+    days = ["2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]
+    t = pd.DataFrame({"date": np.repeat(days, 4), "source": "synthetic",
+                      "n_ac_affected": [0, 0, 3, 0] * 4,
+                      "y_jam": [1.0, 0.0, 1.0, np.nan] * 4, "y_spoof": [0.0] * 16})
+    t.loc[t.index[:4], "source"] = "real"  # one day of real rows, so a label model is fitted
+
+    class LM:
+        def fit(self, votes):
+            return self
+
+    monkeypatch.setattr(rolling, "DawidSkene", LM)
+    monkeypatch.setattr(rolling, "apply_rules", lambda c: pd.DataFrame(
+        {r: 0 for r in rolling.INTEGRITY_RULES}, index=c.index))
+
+    def fold_verdict(c, lm, unlabel_borderline=False):  # the fold's rules flag nothing
+        return pd.DataFrame({"y_jam": 0.0, "y_spoof": 0.0, "rule_label": "normal",
+                             "rule_p_jamming": 0.0, "rule_spoof_votes": 0}, index=c.index)
+    monkeypatch.setattr(rolling, "real_targets", fold_verdict)
+    ft, _ = rolling.fold_table(t, "2026-10-23")
+    syn = ft[ft["source"] == "synthetic"]
+    # background flagged by the whole-table label model: now the fold's verdict (0)
+    assert (syn.loc[syn["n_ac_affected"].eq(0) & syn["y_jam"].notna(), "y_jam"] == 0).all()
+    # injected attacks keep their exact target; rows without a target stay without
+    assert (syn.loc[syn["n_ac_affected"].eq(3), "y_jam"] == 1).all()
+    assert syn["y_jam"].isna().sum() == 2
+
+
 def test_two_source_localization_finds_both_jammers():
     from gnssguard.model.localize import localize
 
