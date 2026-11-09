@@ -91,13 +91,13 @@ async function getJSON(url) {
     });
     state.date = days.some(d => d.date === want.date) ? want.date : (state.index.latest || (days[0] || {}).date);
     sel.value = state.date;
-    sel.onchange = () => { state.date = sel.value; loadDay(); };
+    sel.onchange = () => { pending.date = sel.value; show(); };
 
     const tabs = $('regions');
     state.regions.forEach(r => {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = name(r.name); b.dataset.region = r.name;
-      b.onclick = () => { state.region = r.name; loadRegion(); };
+      b.onclick = () => { pending.region = r.name; show(); };
       tabs.appendChild(b);
     });
     const names = state.regions.map(r => r.name);
@@ -112,35 +112,52 @@ async function getJSON(url) {
       if (i >= 0) { state.w = i; render(); }
     };
     healthLine();
-    await loadDay();
+    pending.date = state.date; pending.region = state.region;
+    await show();
   }
 
-  async function loadDay() {
-    if (!state.date) return;
-    try { state.summary = await getJSON(`data/${state.date}/summary.json`); }
-    catch (e) { state.summary = null; }
-    try { state.incidents = (await getJSON(`data/${state.date}/incidents.json`)).incidents || []; }
-    catch (e) { state.incidents = []; }
-    try { state.reports = (await getJSON(`data/${state.date}/outside_reports.json`)).checks || []; }
-    catch (e) { state.reports = []; }
-    await loadRegion();
-  }
-
-  async function loadRegion() {
-    [...$('regions').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.region === state.region));
-    const meta = state.regions.find(r => r.name === state.region);
-    $('region-name').textContent = name(state.region);
-    $('region-note').textContent = meta ? meta.note + (meta.role === 'control' ? ' Calm control region.' : '') : '';
-    if (!state.basemaps[state.region]) {
-      try { state.basemaps[state.region] = await getJSON(`data/basemap/${state.region}.json`); }
-      catch (e) { state.basemaps[state.region] = {land: [], borders: []}; }
+  // What the reader last asked for, and a number per request: a response is used only
+  // if no newer request has started since, and a day's files, the region's cells and
+  // the date/region they belong to are put in place together. Without this, a slow
+  // answer for an earlier choice could land after a newer one and show one region's
+  // (or day's) data under another's name.
+  const pending = {date: null, region: null};
+  let requestNo = 0;
+  const dayFiles = {};
+  function filesOf(date) {
+    if (!dayFiles[date]) {
+      dayFiles[date] = Promise.all([
+        getJSON(`data/${date}/summary.json`).catch(() => null),
+        getJSON(`data/${date}/incidents.json`).then(x => x.incidents || []).catch(() => []),
+        getJSON(`data/${date}/outside_reports.json`).then(x => x.checks || []).catch(() => []),
+      ]);
     }
-    drawBase(meta);
-    const rs = state.summary && state.summary.regions && state.summary.regions[state.region];
-    state.day = null;
+    return dayFiles[date];
+  }
+
+  async function show() {
+    const date = pending.date, region = pending.region;
+    if (!date || !region) return;
+    const mine = ++requestNo;
+    [...$('regions').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.region === region));
+    const [summary, incidents, reports] = await filesOf(date);
+    if (mine !== requestNo) return;
+    if (!state.basemaps[region]) {
+      try { state.basemaps[region] = await getJSON(`data/basemap/${region}.json`); }
+      catch (e) { state.basemaps[region] = {land: [], borders: []}; }
+      if (mine !== requestNo) return;
+    }
+    const rs = summary && summary.regions && summary.regions[region];
+    let day = null;
     if (rs && rs.status === 'published') {
-      try { state.day = await getJSON(`data/${state.date}/${state.region}.json`); } catch (e) { state.day = null; }
+      try { day = await getJSON(`data/${date}/${region}.json`); } catch (e) { day = null; }
+      if (mine !== requestNo) return;
     }
+    Object.assign(state, {date, region, summary, incidents, reports, day});
+    const meta = state.regions.find(r => r.name === region);
+    $('region-name').textContent = name(region);
+    $('region-note').textContent = meta ? meta.note + (meta.role === 'control' ? ' Calm control region.' : '') : '';
+    drawBase(meta);
     panel(rs);
     reportsPanel();
     buildCells();
