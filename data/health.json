@@ -2,29 +2,29 @@
  "status": "ok",
  "freshness": {
   "status": "fresh",
-  "newest_published_day": "2026-11-09",
+  "newest_published_day": "2026-11-10",
   "days_behind": 1,
   "backlog_days": 0,
   "limit_days": 3
  },
- "checked_on": "2026-11-10",
- "generated_utc": "2026-11-10T13:38:44+00:00",
- "checked_through": "2026-11-09",
+ "checked_on": "2026-11-11",
+ "generated_utc": "2026-11-11T12:52:04+00:00",
+ "checked_through": "2026-11-10",
  "reasons": [],
  "notes": [],
  "signals": {
-  "model_age_days": 17,
-  "control_flagged_share_7d": 0.0128,
+  "model_age_days": 18,
+  "control_flagged_share_7d": 0.0116,
   "baltic_rule_disagreement_7d": 0.0,
   "baltic_coverage_ratio": 1.04,
   "black_sea_rule_disagreement_7d": 0.0033,
-  "black_sea_coverage_ratio": 0.93,
+  "black_sea_coverage_ratio": 0.95,
   "central_europe_rule_disagreement_7d": 0.0,
   "central_europe_coverage_ratio": 0.96,
   "east_med_rule_disagreement_7d": 0.0,
-  "east_med_coverage_ratio": 0.97,
+  "east_med_coverage_ratio": 0.99,
   "punjab_rule_disagreement_7d": 0.0,
-  "punjab_coverage_ratio": 0.95
+  "punjab_coverage_ratio": 1.01
  },
  "processing": {
   "status": "ok",
