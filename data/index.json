@@ -1,7 +1,18 @@
 {
  "schema": "gnssguard-public/1",
- "latest": "2026-11-10",
+ "latest": "2026-11-11",
  "days": [
+  {
+   "date": "2026-11-11",
+   "published": true,
+   "regions": {
+    "baltic": "published",
+    "east_med": "published",
+    "black_sea": "published",
+    "punjab": "published",
+    "central_europe": "published"
+   }
+  },
   {
    "date": "2026-11-10",
    "published": true,
