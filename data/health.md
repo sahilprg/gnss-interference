@@ -1,6 +1,6 @@
-Data: **fresh** (newest published day 2026-11-13, 1 days before 2026-11-14; 0 days waiting)
+Data: **fresh** (newest published day 2026-11-14, 1 days before 2026-11-15; 0 days waiting)
 
-Model: **ok** after 2026-11-13
+Model: **ok** after 2026-11-14
 
 - no retraining signal
 
