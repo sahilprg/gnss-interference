@@ -64,5 +64,11 @@
   "state": "complete",
   "updated": "2026-11-19T14:34:53+00:00",
   "regions_withheld": []
+ },
+ "2026-11-19": {
+  "attempts": 1,
+  "state": "complete",
+  "updated": "2026-11-20T14:09:35+00:00",
+  "regions_withheld": []
  }
 }
