@@ -44,8 +44,10 @@ GATE_FA_MARGIN = 0.02
 
 
 def predictors(t: pd.DataFrame) -> dict[str, pd.Series]:
-    """Flag (True/False) per sampled cell for every compared predictor."""
-    return {
+    """Flag (True/False) per sampled cell for every compared predictor. "model" is the
+    label the sample was drawn on: the model on the sealed test, the published label in
+    follow-up test 1, whose groups file also keeps the 0.2 model's label."""
+    preds = {
         "model": t["model_label"].isin(FLAGGED),
         "rules": t["rule_label"].isin(FLAGGED),
         "nic_0.25": t["nic_share"] >= 0.25,
@@ -54,6 +56,9 @@ def predictors(t: pd.DataFrame) -> dict[str, pd.Series]:
         "gpsjam_day": t["gpsjam_day"] > GPSJAM_RED,
         "model_t0.1": t["score"] >= 0.1,
     }
+    if "old_model_label" in t:
+        preds["model_v0.2"] = t["old_model_label"].isin(FLAGGED)
+    return preds
 
 
 def load(gold: pd.DataFrame, groups: pd.DataFrame, frames: pd.DataFrame) -> pd.DataFrame:
@@ -141,7 +146,9 @@ def _wilson(k: int, n: int) -> dict:
 
 
 def score(gold: pd.DataFrame, groups: pd.DataFrame, frames: pd.DataFrame,
-          seed: int = 20261119) -> dict:
+          seed: int = 20261119, baseline: str = "nic_0.25") -> dict:
+    """Questions 1-8 and the primary endpoint: "model" against `baseline` (the sealed
+    test: NIC share >= 0.25; follow-up test 1: the 0.2 model, "model_v0.2")."""
     t = load(gold, groups, frames)
     days = sorted(frames.loc[frames["group"] == "judged", "date"].astype(str).unique())
     rng = np.random.default_rng(seed)
@@ -208,14 +215,20 @@ def score(gold: pd.DataFrame, groups: pd.DataFrame, frames: pd.DataFrame,
     for n, p in preds.items():
         table[n] = {"recall": share("w_day", p & interf, interf & judged),
                     "false_alarm_rate": share("w_day", p & normal, normal & judged)}
-        found = {"model": model_spoof, "rules": rules_spoof}.get(n, pd.Series(False, index=t.index))
+        named = {"model": model_spoof, "rules": rules_spoof}
+        if "old_model_label" in t:
+            named["model_v0.2"] = t["old_model_label"].isin(SPOOF)
+        found = named.get(n, pd.Series(False, index=t.index))
         table[n]["spoofing_found"] = {"k": int((found & spoof & judged).sum()),
                                       "n": int((spoof & judged).sum())}
     out["q6_q7_predictors"] = table
-    # primary endpoint: model against NIC share 0.25
-    rec = _paired(t, "w_day", preds["model"] & interf, preds["nic_0.25"] & interf,
+    # primary endpoint: model against the baseline
+    if baseline not in preds:
+        raise ValueError(f"baseline {baseline!r} is not among {sorted(preds)}")
+    base = preds[baseline]
+    rec = _paired(t, "w_day", preds["model"] & interf, base & interf,
                   interf & judged, days, rng)
-    fa = _paired(t, "w_day", preds["model"] & normal, preds["nic_0.25"] & normal,
+    fa = _paired(t, "w_day", preds["model"] & normal, base & normal,
                  normal & judged, days, rng)
     passes = (rec["ci95"] is not None and rec["ci95"][0] > 0
               and fa["difference"] is not None and fa["difference"] <= GATE_FA_MARGIN)
@@ -224,13 +237,13 @@ def score(gold: pd.DataFrame, groups: pd.DataFrame, frames: pd.DataFrame,
         unsure = t["label"] == "unsure"
         i2 = interf | (unsure & as_interf)
         n2 = normal | (unsure & (not as_interf))
-        r2 = _paired(t, "w_day", preds["model"] & i2, preds["nic_0.25"] & i2, i2 & judged,
-                     days, rng)
-        f2 = _paired(t, "w_day", preds["model"] & n2, preds["nic_0.25"] & n2, n2 & judged,
-                     days, rng)
+        r2 = _paired(t, "w_day", preds["model"] & i2, base & i2, i2 & judged, days, rng)
+        f2 = _paired(t, "w_day", preds["model"] & n2, base & n2, n2 & judged, days, rng)
         bounds[name] = {"recall_difference": r2, "false_alarm_difference": f2}
     out["primary_endpoint"] = {
-        "question": "6: model against NIC share >= 0.25 (Phase 2 gate)",
+        "question": ("6: model against NIC share >= 0.25 (Phase 2 gate)"
+                     if baseline == "nic_0.25" else f"the published label against {baseline}"),
+        "baseline": baseline,
         "recall_difference": rec, "false_alarm_difference": fa,
         "rule": "pass if the recall difference's 95% interval is above 0 and the "
                 f"false-alarm difference is at most {GATE_FA_MARGIN:.2f}",

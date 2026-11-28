@@ -82,7 +82,10 @@ truth. No hand labels are used for training.
 * **Sealed test (28 Nov 2026): fails its gate.** Recall 56% against 74% for a NIC-share
   rule (>= 0.25), false alarms near zero for both; the model's flags equal the rules'
   flags on every sampled cell. Use it as a precise but conservative detector, not as an
-  improvement on the rules (evaluation protocol, "Sealed test: result").
+  improvement on the rules (evaluation protocol, "Sealed test: result"). Since 0.3.0 the
+  published label comes from the rules and an integrity rule; the model's label and
+  scores are published only as an experimental layer (`model_label`, `p_jamming`,
+  `p_spoofing`).
 * Several jammers close together are fitted as one source.
 * One labeler, two labeled days (26 Oct, 1 Nov). Coverage changes over time (new receivers) shift flag
   rates without any change in interference (docs/data.md).

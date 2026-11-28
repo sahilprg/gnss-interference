@@ -1411,3 +1411,66 @@ predictors; no outside ground truth.
   days against this result, never on the sealed days as a test again.
 * Release 0.2.1: the prepared bug 3 fix (fresh quality fields, points/3), as planned
   after the sealed test.
+
+## Follow-up test 1: the published label of 0.3.0 (declared 28 Nov 2026, before its days)
+
+**Why.** The sealed test showed the learned model reproduces the rules and misses
+interference that a simple integrity rule finds. From release 0.3.0 the published label
+is therefore decided by rules (`LABEL_RULE` in `product/publish.py`):
+
+1. the rules' label (the label model of release 0.2.0) where it is jamming, spoofing or
+   both;
+2. otherwise **jamming** if at least 25% of the cell's usable aircraft report degraded
+   NIC;
+3. otherwise **possible** if the rules give no verdict; not a flag. In practice that is
+   one degraded aircraft of 5-9, since with 3 or 4 aircraft one degraded is already 25%
+   and step 2 calls it jamming;
+4. otherwise normal. Cells with 1-2 aircraft keep the model's flags (100% of 26 decided
+   on the sealed test).
+
+This rule was chosen **after** looking at the sealed test, so the sealed test cannot
+confirm it. This test does, on days that have not happened yet.
+
+**What it changes, measured on 20 Nov 2026** (a day in no test; published here with the
+0.3.0 code before this declaration): judged cells flagged by the model / by the new
+label: Baltic 620 / 852, Black Sea 181 / 267, East Med 61 / 132, Punjab 40 / 82, calm
+Central Europe 33 / 48 (1.3% / 1.9% of judged cells, under the 3% review mark).
+"Possible" cells: 5 in all. The new label flags 37% to 120% more cells; whether those
+extra flags are real is what this test measures.
+
+**Days and data.** 1-14 Dec 2026, the five regions, points/3 (release 0.2.1). The
+detector and label model of release 0.2.0 (hash 81062b5eb365) are unchanged; their own
+label is kept with the sample as the comparison.
+
+**Sample.** `gnssguard sealed-sample --kind followup1`, drawn **on or after 15 Dec
+2026** by the sealed test's code, with its groups defined on the published label
+("possible" counted as not flagged): T_random 60, T_flag 40, T_border 30, T_sparse 20
+(150 cells), seed 20261215, region-days shuffled region by region (Correction 2), each
+cell's inclusion probability and every predictor frozen at the draw, the 0.2 model's
+label included. Any other days are refused. Labeled blind, as the sealed test; the
+labeler does not open the map for 1-14 Dec before the labels are committed (the map
+publishes those days with the new label).
+
+**Scoring.** Once, by the sealed test's scoring code and estimands (addendum 3, with
+Correction 3):
+`gnssguard sealed-score --gold labels/followup1.csv --groups labels/followup1_groups.csv
+--frames labels/followup1_frames.csv --out results/followup1.json --baseline model_v0.2
+--seed 20261215`.
+
+**Primary endpoint (the only pass/fail):** the published label against the 0.2 model.
+It passes if its day-weighted recall is higher with the paired 95% interval of the
+difference above 0, **and** its false-alarm rate (share of the labeler's normal cells it
+flags) is not higher by more than 2 points.
+
+**Reported, not gates:** the published label against NIC share >= 0.25 and the
+GPSJam-style scores (question 7); agreement (question 1); the share of "possible" cells
+(T_border, rule "unknown") the labeler calls interference, with the reading of addendum 2
+(a lower bound above 50% means "possible" should become a flag).
+
+**Expected, stated now.** On the sealed sample the published label would flag every cell
+the model flagged (there the model's flags equal the rules') plus the NIC-share cells, so recall should rise from about 56% towards
+75% or more with false alarms still well under 1%. If false alarms rise by more than 2
+points on new days, or recall does not rise, the label fails and is reported as failing.
+
+**Archived before the first test day:** release 0.3.0 on Zenodo, with this declaration
+and the code that implements it.

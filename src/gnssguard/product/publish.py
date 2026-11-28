@@ -56,7 +56,19 @@ MAX_RADIUS_KM = 200.0
 MIN_INCIDENT_CELLS = 3  # single flagged cells are listed in the cell files, not as incidents
 CENTRE_ROUND_DEG = 0.1
 LABEL_CODES = {"no_data": 0, "low_coverage": 1, "normal": 2, "jamming": 3, "spoofing": 4,
-               "both": 5, "jamming_sparse": 6, "spoofing_sparse": 7, "both_sparse": 8}
+               "both": 5, "jamming_sparse": 6, "spoofing_sparse": 7, "both_sparse": 8,
+               "possible": 9}
+# The published label since 0.3.0 (sealed test, 28 Nov 2026: the learned model reproduced
+# the rules, and a degraded-NIC share >= 0.25 found more interference with no more false
+# alarms). Chosen after the sealed test, so it is tested again on new days (evaluation
+# protocol, "Follow-up test 1").
+NIC_FLAG_SHARE = 0.25
+POSSIBLE = "possible"
+LABEL_RULE = ("rules (label model); otherwise jamming if at least 25% of usable aircraft "
+              "report degraded NIC; otherwise 'possible' where the rules give no verdict "
+              "(in practice one degraded aircraft of 5-9: with 3 or 4 aircraft one is already "
+              "25%); otherwise normal. Cells with 1-2 aircraft: "
+              "the model's flags. The model's own label is published as model_label.")
 FLAGGED = ("jamming", "spoofing", "both")
 # model flags on cells with 1-2 usable aircraft (docs/evaluation_protocol.md, holdout 2)
 SPARSE_FLAGGED = tuple(f"{k}_sparse" for k in FLAGGED)
@@ -69,9 +81,11 @@ SCORE_MEANING = (
     "not validated probabilities of real interference. In practice almost every cell "
     "scores below 0.1 or above 0.9; on hand-labeled cells, scores of 0.9 or more were "
     "interference 97% of the time and scores below 0.1 were 7% of the time (a third of "
-    "the time over the Black Sea). The label uses the uncalibrated score at the "
-    "threshold given.")
-LABEL_THRESHOLD = 0.5  # Detectors.predict default; the label is decided on the raw score
+    "the time over the Black Sea). These scores and model_label are an experimental "
+    "layer: since 0.3.0 the published label is decided by label_rule, not by the model "
+    "(on the sealed test the model found 56% of interference, a simple integrity rule "
+    "74%).")
+LABEL_THRESHOLD = 0.5  # model_label: Detectors.predict default, on the raw score
 NOTICE = ("Research output. Not for navigation, flight planning or any operational "
           "decision. Not an attribution of interference to any party.")
 
@@ -141,6 +155,7 @@ def run_config(regions: list[str], spec: GridSpec, boxes: dict | None = None,
     cfg = {"code_version": __version__, "schema": SCHEMA, "regions": sorted(regions),
            "cell_deg": spec.cell_deg, "window_min": spec.window_min,
            "min_aircraft": MIN_AIRCRAFT, "label_threshold": LABEL_THRESHOLD,
+           "label_rule": LABEL_RULE, "nic_flag_share": NIC_FLAG_SHARE,
            "points_schema": POINTS_SCHEMA}
     if boxes:
         cfg["region_boxes"] = {r: list(boxes[r]) for r in sorted(boxes) if r in regions}
@@ -152,12 +167,30 @@ def run_config(regions: list[str], spec: GridSpec, boxes: dict | None = None,
             "constraints_hash": _text_hash("constraints.txt")}
 
 
+def product_label(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
+    """The published label for cells with 3+ usable aircraft (LABEL_RULE), with the rule
+    label and the degraded-NIC share it was decided from."""
+    from gnssguard.model.baselines import nic_share
+    from gnssguard.model.evaluate import rule_frame
+
+    rules = rule_frame(cells, det)["label"].astype(str)
+    share = nic_share(cells)
+    flagged = rules.isin(FLAGGED)
+    label = rules.where(flagged, "normal")
+    label = label.mask(~flagged & (share >= NIC_FLAG_SHARE), "jamming")
+    label = label.mask((label == "normal") & (rules == "unknown"), POSSIBLE)
+    return pd.DataFrame({"label": label, "rule_label": rules, "nic_share": share},
+                        index=cells.index)
+
+
 def cell_table(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
-    """Public per-cell-window table: calibrated probabilities and the public label."""
+    """Public per-cell-window table: the published label (LABEL_RULE), and the model's
+    calibrated scores and own label as an experimental layer."""
     p = det.predict(cells, calibrated=True)
     usable = cells["n_ac_usable"].fillna(0).astype(int)
     model = p["label"].astype(str)
-    label = model.where(usable >= MIN_AIRCRAFT, "low_coverage")
+    product = product_label(cells, det)["label"].astype(str)
+    label = product.where(usable >= MIN_AIRCRAFT, "low_coverage")
     label = label.mask((usable >= 1) & (usable < MIN_AIRCRAFT) & model.isin(FLAGGED),
                        model + "_sparse")
     label = label.where(usable >= 1, "no_data")
@@ -170,12 +203,13 @@ def cell_table(cells: pd.DataFrame, det: Detectors) -> pd.DataFrame:
         "usable_aircraft": usable.where(usable >= MIN_AIRCRAFT).to_numpy(),
         "p_jamming": p["p_jamming"].round(3).to_numpy(),
         "p_spoofing": p["p_spoofing"].round(3).to_numpy(),
+        "model_label": model.where(usable >= 1, "no_data").to_numpy(),
         "label": label.to_numpy(),
     })
 
 
 def region_stats(table: pd.DataFrame, aircraft: int) -> dict:
-    dense = table["label"].isin(["normal", *FLAGGED])
+    dense = table["label"].isin(["normal", POSSIBLE, *FLAGGED])
     sparse_flag = table["label"].isin(SPARSE_FLAGGED)
     low = (table["label"] == "low_coverage") | sparse_flag  # all cells with 1-2 aircraft
     flagged = table["label"].isin(FLAGGED)
@@ -187,6 +221,7 @@ def region_stats(table: pd.DataFrame, aircraft: int) -> dict:
         "hourly_cells": [int(x) for x in hourly],
         "low_coverage_cells": int(low.sum()),
         "sparse_flagged_cells": int(sparse_flag.sum()),
+        "possible_cells": int((table["label"] == POSSIBLE).sum()),
         "flagged_share": round(float(flagged[dense].mean()), 4) if dense.any() else 0.0,
         "jamming_share": round(float(table.loc[dense, "label"].isin(["jamming", "both"])
                                      .mean()), 4) if dense.any() else 0.0,
@@ -224,8 +259,9 @@ def map_payload(table: pd.DataFrame, date: str, region: str, spec: GridSpec,
                       "p_jamming": pj, "p_spoofing": ps, "aircraft": n})
     return {"schema": SCHEMA, "date": date, "region": region, "cell_deg": spec.cell_deg,
             "window_min": spec.window_min, "windows": n_win,
-            "label_codes": LABEL_CODES, "label_threshold": LABEL_THRESHOLD,
-            "score_meaning": SCORE_MEANING, "reviewed_score_bands": bands, "cells": cells,
+            "label_codes": LABEL_CODES, "label_rule": LABEL_RULE,
+            "label_threshold": LABEL_THRESHOLD, "score_meaning": SCORE_MEANING,
+            "reviewed_score_bands": bands, "cells": cells,
             "notice": NOTICE}
 
 
@@ -326,7 +362,7 @@ def publish_day(date: str, regions: list[str], processed: str | Path, cells_dir:
         c = c.reset_index(drop=True) if not c.empty else c
         t = cell_table(c, det) if not c.empty else pd.DataFrame(
             columns=["region", "date", "cell_lat", "cell_lon", "window", "usable_aircraft",
-                     "p_jamming", "p_spoofing", "label"])
+                     "p_jamming", "p_spoofing", "model_label", "label"])
         tables[region], stats[region] = t, region_stats(t, n_air)
         stats[region]["rule_disagreement"] = rule_disagreement(c, t, det)
 
@@ -449,10 +485,12 @@ def rule_disagreement(cells: pd.DataFrame, table: pd.DataFrame, det: Detectors) 
     from gnssguard.model.evaluate import rule_frame
 
     rules = rule_frame(cells, det)["label"].astype(str).to_numpy()
-    dense = table["label"].isin(["normal", *FLAGGED]).to_numpy()
+    dense = table["label"].isin(["normal", POSSIBLE, *FLAGGED]).to_numpy()
     if not dense.any():
         return None
-    model_flag = table["label"].isin(FLAGGED).to_numpy()
+    # the model's own label (the published label is decided by rules since 0.3.0)
+    col = "model_label" if "model_label" in table else "label"
+    model_flag = table[col].isin(FLAGGED).to_numpy()
     rule_flag = pd.Series(rules).isin(FLAGGED).to_numpy()
     return round(float((model_flag != rule_flag)[dense].mean()), 4)
 
@@ -509,7 +547,7 @@ def _write_csv(path: Path, t: pd.DataFrame) -> None:
     rows["window_start"] = pd.to_datetime(rows["window"], utc=True).dt.strftime(
         "%Y-%m-%dT%H:%M:%SZ")
     cols = ["date", "region", "cell_lat", "cell_lon", "window_start", "usable_aircraft",
-            "p_jamming", "p_spoofing", "label"]
+            "p_jamming", "p_spoofing", "model_label", "label"]
     rows["usable_aircraft"] = rows["usable_aircraft"].astype("Int64")
     # gzip: a third of the size; pandas and most tools read .csv.gz directly
     rows[cols].to_csv(path, index=False, quoting=csv.QUOTE_MINIMAL, lineterminator="\n",

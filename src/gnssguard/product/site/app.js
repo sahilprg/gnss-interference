@@ -1,14 +1,17 @@
 /* GNSS interference map: reads the static files under data/ (schema gnssguard-public/1). */
 (function () {
   'use strict';
-  const COL = {jam: '#a3195b', spoof: '#11707c', both: '#5b1d4f', low: '#8a949b', normal: '#ffffff',
+  const COL = {jam: '#a3195b', spoof: '#11707c', both: '#5b1d4f', low: '#8a949b', normal: '#ffffff', poss: '#b7791f',
                land: '#f7f6f1', landLine: '#b8bfb9', border: '#a7adb0', src: '#a3195b', area: '#1c2a35'};
   const NAMES = {baltic: 'Baltic', black_sea: 'Black Sea', east_med: 'Eastern Mediterranean',
                  punjab: 'Punjab', central_europe: 'Central Europe'};
   const LABELS = ['no data', 'low coverage (1-2 aircraft)', 'normal', 'jamming', 'spoofing', 'jamming and spoofing',
-                  'jamming, from 1-2 aircraft', 'spoofing, from 1-2 aircraft', 'jamming and spoofing, from 1-2 aircraft'];
+                  'jamming, from 1-2 aircraft', 'spoofing, from 1-2 aircraft', 'jamming and spoofing, from 1-2 aircraft',
+                  'possible: one aircraft degraded, not confirmed'];
   // codes 6-8: model flags on cells with 1-2 aircraft (checked on the 1 Nov hand-labeled day)
-  const JUDGED = v => v >= 2 && v <= 5, FLAG = v => v >= 3 && v <= 5, SPARSE = v => v >= 6;
+  // code 9 (0.3.0): the rules give no verdict (one degraded aircraft of 5-9); not counted as a flag
+  const JUDGED = v => (v >= 2 && v <= 5) || v === 9, FLAG = v => v >= 3 && v <= 5,
+        SPARSE = v => v >= 6 && v <= 8, POSS = v => v === 9;
   const $ = id => document.getElementById(id);
   const pct = (x, d = 1) => (x == null ? '–' : (100 * x).toFixed(d) + '%');
   const fmt = n => (n == null ? '–' : n.toLocaleString('en-GB'));
@@ -185,9 +188,10 @@ async function getJSON(url) {
   }
 
   function dayStats(c) {
-    let judged = 0, jam = 0, spoof = 0, low = 0, sp = 0, spJam = 0, spSpoof = 0, pmax = null;
+    let judged = 0, jam = 0, spoof = 0, low = 0, sp = 0, spJam = 0, spSpoof = 0, poss = 0, pmax = null;
     c.label.forEach((v, i) => {
       if (JUDGED(v)) judged++;
+      if (POSS(v)) poss++;
       if (v === 3 || v === 5) jam++;
       if (v === 4 || v === 5) spoof++;
       if (v === 1) low++;
@@ -195,7 +199,7 @@ async function getJSON(url) {
       if (v >= 1 && c.p_jamming[i] != null) pmax = Math.max(pmax ?? 0, c.p_jamming[i]);
     });
     const flagged = c.label.filter(FLAG).length;
-    return {judged, jam, spoof, low, sp, spJam, spSpoof, flagged, share: judged ? flagged / judged : 0, pmax};
+    return {judged, jam, spoof, low, sp, spJam, spSpoof, poss, flagged, share: judged ? flagged / judged : 0, pmax};
   }
 
   function buildCells() {
@@ -218,20 +222,21 @@ async function getJSON(url) {
     const normal = {color: '#c7cdd0', weight: 0.6, opacity: 1, fillColor: COL.normal, fillOpacity: 0.55};
     const fill = (col, a) => ({color: '#ffffff', weight: 0.6, opacity: 0.9, fillColor: col, fillOpacity: a});
     const sparse = col => ({color: col, weight: 1.2, opacity: 0.95, dashArray: '3 3', fillColor: col, fillOpacity: 0.3});
+    const possible = {color: COL.poss, weight: 1.2, opacity: 0.95, dashArray: '1 3', fillColor: COL.poss, fillOpacity: 0.18};
     const sparseCol = s => (s.spJam && s.spSpoof && Math.min(s.spJam, s.spSpoof) / Math.max(s.spJam, s.spSpoof) > 0.5
       ? COL.both : (s.spJam >= s.spSpoof ? COL.jam : COL.spoof));
     if (state.w < 0) {
       const s = c.stats;
       if (!s.flagged && s.sp) return sparse(sparseCol(s));
       if (!s.judged) return s.low ? lowStyle : off;
-      if (!s.flagged) return normal;
+      if (!s.flagged) return s.poss ? possible : normal;
       const col = s.jam && s.spoof && Math.min(s.jam, s.spoof) / Math.max(s.jam, s.spoof) > 0.5
         ? COL.both : (s.jam >= s.spoof ? COL.jam : COL.spoof);
       return fill(col, 0.18 + 0.72 * s.share);
     }
     const v = c.label[state.w];
     return [off, lowStyle, normal, fill(COL.jam, 0.82), fill(COL.spoof, 0.82), fill(COL.both, 0.85),
-      sparse(COL.jam), sparse(COL.spoof), sparse(COL.both)][v] || off;
+      sparse(COL.jam), sparse(COL.spoof), sparse(COL.both), possible][v] || off;
   }
 
   function tip(c) {
@@ -242,7 +247,8 @@ async function getJSON(url) {
       if (!s.judged) return `<b>${where}</b><br>` + (s.sp ? sp.slice(4) + ' (not in the shares)'
         : (s.low ? 'Low coverage all day: 1-2 aircraft at a time' : 'No data'));
       return `<b>${where}</b><br>Affected in ${s.flagged} of ${s.judged} judged windows (${pct(s.share, 0)})` +
-        (s.jam ? `<br>Jamming in ${s.jam}` : '') + (s.spoof ? `<br>Spoofing in ${s.spoof}` : '') + sp +
+        (s.jam ? `<br>Jamming in ${s.jam}` : '') + (s.spoof ? `<br>Spoofing in ${s.spoof}` : '') +
+        (s.poss ? `<br>Possible (one aircraft degraded, not confirmed) in ${s.poss}` : '') + sp +
         (s.low ? `<br>${s.low} low-coverage windows not judged` : '');
     }
     const v = c.label[state.w], i = state.w;

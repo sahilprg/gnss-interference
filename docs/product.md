@@ -42,11 +42,21 @@ gnssguard daily --out public                                  # what the nightly
 | --- | --- |
 | `data/index.json` | every processed day, newest first, per-region status, latest published day |
 | `data/<day>/summary.json` | per region: status, quality-gate reasons, aircraft, judged cells, cells with 1-2 aircraft and how many of them are flagged, affected shares; model versions |
-| `data/<day>/<region>.json` | map file: per cell, one label, model-score pair and aircraft count per 15-minute window; the label threshold and what the scores mean |
+| `data/<day>/<region>.json` | map file: per cell, one label, model-score pair and aircraft count per 15-minute window; the label rule and what the scores mean |
 | `data/<day>/<region>.csv.gz` | the same as a table, one row per cell-window with any aircraft |
 | `data/<day>/incidents.json` | groups of jammed cells: time span, affected area, and a source circle for confident fits |
 
 Format version `gnssguard-public/1`; column meanings are on the site's Data page.
+
+**The label (since 0.3.0, 28 Nov 2026).** For cells with 3 or more usable aircraft: the
+rules' jamming, spoofing or both; otherwise jamming if at least 25% of usable aircraft
+report degraded NIC; otherwise `possible` (dotted amber on the map; not a flag, not in
+the shares of affected cells) where exactly one of 5-9 is degraded and the rules cannot decide;
+otherwise normal. The model's scores and its own label (`model_label`) stay in the files
+as an experimental layer. Why: on the sealed test the model found 56% of interference and
+this integrity rule 74%, with near-zero false alarms for both (evaluation protocol,
+"Sealed test: result"); the rule is tested again on 1-14 Dec ("Follow-up test 1"). The
+health check's model-against-rules disagreement now compares `model_label`.
 
 **Privacy and responsible-publication rules** (docs/model_card.md), enforced in
 `product/publish.py` and covered by tests:

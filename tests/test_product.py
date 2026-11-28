@@ -32,6 +32,7 @@ def table(rows):
     t["window"] = pd.Timestamp(DAY, tz="UTC") + pd.to_timedelta(t["w"] * 15, unit="min")
     t["usable_aircraft"] = t["usable"].where(t["usable"] >= 3)
     t["p_jamming"], t["p_spoofing"] = 0.9, 0.01
+    t["model_label"] = t["label"]
     t["region"], t["date"] = "baltic", DAY
     return t.drop(columns=["w", "usable"])
 
@@ -55,7 +56,7 @@ def test_csv_has_no_identifiers_and_skips_empty(tmp_path):
         text = f.read()
     header = text.splitlines()[0].split(",")
     assert header == ["date", "region", "cell_lat", "cell_lon", "window_start",
-                      "usable_aircraft", "p_jamming", "p_spoofing", "label"]
+                      "usable_aircraft", "p_jamming", "p_spoofing", "model_label", "label"]
     assert len(text.splitlines()) == 2  # the no-data window is not listed
 
 
@@ -73,21 +74,46 @@ def test_region_stats_use_judged_cells_only():
     assert s2["judged_cells"] == 2 and s2["flagged_share"] == 0.5
 
 
-def test_cell_table_marks_sparse_flags_and_hides_counts():
+def _rules(labels):
+    def frame(cells, det):
+        return pd.DataFrame({"label": labels}, index=cells.index)
+    return frame
+
+
+def test_cell_table_marks_sparse_flags_and_hides_counts(monkeypatch):
     class Det:
         def predict(self, cells, calibrated=True):
             return pd.DataFrame({"p_jamming": 0.9, "p_spoofing": 0.0,
                                  "label": ["jamming", "jamming", "normal", "jamming"]},
                                 index=cells.index)
 
+    monkeypatch.setattr("gnssguard.model.evaluate.rule_frame",
+                        _rules(["jamming", "normal", "normal", "normal"]))
     cells = pd.DataFrame({"region": "baltic", "date": DAY, "cell_lat": 55.0,
                           "cell_lon": [20.0, 21.0, 22.0, 23.0],
                           "window": pd.Timestamp(DAY, tz="UTC"),
-                          "n_ac_usable": [5, 2, 1, 0]})
+                          "n_ac_usable": [5, 2, 1, 0], "n_ac_degraded": [3, 0, 0, 0]})
     t = cell_table(cells, Det())
     assert t["label"].tolist() == ["jamming", "jamming_sparse", "low_coverage", "no_data"]
     assert t["usable_aircraft"].isna().tolist() == [False, True, True, True]
     assert set(t["label"]) <= set(LABEL_CODES)
+    assert t["model_label"].tolist() == ["jamming", "jamming", "normal", "no_data"]
+
+
+def test_published_label_is_rules_then_nic_share_then_possible(monkeypatch):
+    # 0.3.0 (sealed test, 28 Nov 2026): the label follows the rules; a degraded-NIC share of
+    # 0.25 or more adds jamming; a rule "no verdict" becomes "possible", not normal
+    from gnssguard.product.publish import product_label
+
+    monkeypatch.setattr("gnssguard.model.evaluate.rule_frame", _rules(
+        ["spoofing", "normal", "normal", "unknown", "unknown", "normal"]))
+    cells = pd.DataFrame({"n_ac_usable": [8, 8, 8, 5, 4, 8],
+                          "n_ac_degraded": [0, 2, 1, 1, 1, 0]})
+    got = product_label(cells, det=None)
+    # shares: 0, 0.25, 0.125, 0.2, 0.25, 0
+    assert got["label"].tolist() == ["spoofing", "jamming", "normal", "possible", "jamming",
+                                     "normal"]
+    assert got["rule_label"].tolist()[3] == "unknown"
 
 
 def test_incidents_coarse_and_only_confident_sources():

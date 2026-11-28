@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 (28 Nov 2026): labels from the rules; follow-up test 1 declared
+
+* The published label is decided by rules, not by the model: the rules' flags; otherwise
+  jamming where at least 25% of usable aircraft report degraded NIC; otherwise
+  `possible` (new label code 9, dotted amber on the map, not counted as a flag) where
+  the rules give no verdict (in practice one degraded aircraft of 5-9); otherwise normal. Cells with
+  1-2 aircraft keep the model's flags. The model's label is published as `model_label`
+  next to its scores, as an experimental layer; summaries state `label_rule`.
+* Why: the sealed test (model 56% against 74% for the integrity rule). Because the rule
+  was chosen after that test, follow-up test 1 is declared now on 1-14 Dec 2026 (150
+  cells, drawn on or after 15 Dec, against the 0.2 model), with `sealed-sample --kind
+  followup1` and `sealed-score --baseline model_v0.2`, reusing the sealed test's code.
+* Republished days (points/3 redo) also get the new label.
+
 ## 0.2.1 (28 Nov 2026): the sealed test, and points/3
 
 * Bug 3 (review of 7 Nov 2026), held back until the sealed test was scored: a quality

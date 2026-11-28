@@ -28,7 +28,18 @@ and never stored. It cuts five study regions into 1° cells and 15-minute window
 asks two questions about each one: were aircraft here jammed, and were they spoofed?</p>
 
 <h2>What decides a cell</h2>
-<p>A machine-learning model (two gradient-boosted classifiers) reads the evidence in each
+<p><strong>Since 28 November 2026 the map's label comes from readable rules, not from the
+model.</strong> On a sealed test, declared in advance and archived before its sample was
+drawn, the model found 56% of hand-labelled interference and a simple rule (a quarter or
+more of a cell's aircraft reporting degraded GPS integrity) found 74%, with almost no false
+alarms for either. So a cell is now: what the seven rules say; otherwise jamming if at
+least a quarter of its usable aircraft report degraded integrity; otherwise
+<em>possible</em> (shown dotted, amber) if exactly one of 5-9 aircraft is degraded and the
+rules cannot decide (with 3 or 4 aircraft, one degraded is already a quarter); otherwise
+normal. This rule was chosen after the sealed test, so it is
+being tested again on new days (1-14 December 2026). The model's scores and own label stay
+in the data files as an experimental layer.</p>
+<p>The model (two gradient-boosted classifiers) reads the evidence in each
 cell, in its neighbouring cells and in the windows before and after: how many aircraft
 reported degraded GPS, how many fell back to ground-based positioning, how many showed
 impossible jumps or a mismatch between position change and reported ground speed, and
@@ -55,6 +66,10 @@ means "8 in 10 such cells carried those labels in testing", not a validated 80% 
 of real interference.</p>
 
 <h2>How well it works</h2>
+<p><strong>Sealed test (250 hand-labelled cells, 5-18 November 2026, drawn and scored as
+declared in advance):</strong> the model found 56% of interference (48-65%), the
+integrity rule 74% (62-86%); false alarms near zero for both; 99% of the model's flags
+were real. The table below is from the development days, before the sealed test.</p>
 <table>
   <thead><tr><th>Test</th><th>Rules</th><th>Model</th></tr></thead>
   <tbody>

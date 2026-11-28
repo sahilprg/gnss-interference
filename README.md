@@ -36,8 +36,10 @@ window, jamming, spoofing, normal, or not enough aircraft to say.
 **The honest result:** the model is trained on labels made by readable rules and, on the
 sealed test, flags exactly what they flag. A one-line rule (flag a cell when a quarter of
 its aircraft report degraded integrity) found more interference; the model's advantage
-is only on simulated attacks. The map stays useful (its flags are precise, and spoofing
-is named), but the learned model is not promoted over the rules. The strength of the
+is only on simulated attacks. So since 0.3.0 **the map's label comes from the rules**
+plus that integrity rule, with a "possible" state for single degraded aircraft; the
+model's scores stay as an experimental layer. That rule was chosen after the sealed test,
+so it is tested again, declared in advance, on 1-14 Dec 2026. The strength of the
 project is
 the pipeline and the evaluation discipline: every check is declared before its data is
 seen, failed checks are published, and `gnssguard benchmark` regenerates the main

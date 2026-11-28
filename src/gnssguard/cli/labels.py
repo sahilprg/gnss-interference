@@ -217,13 +217,17 @@ def cmd_sealed_sample(args) -> int:
     out, groups_out = Path(args.out), Path(args.groups)
     frames_out = Path(args.frames) if args.frames else groups_out.with_name(
         groups_out.name.replace("_groups.csv", ".csv").replace(".csv", "_frames.csv"))
-    files = [out, groups_out] + ([frames_out] if args.kind == "test" else [])
+    files = [out, groups_out] + ([frames_out] if args.kind != "calibration" else [])
     for f in files:
         if f.exists() and not args.force:
             print(f"{f} exists; it may hold labels. Use --force to overwrite.", file=sys.stderr)
             return 1
     if args.kind != "calibration" and args.key_order != "shuffled":
         print("refused: the sealed test sample is always drawn with shuffled region-days",
+              file=sys.stderr)
+        return 1
+    if args.kind == "followup1" and sorted(split(args.dates)) != list(sealed.FOLLOWUP1_DAYS):
+        print("refused: follow-up test 1 is declared for exactly 2026-12-01 to 2026-12-14",
               file=sys.stderr)
         return 1
     det = Detectors.load(args.model or default_model())
@@ -237,7 +241,19 @@ def cmd_sealed_sample(args) -> int:
     p = det.predict(cells, calibrated=True)
     score = pd_series(np.maximum(p["p_jamming"], p["p_spoofing"]), cells.index)
     model = p["label"].astype(str)
+    old_model = model
+    if args.kind == "followup1":
+        # groups are drawn on the published label (0.3.0); "possible" is not a flag, so for
+        # the populations it counts as normal; 1-2 aircraft keep the model's flags
+        from gnssguard.product.publish import POSSIBLE, product_label
+
+        dense = cells["n_ac_usable"].fillna(0) >= 3
+        prod = product_label(cells, det)["label"].astype(str).replace(POSSIBLE, "normal")
+        model = prod.where(dense, model)
     kw: dict = {"seed": args.seed} if args.seed is not None else {}
+    if args.kind == "followup1":
+        kw.setdefault("seed", sealed.FOLLOWUP1_SEED)
+        kw["sizes"] = sealed.FOLLOWUP1_SIZES
     if args.kind == "calibration":
         gold, groups = sealed.calibration_sample(cells, score, rules, model,
                                                  key_order=args.key_order, **kw)
@@ -248,6 +264,8 @@ def cmd_sealed_sample(args) -> int:
             {"n_ac_usable": cells["n_ac_usable"].to_numpy(),
              "p_jamming": np.asarray(p["p_jamming"]), "p_spoofing": np.asarray(p["p_spoofing"])},
             index=cells.index)).round(4)
+        if args.kind == "followup1":
+            extra["old_model_label"] = old_model
         gold, groups, frames = sealed.sealed_test_sample(cells, score, rules, model,
                                                          extra=extra, **kw)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -255,10 +273,11 @@ def cmd_sealed_sample(args) -> int:
     groups.to_csv(groups_out, index=False)
     print(groups.groupby("group").agg(cells=("gold_id", "size"), pool=("pool", "first"))
           .to_string())
-    if args.kind == "test":
+    if args.kind != "calibration":
         frames.to_csv(frames_out, index=False)
         drawn = groups["group"].value_counts()
-        short = {g: (int(drawn.get(g, 0)), n) for g, n in sealed.TEST_SIZES.items()
+        want = sealed.FOLLOWUP1_SIZES if args.kind == "followup1" else sealed.TEST_SIZES
+        short = {g: (int(drawn.get(g, 0)), n) for g, n in want.items()
                  if drawn.get(g, 0) < n}
         if short:
             print(f"short groups (drawn, wanted): {short}; reported short, not refilled")
@@ -291,7 +310,8 @@ def cmd_sealed_score(args) -> int:
               "decide); the sealed test is scored only when every cell is labeled",
               file=sys.stderr)
         return 1
-    res = score(gold, pd.read_csv(files["groups"]), pd.read_csv(files["frames"]))
+    res = score(gold, pd.read_csv(files["groups"]), pd.read_csv(files["frames"]),
+                seed=args.seed, baseline=args.baseline)
     res["provenance"] = {
         "scored_utc": pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds"),
         **git_commit(),
@@ -300,8 +320,9 @@ def cmd_sealed_score(args) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(res, indent=1), encoding="utf-8")
     pe = res["primary_endpoint"]
-    print(f"primary endpoint (question 6): {'PASSES' if pe['passes'] else 'does not pass'}")
-    print(f"  recall difference, model - NIC 0.25: {pe['recall_difference']}")
+    print(f"primary endpoint ({pe['question']}): "
+          f"{'PASSES' if pe['passes'] else 'does not pass'}")
+    print(f"  recall difference, model - {args.baseline}: {pe['recall_difference']}")
     print(f"  false-alarm difference: {pe['false_alarm_difference']}")
     print(f"all questions -> {out}")
     return 0
@@ -497,7 +518,8 @@ def register(sub) -> None:
     pb.set_defaults(func=cmd_score_bands)
 
     px = sub.add_parser("sealed-sample", help="blind sample for the calibration or sealed test set")
-    px.add_argument("--kind", choices=["calibration", "test"], required=True)
+    px.add_argument("--kind", choices=["calibration", "test", "followup1"], required=True,
+                    help="followup1: the published label of 0.3.0, 1-14 Dec 2026 (protocol)")
     px.add_argument("--dates", required=True)
     px.add_argument("--cells", default="data/cells")
     px.add_argument("--model", help="frozen model (default: models/detector if present)")
@@ -517,6 +539,11 @@ def register(sub) -> None:
     pz.add_argument("--groups", default="labels/sealed_test_groups.csv")
     pz.add_argument("--frames", default="labels/sealed_test_frames.csv")
     pz.add_argument("--out", default="results/sealed_test.json")
+    pz.add_argument("--baseline", default="nic_0.25",
+                    help="what the label is compared with: nic_0.25 (the sealed test) or "
+                         "model_v0.2 (follow-up test 1)")
+    pz.add_argument("--seed", type=int, default=20261119,
+                    help="bootstrap seed: 20261119 (sealed test), 20261215 (follow-up 1)")
     pz.add_argument("--force", action="store_true",
                     help="only to redo a run that failed; never to rescore")
     pz.set_defaults(func=cmd_sealed_score)

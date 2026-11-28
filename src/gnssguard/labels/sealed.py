@@ -23,6 +23,11 @@ from gnssguard.model.dataset import borderline
 
 CAL_SIZES = {"C_low": 40, "C_mid": 70, "C_high": 40}
 TEST_SIZES = {"T_random": 100, "T_flag": 60, "T_border": 50, "T_sparse": 40}
+# Follow-up test 1 (declared 28 Nov 2026): the published label of 0.3.0 against the 0.2
+# model, on new days, drawn by the same code with these sizes and seed
+FOLLOWUP1_SIZES = {"T_random": 60, "T_flag": 40, "T_border": 30, "T_sparse": 20}
+FOLLOWUP1_DAYS = tuple(f"2026-12-{d:02d}" for d in range(1, 15))
+FOLLOWUP1_SEED = 20261215
 GROUP_COLUMNS = ["gold_id", "group", "weight", "pool", "score", "rule_label", "model_label"]
 
 

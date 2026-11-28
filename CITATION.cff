@@ -13,7 +13,8 @@ abstract: >-
   `gnssguard benchmark`. Version 0.2.0 fixed the model (hash 81062b5eb365) before the
   sealed test; on that test (scored 28 Nov 2026) the model did not beat a one-line
   NIC-share rule. Version 0.2.1 records that result and stores points in format points/3
-  (quality fields expire with the receiver).
+  (quality fields expire with the receiver). Version 0.3.0 publishes labels from the rules
+  plus that integrity rule, with a test declared in advance on 1-14 Dec 2026.
 identifiers:
   - type: doi
     value: "10.5281/zenodo.24015200"
@@ -30,8 +31,8 @@ identifiers:
 repository-code: "https://github.com/sahilprg/gnss-interference"
 url: "https://sahilprg.github.io/gnss-interference/"
 license: MIT
-version: "0.2.1"
-doi: "10.5281/zenodo.24624935"
+version: "0.3.0"
+doi: "10.5281/zenodo.24015200"
 date-released: "2026-11-28"
 keywords:
   - GNSS

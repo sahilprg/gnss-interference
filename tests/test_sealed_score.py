@@ -195,3 +195,39 @@ def test_shares_count_only_rows_inside_the_denominator(monkeypatch):
         if band["estimate"] is not None:
             assert 0 <= band["estimate"] <= 1, (name, band)
             assert 0 <= band["ci95"][0] <= band["ci95"][1] <= 1, (name, band)
+
+
+def test_followup1_compares_the_published_label_with_the_old_model(monkeypatch):
+    from gnssguard.labels.sealed import FOLLOWUP1_SIZES
+    from gnssguard.model.baselines import baseline_values
+
+    monkeypatch.setattr(SS, "BOOT", 30)
+    c, score, rules, model, p = population(8)
+    old = model.copy()
+    new = model.mask(SS.predictors(baseline_values(c).assign(  # the label plus NIC >= 0.25
+        model_label=model, rule_label=rules, score=score))["nic_0.25"]
+        & (c["n_ac_usable"] >= 3), "jamming")
+    extra = baseline_values(c).join(pd.DataFrame(
+        {"n_ac_usable": c["n_ac_usable"], "p_jamming": p["p_jamming"],
+         "p_spoofing": p["p_spoofing"], "old_model_label": old}, index=c.index))
+    gold, groups, frames = sealed_test_sample(c, score, rules, new, seed=20261215,
+                                              sizes=FOLLOWUP1_SIZES, extra=extra, n_sim=300)
+    assert groups["group"].value_counts().to_dict() == FOLLOWUP1_SIZES
+    key = gold.merge(c.reset_index(), on=["region", "date", "cell_lat", "cell_lon", "window"])
+    gold["label"] = np.where(key["true"].to_numpy(bool), "jamming", "normal")
+    r = SS.score(gold, groups, frames, seed=20261215, baseline="model_v0.2")
+    assert r["primary_endpoint"]["baseline"] == "model_v0.2"
+    assert "model_v0.2" in r["q6_q7_predictors"]
+    # the new label flags everything the old one did, so it cannot find less
+    assert r["primary_endpoint"]["recall_difference"]["difference"] >= 0
+    with pytest.raises(ValueError, match="baseline"):
+        SS.score(gold, groups, frames, baseline="nothing")
+
+
+def test_followup1_only_on_its_declared_days(tmp_path, capsys):
+    from gnssguard import cli
+
+    argv = ["sealed-sample", "--kind", "followup1", "--dates", "2026-12-01,2026-12-02",
+            "--out", str(tmp_path / "f.csv"), "--groups", str(tmp_path / "g.csv")]
+    assert cli.main(argv) == 1
+    assert "exactly 2026-12-01 to 2026-12-14" in capsys.readouterr().err
