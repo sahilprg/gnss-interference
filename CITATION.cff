@@ -16,6 +16,12 @@ abstract: >-
   (quality fields expire with the receiver).
 identifiers:
   - type: doi
+    value: "10.5281/zenodo.24015200"
+    description: "All versions (resolves to the latest)"
+  - type: doi
+    value: "10.5281/zenodo.24624935"
+    description: "Release 0.2.1 (the sealed test result, points/3)"
+  - type: doi
     value: "10.5281/zenodo.24015201"
     description: "Archived release 0.2.0 (the model, before the sealed test)"
   - type: doi
@@ -25,7 +31,7 @@ repository-code: "https://github.com/sahilprg/gnss-interference"
 url: "https://sahilprg.github.io/gnss-interference/"
 license: MIT
 version: "0.2.1"
-doi: "10.5281/zenodo.24015201"
+doi: "10.5281/zenodo.24624935"
 date-released: "2026-11-28"
 keywords:
   - GNSS

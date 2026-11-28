@@ -1,6 +1,6 @@
 # gnssguard: GNSS interference detection from open ADS-B data
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24015201.svg)](https://doi.org/10.5281/zenodo.24015201)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24015200.svg)](https://doi.org/10.5281/zenodo.24015200)
 
 A daily map of where aircraft lose trustworthy GPS (jamming) or are fed false positions
 (spoofing), built only from free, open flight data, with the evidence for every flag
@@ -91,8 +91,11 @@ More, including disk and download sizes: [docs/development.md](docs/development.
 
 ## How to cite
 
-Release 0.2.0 is archived on Zenodo ([doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)),
-before the sealed test, so the model and the scoring rules are fixed with a public date.
+Every release is archived on Zenodo; [doi:10.5281/zenodo.24015200](https://doi.org/10.5281/zenodo.24015200)
+always resolves to the latest. The archived steps of the sealed test, each with a public
+date: the model, 0.2.0 ([doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201), 6 Nov 2026); the protocol and
+scoring code before the draw, v0.2.1-protocol ([doi:10.5281/zenodo.24073541](https://doi.org/10.5281/zenodo.24073541), 9 Nov); the
+result, 0.2.1 ([doi:10.5281/zenodo.24624935](https://doi.org/10.5281/zenodo.24624935), 28 Nov).
 GitHub's "Cite this repository" button uses `CITATION.cff`:
 
 > sahilprg. *gnssguard: GNSS interference detection from open ADS-B data* (2026).
