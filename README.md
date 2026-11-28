@@ -97,7 +97,8 @@ Every release is archived on Zenodo; [doi:10.5281/zenodo.24015200](https://doi.o
 always resolves to the latest. The archived steps of the sealed test, each with a public
 date: the model, 0.2.0 ([doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201), 6 Nov 2026); the protocol and
 scoring code before the draw, v0.2.1-protocol ([doi:10.5281/zenodo.24073541](https://doi.org/10.5281/zenodo.24073541), 9 Nov); the
-result, 0.2.1 ([doi:10.5281/zenodo.24624935](https://doi.org/10.5281/zenodo.24624935), 28 Nov).
+result, 0.2.1 ([doi:10.5281/zenodo.24624935](https://doi.org/10.5281/zenodo.24624935), 28 Nov). Follow-up test 1 (the label of 0.3.0)
+was declared and archived before its days: 0.3.0 ([doi:10.5281/zenodo.24625725](https://doi.org/10.5281/zenodo.24625725), 28 Nov).
 GitHub's "Cite this repository" button uses `CITATION.cff`:
 
 > sahilprg. *gnssguard: GNSS interference detection from open ADS-B data* (2026).

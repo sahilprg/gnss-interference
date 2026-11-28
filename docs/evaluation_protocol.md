@@ -1472,5 +1472,6 @@ the model flagged (there the model's flags equal the rules') plus the NIC-share 
 75% or more with false alarms still well under 1%. If false alarms rise by more than 2
 points on new days, or recall does not rise, the label fails and is reported as failing.
 
-**Archived before the first test day:** release 0.3.0 on Zenodo, with this declaration
-and the code that implements it.
+**Archived before the first test day:** release 0.3.0 on Zenodo, 28 Nov 2026, commit
+9db1da6 ([doi:10.5281/zenodo.24625725](https://doi.org/10.5281/zenodo.24625725)), with
+this declaration and the code that implements it; three days before the first test day.
