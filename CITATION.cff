@@ -10,18 +10,23 @@ abstract: >-
   data (adsb.lol), in 1-degree cells and 15-minute windows, and publishes a nightly map
   and open data files. Every evaluation is declared before it is run
   (docs/evaluation_protocol.md) and regenerated with input hashes by
-  `gnssguard benchmark`. Version 0.2.0 fixes the model (hash 81062b5eb365) and the
-  scoring rules of the sealed test before its sample is drawn.
+  `gnssguard benchmark`. Version 0.2.0 fixed the model (hash 81062b5eb365) before the
+  sealed test; on that test (scored 28 Nov 2026) the model did not beat a one-line
+  NIC-share rule. Version 0.2.1 records that result and stores points in format points/3
+  (quality fields expire with the receiver).
 identifiers:
   - type: doi
     value: "10.5281/zenodo.24015201"
-    description: "Archived release 0.2.0 (before the sealed test)"
+    description: "Archived release 0.2.0 (the model, before the sealed test)"
+  - type: doi
+    value: "10.5281/zenodo.24073541"
+    description: "Sealed-test protocol and scoring code, archived before the draw"
 repository-code: "https://github.com/sahilprg/gnss-interference"
 url: "https://sahilprg.github.io/gnss-interference/"
 license: MIT
-version: "0.2.0"
+version: "0.2.1"
 doi: "10.5281/zenodo.24015201"
-date-released: "2026-11-06"
+date-released: "2026-11-28"
 keywords:
   - GNSS
   - GPS jamming

@@ -23,6 +23,8 @@ comes from different messages than the quality fields and is present in about 35
 snapshots; it is carried forward separately, with its own age `air_age_s`. Indicated
 airspeed and roll come with the point itself (indexes 12 and 13). Point format
 "points/2" (4 Nov 2026) adds these columns at the end; "points/1" files lack them.
+"points/3" (same columns): a quality field readsb no longer reports becomes missing instead
+of keeping its last value with a fresh age.
 """
 
 from __future__ import annotations
@@ -153,9 +155,11 @@ def iter_rows(
         # Update carried-forward quality fields before the region test,
         # so a point entering a region inherits the latest values.
         if det and ("nic" in det or "nac_p" in det):
+            # a details object is a snapshot of readsb's whole state (docs/data.md): a key
+            # it no longer carries has expired, so it becomes missing, not the old value
+            # with a fresh age (review of 7 Nov 2026, bug 3)
             for k in QUALITY_KEYS:
-                if k in det:
-                    q[k] = det[k]
+                q[k] = det.get(k)
             q_t = t
         if det and any(k in det for k in ("tas", "mach", "wd", "true_heading")):
             for k in AIR_KEYS:

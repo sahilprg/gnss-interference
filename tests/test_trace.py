@@ -83,3 +83,20 @@ def test_points_2_air_data_carried_with_its_own_age():
     assert second["nic"] == 7 and second["q_age_s"] == 0.0
     assert second["tas"] == 470 and second["air_age_s"] == 10.0
     assert second["ias"] is None
+
+
+def test_an_expired_quality_field_does_not_look_fresh():
+    # review of 7 Nov 2026, bug 3: readsb drops nac_p when it expires while nic is still
+    # reported; the old nac_p must not be carried forward with a fresh age
+    no_nacp = {"nic": 8, "rc": 186, "sil": 3}
+    t = make_trace("ABC123", [
+        [0.0, 50.5, 10.5, 35000, 450.0, 90.0, 0, 0, det(8, 9), "adsb_icao"],
+        [10.0, 50.6, 10.6, 35000, 450.0, 90.0, 0, 0, no_nacp, "adsb_icao"],
+        [20.0, 50.7, 10.7, 35000, 450.0, 90.0, 0, 0, None, "adsb_icao"],
+        [30.0, 50.8, 10.8, 35000, 450.0, 90.0, 0, 0, det(7, 8), "adsb_icao"],
+    ])
+    a, b, c, d = rows_by_region(t)["north"]
+    assert a["nac_p"] == 9 and a["q_age_s"] == 0.0
+    assert b["nic"] == 8 and b["nac_p"] is None and b["q_age_s"] == 0.0  # expired
+    assert c["nac_p"] is None and c["q_age_s"] == 10.0  # still missing between snapshots
+    assert d["nac_p"] == 8 and d["nic"] == 7  # back when readsb has it again

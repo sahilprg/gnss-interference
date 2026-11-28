@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from gnssguard.features.cells import GridSpec
+from gnssguard.ingest.pipeline import POINTS_SCHEMA
 from gnssguard.product import quality
 from gnssguard.product.daily import days_to_run
 from gnssguard.product.publish import (
@@ -141,6 +142,7 @@ def test_index_and_days_to_run(tmp_path):
     for d, pub, reason in (("2026-10-28", True, ""), ("2026-10-29", False, "control alarm"),
                            ("2026-10-30", False, "incomplete download: ...")):
         s = {"date": d, "published": pub, "day_reasons": [reason] if reason else [],
+             "config": {"points_schema": POINTS_SCHEMA},
              "regions": {"baltic": {"status": "published" if pub else "withheld"}}}
         (tmp_path / "data" / d).mkdir(parents=True)
         (tmp_path / "data" / d / "summary.json").write_text(json.dumps(s), encoding="utf-8")
@@ -230,6 +232,7 @@ def test_backlog_persists_past_the_lookback(tmp_path):
 
     for d in ("2026-10-20", "2026-10-21"):
         s = {"date": d, "published": True, "day_reasons": [],
+             "config": {"points_schema": POINTS_SCHEMA},
              "regions": {"baltic": {"status": "published"}}}
         (tmp_path / "data" / d).mkdir(parents=True)
         (tmp_path / "data" / d / "summary.json").write_text(json.dumps(s), encoding="utf-8")
@@ -319,7 +322,8 @@ def _fake_daily(monkeypatch, fail_on=(), withhold=()):
             raise RuntimeError("model file corrupt")
         st = {r: {"status": "withheld" if (iso, r) in withhold else "published"}
               for r in regions}
-        s = {"date": iso, "published": True, "day_reasons": [], "regions": st}
+        s = {"date": iso, "published": True, "day_reasons": [], "regions": st,
+             "config": {"points_schema": POINTS_SCHEMA}}
         update_index(k.get("out") or a[3], s)
         return s
     monkeypatch.setattr(daily, "ingest_day", lambda *a, **k: None)
@@ -376,3 +380,27 @@ def test_health_reports_failed_and_given_up_days(tmp_path, monkeypatch):
     assert list(res["processing"]["given_up"]) == ["2026-10-30"]
     md = (tmp_path / "data" / "health.md").read_text(encoding="utf-8")
     assert "given up after 3 attempts" in md
+
+
+def test_days_published_in_an_older_point_format_are_redone(tmp_path, monkeypatch):
+    # points/3 (bug 3): days published from points/2 are redone, newest first, so the
+    # two formats are not mixed for long; each format gets its own 3 attempts
+    from gnssguard.product import daily
+
+    for d, schema in (("2026-10-29", "points/2"), ("2026-10-30", None),
+                      ("2026-10-31", POINTS_SCHEMA)):
+        s = {"date": d, "published": True, "day_reasons": [],
+             "regions": {"baltic": {"status": "published"}}}
+        if schema:
+            s["config"] = {"points_schema": schema}
+        update_index(tmp_path, s)
+    # an old queue entry (points/2) that used its attempts must not block the redo
+    q = {"2026-10-29": {"attempts": 3, "state": "complete", "points_schema": "points/2"}}
+    (tmp_path / "data" / "queue.json").write_text(json.dumps(q), encoding="utf-8")
+    todo = daily.backlog(tmp_path, dt.date(2026, 11, 1), 3)
+    assert todo == [dt.date(2026, 10, 29), dt.date(2026, 10, 30)]  # 31st is current
+    d = _fake_daily(monkeypatch)
+    d.run(tmp_path, processed="p", cells_dir="c", model_dir="m", config="x",
+          regions=["baltic"], lookback=3, today=dt.date(2026, 11, 1))
+    q = daily.read_queue(tmp_path)
+    assert q["2026-10-29"]["points_schema"] == POINTS_SCHEMA and q["2026-10-29"]["attempts"] == 1

@@ -147,3 +147,15 @@ the day's manifest (`field_presence`):
 Every new day ingested from now on (including the nightly job) is in the new format.
 The full study period needs re-ingesting only when a feature uses the new columns
 (Phase 2); it then takes one run of `gnssguard ingest` over the stored days.
+
+## Point format points/3 (quality fields expire)
+
+Same columns as points/2. Until points/3, a quality field that readsb dropped from a
+snapshot (for example `nac_p` after it expired, while `nic` was still reported: 0.7% of
+ADS-B snapshots) kept its previous value, and `q_age_s` was reset as if it were fresh.
+From points/3 every snapshot sets all quality fields, so an expired field is missing
+(found by the review of 7 Nov 2026; earlier judged "not an issue", which was wrong).
+The nightly job redoes every day published from points/2, newest first, 3-4 a night;
+until it has caught up (about ten nights from 0.2.1) the published days mix both
+formats, and each day's `summary.json` and the index say which it is. Locally, run
+`ingest` again (a day in an older format is not "done") and `cells --force`.

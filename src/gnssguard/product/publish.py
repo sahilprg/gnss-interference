@@ -532,7 +532,8 @@ def update_index(out: str | Path, summary: dict) -> None:
     days = {d["date"]: d for d in read_index(out)}
     days[summary["date"]] = {
         "date": summary["date"], "published": summary["published"],
-        "regions": {r: v["status"] for r, v in summary["regions"].items()}}
+        "regions": {r: v["status"] for r, v in summary["regions"].items()},
+        "points_schema": summary.get("config", {}).get("points_schema")}
     ordered = sorted(days.values(), key=lambda d: d["date"], reverse=True)
     latest = next((d["date"] for d in ordered if d["published"]), None)
     p = Path(out) / "data" / "index.json"

@@ -41,7 +41,7 @@ def manifest_path(out_root: Path, day: dt.date) -> Path:
     return Path(out_root) / "_manifests" / f"{day.isoformat()}.json"
 
 
-POINTS_SCHEMA = "points/2"  # stored point columns (ingest/trace.py SCHEMA)
+POINTS_SCHEMA = "points/3"  # points/3: quality fields expire with readsb (bug 3, Nov 2026)
 MAX_DECODE_ERROR_SHARE = 0.001  # more unreadable trace files than this: day incomplete
 
 

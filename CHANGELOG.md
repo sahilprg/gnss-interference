@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased: the sealed test (28 Nov 2026)
+## 0.2.1 (28 Nov 2026): the sealed test, and points/3
+
+* Bug 3 (review of 7 Nov 2026), held back until the sealed test was scored: a quality
+  field readsb stops reporting (e.g. an expired `nac_p` while `nic` is still sent, 0.7%
+  of ADS-B snapshots) is now missing instead of keeping its old value with a fresh age.
+  Stored point format **points/3** (same columns). The nightly job treats a day
+  published from points/2 as outdated and redoes it, newest first, 3-4 days a night
+  (about 34 days, so roughly ten nights); each day's `summary.json` and the index record
+  its format. The model is unchanged (trained on points/2).
 
 * Sealed test drawn 19 Nov, labeled and scored once 28 Nov on the archived code: **the
   model does not pass** its gate (recall 56% against 74% for a NIC-share rule, paired

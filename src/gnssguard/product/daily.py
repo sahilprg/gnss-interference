@@ -15,7 +15,9 @@ Each day has a state in `data/queue.json`:
 * withheld: published with some regions withheld (or the whole day, e.g. after an
   incomplete download); retried, at most MAX_ATTEMPTS times in all, since a withholding
   can come from a passing problem;
-* complete: every region published.
+* complete: every region published, from points in the current stored format;
+* outdated: published from an older point format (e.g. points/2 after points/3): redone,
+  so days of different formats are not mixed for long. Attempts count per format.
 
 A day that used up its attempts is given up and listed by the health check, so a
 broken day neither blocks the queue nor disappears silently.
@@ -54,10 +56,13 @@ def read_queue(out: str | Path) -> dict:
 
 
 def _note(out: str | Path, iso: str, state: str, **info) -> None:
+    from gnssguard.ingest.pipeline import POINTS_SCHEMA
     from gnssguard.product.publish import write_atomic
 
     q = read_queue(out)
     e = q.get(iso, {"attempts": 0})
+    if e.get("points_schema") != POINTS_SCHEMA:  # a new format: its attempts start at 0
+        e = {"attempts": 0, "points_schema": POINTS_SCHEMA}
     if state != "unavailable":
         e["attempts"] = e.get("attempts", 0) + 1
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
@@ -68,13 +73,23 @@ def _note(out: str | Path, iso: str, state: str, **info) -> None:
 
 
 def _state(entry: dict | None) -> str:
-    """complete / withheld / missing, from the day's index entry."""
+    """complete / withheld / outdated / missing, from the day's index entry."""
+    from gnssguard.ingest.pipeline import POINTS_SCHEMA
+
     if entry is None:
         return "missing"
+    if entry.get("published") and entry.get("points_schema", "points/2") != POINTS_SCHEMA:
+        return "outdated"  # entries without the field were published before points/3
     regions = entry.get("regions", {})
     if entry.get("published") and regions and all(v == "published" for v in regions.values()):
         return "complete"
     return "withheld"
+
+
+def _current_schema() -> str:
+    from gnssguard.ingest.pipeline import POINTS_SCHEMA
+
+    return POINTS_SCHEMA
 
 
 def given_up(out: str | Path) -> dict:
@@ -95,7 +110,8 @@ def backlog(out: str | Path, today: dt.date, lookback: int) -> list[dt.date]:
     while day < today:
         iso = day.isoformat()
         state = _state(known.get(iso))
-        tries = queue.get(iso, {}).get("attempts", 0)
+        q = queue.get(iso, {})
+        tries = q.get("attempts", 0) if q.get("points_schema") == _current_schema() else 0
         if state != "complete" and tries < MAX_ATTEMPTS:
             days.append(day)
         day += dt.timedelta(days=1)
