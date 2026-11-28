@@ -1,0 +1,414 @@
+{
+ "cells": 250,
+ "decided": 212,
+ "unsure": 38,
+ "by_group": {
+  "T_border": {
+   "sampled": 50,
+   "decided": 40,
+   "interference": 21
+  },
+  "T_flag": {
+   "sampled": 60,
+   "decided": 52,
+   "interference": 50
+  },
+  "T_random": {
+   "sampled": 100,
+   "decided": 94,
+   "interference": 21
+  },
+  "T_sparse": {
+   "sampled": 40,
+   "decided": 26,
+   "interference": 26
+  }
+ },
+ "days": [
+  "2026-11-05",
+  "2026-11-06",
+  "2026-11-07",
+  "2026-11-08",
+  "2026-11-09",
+  "2026-11-10",
+  "2026-11-11",
+  "2026-11-12",
+  "2026-11-13",
+  "2026-11-14",
+  "2026-11-15",
+  "2026-11-16",
+  "2026-11-17",
+  "2026-11-18"
+ ],
+ "q1_agreement": {
+  "model": {
+   "estimate": 0.892,
+   "ci95": [
+    0.8569,
+    0.9245
+   ],
+   "cells": 186
+  },
+  "rules": {
+   "estimate": 0.892,
+   "ci95": [
+    0.856,
+    0.9231
+   ],
+   "cells": 186
+  },
+  "rules_where_they_decide": {
+   "estimate": 0.9061,
+   "ci95": [
+    0.8752,
+    0.9364
+   ],
+   "cells": 181
+  },
+  "rules_no_verdict_share": {
+   "estimate": 0.0197,
+   "ci95": [
+    0.0014,
+    0.0378
+   ],
+   "cells": 210
+  }
+ },
+ "q2": {
+  "false_alarm_share_of_model_flags": {
+   "estimate": 0.0065,
+   "ci95": [
+    0.0,
+    0.0169
+   ],
+   "cells": 64
+  },
+  "interference_share_of_borderline_normal": {
+   "estimate": 0.5379,
+   "ci95": [
+    0.3517,
+    0.7325
+   ],
+   "cells": 58
+  }
+ },
+ "q3_sparse_flag_precision": {
+  "estimate": 1.0,
+  "ci95": [
+   1.0,
+   1.0
+  ],
+  "cells": 26
+ },
+ "q4_calibration": {
+  "bands": {
+   "below 0.1": {
+    "estimate": 0.2806,
+    "ci95": [
+     0.2331,
+     0.3367
+    ],
+    "cells": 122,
+    "mean_score": 0.0005
+   },
+   "0.1 to 0.9": {
+    "estimate": null,
+    "ci95": null,
+    "cells": 0,
+    "mean_score": null
+   },
+   "0.9 or more": {
+    "estimate": 1.7626,
+    "ci95": [
+     1.5153,
+     2.0736
+    ],
+    "cells": 64,
+    "mean_score": 0.9987
+   }
+  },
+  "brier_raw_score": 0.1059
+ },
+ "q5_threshold": {
+  "agreement_0.5": {
+   "estimate": 0.892,
+   "ci95": [
+    0.8569,
+    0.9245
+   ],
+   "cells": 186
+  },
+  "agreement_0.1": {
+   "estimate": 0.892,
+   "ci95": [
+    0.8547,
+    0.9228
+   ],
+   "cells": 186
+  },
+  "difference_0.1_minus_0.5": {
+   "difference": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ],
+   "discordant_cells": {
+    "first_only": 0,
+    "second_only": 0
+   }
+  }
+ },
+ "q6_q7_predictors": {
+  "model": {
+   "recall": {
+    "estimate": 0.5599,
+    "ci95": [
+     0.4767,
+     0.6513
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0011,
+    "ci95": [
+     0.0,
+     0.0027
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 11,
+    "n": 15
+   }
+  },
+  "rules": {
+   "recall": {
+    "estimate": 0.5599,
+    "ci95": [
+     0.4781,
+     0.6579
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0011,
+    "ci95": [
+     0.0,
+     0.0027
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 11,
+    "n": 15
+   }
+  },
+  "nic_0.25": {
+   "recall": {
+    "estimate": 0.7383,
+    "ci95": [
+     0.6225,
+     0.8623
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0,
+    "ci95": [
+     0.0,
+     0.0001
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 0,
+    "n": 15
+   }
+  },
+  "nic_0.30": {
+   "recall": {
+    "estimate": 0.6915,
+    "ci95": [
+     0.5753,
+     0.8146
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0,
+    "ci95": [
+     0.0,
+     0.0001
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 0,
+    "n": 15
+   }
+  },
+  "gpsjam_window": {
+   "recall": {
+    "estimate": 0.2469,
+    "ci95": [
+     0.1512,
+     0.3516
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 0,
+    "n": 15
+   }
+  },
+  "gpsjam_day": {
+   "recall": {
+    "estimate": 0.6206,
+    "ci95": [
+     0.4628,
+     0.7919
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0627,
+    "ci95": [
+     0.0099,
+     0.1218
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 0,
+    "n": 15
+   }
+  },
+  "model_t0.1": {
+   "recall": {
+    "estimate": 0.5599,
+    "ci95": [
+     0.4803,
+     0.6579
+    ],
+    "cells": 92
+   },
+   "false_alarm_rate": {
+    "estimate": 0.0011,
+    "ci95": [
+     0.0,
+     0.0027
+    ],
+    "cells": 94
+   },
+   "spoofing_found": {
+    "k": 0,
+    "n": 15
+   }
+  }
+ },
+ "primary_endpoint": {
+  "question": "6: model against NIC share >= 0.25 (Phase 2 gate)",
+  "recall_difference": {
+   "difference": -0.1784,
+   "ci95": [
+    -0.2671,
+    -0.0778
+   ],
+   "discordant_cells": {
+    "first_only": 10,
+    "second_only": 15
+   }
+  },
+  "false_alarm_difference": {
+   "difference": 0.0011,
+   "ci95": [
+    -0.0,
+    0.0027
+   ],
+   "discordant_cells": {
+    "first_only": 2,
+    "second_only": 1
+   }
+  },
+  "rule": "pass if the recall difference's 95% interval is above 0 and the false-alarm difference is at most 0.02",
+  "passes": false,
+  "unsure_bounds": {
+   "unsure_as_interference": {
+    "recall_difference": {
+     "difference": -0.1896,
+     "ci95": [
+      -0.2586,
+      -0.1185
+     ],
+     "discordant_cells": {
+      "first_only": 11,
+      "second_only": 21
+     }
+    },
+    "false_alarm_difference": {
+     "difference": 0.0011,
+     "ci95": [
+      -0.0,
+      0.0026
+     ],
+     "discordant_cells": {
+      "first_only": 2,
+      "second_only": 1
+     }
+    }
+   },
+   "unsure_as_normal": {
+    "recall_difference": {
+     "difference": -0.1784,
+     "ci95": [
+      -0.2694,
+      -0.0769
+     ],
+     "discordant_cells": {
+      "first_only": 10,
+      "second_only": 15
+     }
+    },
+    "false_alarm_difference": {
+     "difference": -0.0239,
+     "ci95": [
+      -0.0452,
+      -0.0034
+     ],
+     "discordant_cells": {
+      "first_only": 3,
+      "second_only": 7
+     }
+    }
+   }
+  }
+ },
+ "q8_one_aircraft_cells": {
+  "k": 3,
+  "n": 3,
+  "share": 1.0,
+  "ci95": [
+   0.438,
+   1.0
+  ],
+  "unsure": 2
+ },
+ "provenance": {
+  "scored_utc": "2026-11-28T09:53:00+00:00",
+  "commit": "4f99bd88efa8d7f684c29f4a588e9394e6715081",
+  "dirty": false,
+  "inputs_sha256": {
+   "gold": "610e4adef5b08bd7",
+   "groups": "c363d88db9fb1561",
+   "frames": "980acb13232024c8"
+  }
+ }
+}
