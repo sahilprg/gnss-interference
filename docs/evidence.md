@@ -22,9 +22,13 @@ hash of every input):
   0.1% of judged cells; flags in the hotspot regions were right 26 of 26 times.
 * **Hand-labeled test days never used for any decision:** 92% agreement over the whole
   day (1 Nov), and flags from cells with only 1-2 aircraft right 47 of 47 times.
-* **Against a simple baseline** (degraded-NIC share, set to about the same calm-region
-  alarm rate): the model finds 86% of hand-labeled interference against 76%, and 56 of
-  80 spoofing cells against none (development sets; the sealed test decides).
+* **Sealed test (the declared decider; 250 cells, 5-18 Nov 2026):** the model finds 56%
+  of interference (48-65%), a degraded-NIC share rule (>= 0.25) 74% (62-86%); paired
+  difference -17.8 points (-26.7 to -7.8). False alarms near zero for both (0.11% and
+  0%). **The model fails its gate.** It flags exactly what the rules flag; its flags are
+  precise (99% interference) and it catches 13 of 15 spoofing cells. GPSJam-style: 25%
+  per window, 62% per day with 6.3% false alarms. (Development sets had shown 86%
+  against 76%; they were samples of the model's own training period.)
 * **Ground stations:** six EUREF stations around Kaliningrad show no agreement with the
   map beyond a shifted-days control (expected and stated before the data: they are
   outside the jammers' line of sight).
@@ -64,8 +68,8 @@ hash of every input):
   degraded the rules give no verdict and the model says normal; in the Baltic the
   reviewer saw jamming in 17 of 18 such cells, so the map shows some jamming edges as
   normal (about 2% of the Baltic's jammed area). Outside the Baltic the reviewer called
-  9 of 12 decided such cells jamming (75%, 47-91%): not enough to call the miss general;
-  the sealed test decides. Evaluation
+  9 of 12 decided such cells jamming (75%, 47-91%); on the sealed test 3 of 3 (44-100%):
+  still not enough to call it general. Evaluation
   protocol, "Disagreement set 1".
 * **The model mostly agrees with its own rules** on real data; it has not yet been shown
   to beat them there.
@@ -176,6 +180,8 @@ python -m http.server -d public 8000 --bind 127.0.0.1   # preview at http://127.
 Since then: a correctness pass, independent evidence, a ground-station check,
 incident pages, and a correction after an external review (8 Nov 2026: three bugs fixed,
 figures re-measured; evaluation protocol, "Correction 1") ([docs/roadmap.md](roadmap.md), with the status of each item).
-Release 0.2.0 is archived before the sealed test (19 Nov 2026; [doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)), which decides whether
-the model beats the integrity-only baseline ([CHANGELOG.md](../CHANGELOG.md)).
+Release 0.2.0 was archived before the sealed test ([doi:10.5281/zenodo.24015201](https://doi.org/10.5281/zenodo.24015201)), and the test's
+scoring code before its draw ([doi:10.5281/zenodo.24073541](https://doi.org/10.5281/zenodo.24073541)). The sealed test (scored
+28 Nov 2026) found that the model does not beat the integrity-only baseline
+([CHANGELOG.md](../CHANGELOG.md)).
 

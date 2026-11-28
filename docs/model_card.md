@@ -78,7 +78,11 @@ truth. No hand labels are used for training.
   times. Cells with one degraded aircraft out of 3-9 get no rule verdict and no training
   label; the model calls them normal, and in the Baltic the reviewer saw jamming in 17
   of 18 (evaluation protocol, "Disagreement set 1"); outside the Baltic 9 of 12 decided
-  (47-91%, set 1b), not enough to call it general; the sealed test decides.
+  (47-91%, set 1b), and 3 of 3 on the sealed test (44-100%): not yet shown general.
+* **Sealed test (28 Nov 2026): fails its gate.** Recall 56% against 74% for a NIC-share
+  rule (>= 0.25), false alarms near zero for both; the model's flags equal the rules'
+  flags on every sampled cell. Use it as a precise but conservative detector, not as an
+  improvement on the rules (evaluation protocol, "Sealed test: result").
 * Several jammers close together are fitted as one source.
 * One labeler, two labeled days (26 Oct, 1 Nov). Coverage changes over time (new receivers) shift flag
   rates without any change in interference (docs/data.md).

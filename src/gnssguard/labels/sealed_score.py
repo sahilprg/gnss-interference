@@ -87,9 +87,15 @@ def load(gold: pd.DataFrame, groups: pd.DataFrame, frames: pd.DataFrame) -> pd.D
 
 def _ratio(t: pd.DataFrame, w: str, num: pd.Series, den: pd.Series,
            days: list[str], rng) -> dict:
-    """Weighted share num/den over the rows with den, with a day-clustered interval."""
+    """Weighted share num/den over the rows with den, with a day-clustered interval.
+
+    The numerator counts only rows inside the denominator. Until 28 Nov 2026 it did not,
+    which inflated the question 4 score bands and question 1's "rules where they decide"
+    in the sealed test's declared run (evaluation protocol, sealed test result).
+    """
     W = t[w].to_numpy(float)
-    a, b = (W * num.to_numpy(bool)), (W * den.to_numpy(bool))
+    inside = den.to_numpy(bool)
+    a, b = (W * (num.to_numpy(bool) & inside)), (W * inside)
     by = t["date"].to_numpy()
     A = pd.Series(a).groupby(by).sum().reindex(days, fill_value=0.0).to_numpy()
     B = pd.Series(b).groupby(by).sum().reindex(days, fill_value=0.0).to_numpy()

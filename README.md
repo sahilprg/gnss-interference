@@ -31,18 +31,22 @@ window, jamming, spoofing, normal, or not enough aircraft to say.
 | --- | --- | --- |
 | Of the public interference events, the event day **stands out against the same area on ordinary days for 2** (Kaliningrad spoofing, Mar 2025; Gdansk Bay jamming, May 2025), plus the two Delhi spoofing events (against only 7 ordinary days) and one partly (western Black Sea, Nov 2026); 14 of 15 are "found" (3 or more matching cells) | Where the map's flags rise on a reported day | That most events were unusual: near Kaliningrad jamming is routine, so "found" there means little. One miss (Kaliningrad, Nov 2024) |
 | A **second receiver network** (OpenSky) confirms **70-84%** of jamming cells outside the Baltic, and flags 0.2% (calm Central Europe) to 9.3% (Black Sea) of the cells the model calls normal; the Baltic reaches 73% once both count the same aircraft | The data handling holds up against independent receivers and decoding | The physics: both networks hear the same aircraft. The declared check failed (60% pooled) and is published as failed |
-| On hand-labeled cells, the model finds **86%** of interference, a NIC-share baseline 76%, a **GPSJam-style** NACp score **45%** | NIC and motion checks catch what a NACp-only map misses, spoofing included | A real-world rate: development samples, one labeler. The sealed test (19 Nov 2026) decides |
+| **Sealed test** (250 cells, 5-18 Nov 2026, drawn and scored exactly as declared in advance): the model finds **56%** of interference, a simple NIC-share rule **74%**; both raise almost no false alarms. **The model fails its declared gate** | Flags are precise (99% are interference) and spoofing is caught (13 of 15 flagged, 11 named) | That the learned model adds anything: it reproduces the rules, whose thresholds are too strict. One labeler, 15% unsure |
 
-**The honest caveat:** the model is trained on labels made by readable rules, and on real
-data it reproduces them (on 1 Nov they disagreed on 1 of 6,542 judged cells). Its
-advantage so far is on simulated attacks the rules miss; on real cells where the two
-disagree, a blind review found it no better, with a known miss at jamming edges where
-only one aircraft is degraded. The strength of the project is
+**The honest result:** the model is trained on labels made by readable rules and, on the
+sealed test, flags exactly what they flag. A one-line rule (flag a cell when a quarter of
+its aircraft report degraded integrity) found more interference; the model's advantage
+is only on simulated attacks. The map stays useful (its flags are precise, and spoofing
+is named), but the learned model is not promoted over the rules. The strength of the
+project is
 the pipeline and the evaluation discipline: every check is declared before its data is
 seen, failed checks are published, and `gnssguard benchmark` regenerates the main
-tables with hashes (not yet every number; see the roadmap). The sealed test (drawn on or
-after 19 Nov 2026) has its scoring code and one primary endpoint fixed in advance. Full
-results and limits: [docs/evidence.md](docs/evidence.md).
+tables with hashes (not yet every number; see the roadmap). The sealed test's scoring
+code and one primary endpoint were archived before the draw
+([doi:10.5281/zenodo.24073541](https://doi.org/10.5281/zenodo.24073541)); its result,
+including a scoring bug found afterwards and corrected in the open, is in
+[the evaluation protocol](docs/evaluation_protocol.md#sealed-test-result-labeled-by-sp-scored-once-on-28-nov-2026).
+Full results and limits: [docs/evidence.md](docs/evidence.md).
 
 ## How it works
 

@@ -1316,3 +1316,98 @@ so far, as a description (not a re-scoring): EV09 (0 of 56 ordinary days) and EV
 56) stand out; EV13 and EV16 (0 of 7) have too few ordinary days; EV18 (12 of 67) partly;
 the others are matched or beaten on most ordinary days (Kaliningrad-area jamming is
 routine).
+
+## Sealed test: result (labeled by SP, scored once on 28 Nov 2026)
+
+**What was done, as declared.** Sample drawn 19 Nov 2026 (commit be0ea63) on the
+archived code (v0.2.1-protocol, doi:10.5281/zenodo.24073541; nothing in `src/` or
+`models/detector` changed between the archive and the scoring run): 250 cell-windows,
+5-18 Nov, all four groups full (100 / 60 / 50 / 40), every group covering all 5 regions
+and all 14 days. Labeled blind (labels committed 28 Nov, 4f99bd8), scored once
+(`results/sealed_test.json`, f3f618c, scoring commit 4f99bd8, clean tree). 212 cells
+decided, **38 unsure** (15%; 14 of the 40 sparse cells). Labels: jamming 98, both 14,
+spoofing 6, normal 94.
+
+### Primary endpoint (question 6): **the model does not pass**
+
+| | Model | NIC share >= 0.25 | Difference (paired, day-clustered 95%) |
+| --- | --- | --- | --- |
+| Recall (day-weighted) | **56.0%** (47.7-65.1%) | **73.8%** (62.3-86.2%) | **-17.8 points (-26.7 to -7.8)**; cells only one catches: model 10, baseline 15 |
+| False-alarm rate | 0.11% (0-0.27%) | 0.00% (0-0.01%) | +0.11 points (0 to +0.27); allowance 2 points |
+
+The rule was: pass if the recall difference's interval is above 0 and false alarms are
+not more than 2 points higher. The false-alarm condition holds; **the recall condition
+fails, and the whole interval is below 0**: the simple baseline finds more interference
+than the model. With all unsure cells as interference the recall difference is -19.0
+(-25.9 to -11.9); with all as normal, -17.8 (-26.9 to -7.7). The verdict holds either
+way.
+
+**The prediction made before the draw was wrong.** Addendum 3 expected a failure on
+false alarms (development sets: 5.0% against 1.7%). On the sealed days both predictors
+raise almost no false alarms; the model fails on misses instead.
+
+### The other questions (reported, not gates)
+
+| Question | Result |
+| --- | --- |
+| 1. Agreement with the labeler, day-weighted | model **89.2%** (85.7-92.5%); rules 89.2% (85.6-92.3%); rules where they decide 90.6%; rules give no verdict on 2.0% of judged cells |
+| 2a. Model flags the labeler calls normal | **0.65%** (0-1.7%); in the T_flag group, 50 of 52 decided are interference |
+| 2b. Borderline cells both call normal that are interference | **54%** (35-73%); in the T_border group, 21 of 40 decided |
+| 3. Flags from 1-2 aircraft that are interference | **100%** of 26 decided (14 unsure) |
+| 4. Interference by published score band (corrected, see below) | below 0.1: **12.2%** (8.8-16.1%); 0.1-0.9: no sampled cell; 0.9 or more: **99.4%** (98.4-100%). Brier score of the raw score 0.106 |
+| 5. Threshold 0.1 against 0.5 | no difference (89.2% both; no cell changes) |
+| 7. Other baselines, recall / false alarms | NIC >= 0.30: 69.2% / 0.00%; GPSJam-style per window: **24.7%** / 0.00%; GPSJam-style per day: 62.1% / **6.3%** (1.0-12.2%) |
+| 6-7. Spoofing found (labeler spoofing or both, judged) | model and rules name it spoofing in 11 of 15 (the scoring credits only a named type, so the baselines, which give no type, score 0 by construction). Flagged as interference at all: model 13 of 15, NIC >= 0.25 8, GPSJam-style per day 5 |
+| 8. One-aircraft cells (T_border, rule "unknown") | **3 of 3** decided interference (44-100%), 2 unsure; lower bound not above 50%, so **not shown** as declared |
+
+Against the published score bands (calibration set: 3.5% below 0.1, 98.6% at 0.9 or
+more), the sealed days show more interference among low scores (12.2%): the misses
+above.
+
+### Correction 3 (28 Nov 2026, after scoring): question 4 numerator
+
+The declared run reported question 4's bands as 28.1% (below 0.1) and **176%** (0.9 or
+more), an impossible share. The cause: the share function (`_ratio`) counted the
+numerator over all rows instead of only the denominator's rows, so each band counted
+interference from the other band. Every other number is unaffected: elsewhere the rows
+outside the denominator carry zero weight (checked call by call; question 1's "rules
+where they decide" could have been affected but no sealed cell hits that case). The
+declared run reproduces bit for bit from the three committed files; with the fix,
+**only the four question 4 numbers change** and everything else, the primary endpoint
+included, is identical down to the bootstrap intervals. The fix and a test that fails on
+the old code are in the commit after the score; the corrected run is
+`results/sealed_test_corrected.json` beside the untouched declared one. The fake-label
+tests written before the draw did not check question 4: a gap in those tests.
+
+### What it means (exploratory, not declared)
+
+* **The model is the rules.** On every sampled cell the model's flag equals the rules'
+  flag; the only label differences (7 cells) are rule "unknown" where the model says
+  normal. It inherits their
+  strict thresholds: precision is excellent (99% of flags are interference, 100% of
+  sparse flags) and false alarms are near zero, but it misses.
+* **What it misses.** 30 interference cells: 21 borderline, 9 random; 25 the rules call
+  "normal", with a median degraded share of 0.24 (just under the baseline's 0.25) and a
+  median of 5 usable aircraft; 13 in the Black Sea. The baseline catches 15 of them.
+* **Where the pipeline earns something:** spoofing. Of 15 spoofing cells the model
+  flags 13 and names 11 as spoofing; the NIC baseline flags 8 and cannot tell spoofing
+  from jamming. The rules do exactly the same as the model (motion checks), so this is
+  the rules' value, not the learned model's.
+* **GPSJam-style** per window finds a quarter of the interference; per day it finds
+  more but with 6.3% false alarms.
+
+**Limits.** One labeler, who also wrote the code and had seen the public map for 7 Nov
+(addendum 3). 15% of cells unsure. Day-clustered intervals rest on 14 days. Recall is
+measured on the labeler's judgement, which leans on the same aircraft reports as the
+predictors; no outside ground truth.
+
+### What follows (from now on; the sealed days may be used)
+
+* The model is not promoted over the rules. The product keeps publishing (its flags are
+  precise), and the README states that a simple NIC-share rule found more interference
+  on the sealed test.
+* First change: lower the integrity rules' threshold towards the NIC baseline's, and
+  label one-aircraft cells "possible, unreviewed" instead of normal; measured on new
+  days against this result, never on the sealed days as a test again.
+* Release 0.2.1: the prepared bug 3 fix (fresh quality fields, points/3), as planned
+  after the sealed test.

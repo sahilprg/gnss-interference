@@ -1,6 +1,17 @@
 # Changelog
 
-## Unreleased: before the sealed draw, after the review of 9 Nov 2026
+## Unreleased: the sealed test (28 Nov 2026)
+
+* Sealed test drawn 19 Nov, labeled and scored once 28 Nov on the archived code: **the
+  model does not pass** its gate (recall 56% against 74% for a NIC-share rule, paired
+  difference -17.8 points, -26.7 to -7.8; false alarms near zero for both). README,
+  evidence and model card lead with it.
+* Correction 3: the share function counted numerators outside their denominator, giving
+  an impossible question 4 band share (176%). Fixed with a test that fails on the old
+  code; only the four question 4 numbers change (12.2% and 99.4%); the declared run is
+  kept untouched beside `results/sealed_test_corrected.json`.
+
+## Before the sealed draw, after the review of 9 Nov 2026
 
 * Sealed test: `gnssguard sealed-score` written and tested before any label (estimands,
   inclusion probabilities, day-clustered and paired intervals, unsure bounds); one

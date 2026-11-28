@@ -177,3 +177,21 @@ def test_sealed_score_command_scores_once(tmp_path, monkeypatch, capsys):
     assert set(res["provenance"]["inputs_sha256"]) == {"gold", "groups", "frames"}
     assert "passes" in res["primary_endpoint"]
     assert cli.main(argv) == 1 and "scored once" in capsys.readouterr().err
+
+
+def test_shares_count_only_rows_inside_the_denominator(monkeypatch):
+    # the sealed test's declared run reported a score-band share of 1.76 (28 Nov 2026):
+    # the numerator counted interference outside the band
+    monkeypatch.setattr(SS, "BOOT", 30)
+    t = pd.DataFrame({"w": [1.0] * 6, "date": ["d1"] * 3 + ["d2"] * 3})
+    num = pd.Series([True, True, True, True, False, False])
+    den = pd.Series([True, False, False, True, True, False])
+    r = SS._ratio(t, "w", num, den, ["d1", "d2"], np.random.default_rng(0))
+    assert r["estimate"] == round(2 / 3, 4)
+    c, score, rules, model, p = population(7)
+    gold, groups, frames = draw_and_label(c, score, rules, model, p, seed=4)
+    res = SS.score(gold, groups, frames)
+    for name, band in res["q4_calibration"]["bands"].items():
+        if band["estimate"] is not None:
+            assert 0 <= band["estimate"] <= 1, (name, band)
+            assert 0 <= band["ci95"][0] <= band["ci95"][1] <= 1, (name, band)
